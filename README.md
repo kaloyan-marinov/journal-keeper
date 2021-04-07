@@ -19,7 +19,9 @@ lrwxr-xr-x  1 <user>  <group>    21B Apr  7 07:07 ./node_modules/.bin/tsc@ -> ..
     -rw-r--r--   1 <user>  <group>   195B Apr  7 08:13 server.ts
     ```
 
-3. to compile the whole project, issue
+3. there are two options for running the project
+
+    (a) first, compile the whole project by issuing
 
     ```
     $ ./node_modules/.bin/tsc
@@ -35,9 +37,15 @@ lrwxr-xr-x  1 <user>  <group>    21B Apr  7 07:07 ./node_modules/.bin/tsc@ -> ..
     -rw-r--r--   1 <user>  <group>   193B Apr  7 08:14 server.js
     ```
 
-4. to run the compiled project, issue
+    second, run the compiled project by issuing
 
     ```
     $ node dist/server.js
     2021-04-07T05:19:29.069Z - Hello, John Doe!
+    ```
+
+    (b) run the whole project by issuing
+
+    ```
+    $ ./node_modules/.bin/ts-node src/server.ts
     ```
