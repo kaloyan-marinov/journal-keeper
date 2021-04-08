@@ -23,7 +23,7 @@ lrwxr-xr-x  1 <user>  <group>    21B Apr  7 07:07 ./node_modules/.bin/tsc@ -> ..
 
     (a) without re-starting the project when changes are made
     
-      - (approach a.1): first, compile the whole project by issuing `$ ./node_modules/.bin/tsc`, which is going to create a `dist` folder containing JavaScript files (as the result result of the compilation process); second, run the compiled project by issuing `$ node dist/server.js`
+      - (approach a.1): first, compile the whole project by issuing `$ ./node_modules/.bin/tsc`, which is going to create a `dist` folder containing JavaScript files (as the result result of the compilation process); second, run the compiled project by issuing `$ node dist/server.js` or `$ npm run start` (or, even more succunctly, `$ npm start`)
 
       - (approach a.2): directly run the whole project by issuing `$ ./node_modules/.bin/ts-node src/server.ts`
 
