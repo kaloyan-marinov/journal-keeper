@@ -1,0 +1,14 @@
+{
+  "editor.rulers": [
+    88, 100
+  ],
+  
+  // Set the default
+  "editor.formatOnSave": false,
+
+  // Enable per-language
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  }
+}
