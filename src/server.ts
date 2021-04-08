@@ -2,12 +2,12 @@ import Koa from 'koa';
 import Router from 'koa-router';
 
 /* Create a Koa application instance. */
-const app = new Koa();
+const app: Koa = new Koa();
 
 /* Configure the application instance to use a router middleware. */
-const router = new Router();
+const router: Router = new Router();
 
-router.get('/', ctx => {
+router.get('/', (ctx: Koa.Context) => {
     ctx.body = { msg: 'Hello World!' };
 });
 
