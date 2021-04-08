@@ -41,11 +41,12 @@ lrwxr-xr-x  1 <user>  <group>    21B Apr  7 07:07 ./node_modules/.bin/tsc@ -> ..
 
     ```
     $ node dist/server.js
-    2021-04-07T05:19:29.069Z - Hello, John Doe!
+    Server listening on port 3000
     ```
 
     (b) run the whole project by issuing
 
     ```
     $ ./node_modules/.bin/ts-node src/server.ts
+    Server listening on port 3000
     ```
