@@ -7,6 +7,14 @@ lrwxr-xr-x  1 <user>  <group>    21B Apr  7 07:07 ./node_modules/.bin/tsc@ -> ..
 
 ---
 
+to run the tests, issue:
+
+```
+$ ./node_modules/.bin/jest
+```
+
+---
+
 1. recall the values for `"rootDir"` and `"outDir"` that are specified in the `tsconfig.json` file
 
 2. recognize that the `src` folder contains a(n admittedly minimal) software project, which is written in valid TypeScript
