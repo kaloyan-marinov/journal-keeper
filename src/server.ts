@@ -1,6 +1,7 @@
 import Koa from "koa";
 import Router from "koa-router";
 import bodyParser from "koa-bodyparser";
+import logger from "koa-logger";
 
 /* Introduce an in-memory database. */
 interface IUser {
@@ -94,6 +95,8 @@ router.post("/api/users", (ctx: Koa.Context) => {
 });
 
 app.use(bodyParser());
+
+app.use(logger());
 
 app.use(router.allowedMethods());
 
