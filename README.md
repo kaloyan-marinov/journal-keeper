@@ -38,3 +38,51 @@ $ ./node_modules/.bin/jest
     (b) in such a way that the project is re-started whenever changes are made
 
       - (approach b.1): directly run the compiled project by issuing `$ ./node_modules/.bin/nodemon` or `$ npm run start` (or, even more succunctly, `$ npm start` ); _this approach ensures that the project will be re-started whenever changes are made to the `src/server.ts` file_
+
+---
+
+```
+$ curl \
+  -i \
+  localhost:3000/api/users
+
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Length: 30
+Date: Fri, 09 Apr 2021 05:34:07 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"1":{"id":1,"username":"jd"}}
+```
+
+```
+$ curl \
+  -i \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"username": "ms", "name": "Mary Smith", "email": "mary.smith@protonmail.com", "password": "456"}' \
+  localhost:3000/api/users
+
+HTTP/1.1 201 Created
+Content-Type: application/json; charset=utf-8
+Content-Length: 24
+Date: Fri, 09 Apr 2021 05:34:40 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"id":2,"username":"ms"}
+
+
+
+$ curl -i localhost:3000/api/users
+
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Length: 59
+Date: Fri, 09 Apr 2021 05:35:02 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"1":{"id":1,"username":"jd"},"2":{"id":2,"username":"ms"}}
+```
