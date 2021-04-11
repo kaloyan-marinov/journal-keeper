@@ -7,11 +7,21 @@ lrwxr-xr-x  1 <user>  <group>    21B Apr  7 07:07 ./node_modules/.bin/tsc@ -> ..
 
 ---
 
-to run the tests, issue:
+to run the tests, issue any one of the following:
 
 ```
 $ ./node_modules/.bin/jest
 ```
+
+```
+$ npm run test
+```
+
+```
+$ npm test
+```
+
+which will create a `coverage/` folder with a report of test coverage; to view that report, open `coverage/index.html` in your web browser
 
 ---
 
