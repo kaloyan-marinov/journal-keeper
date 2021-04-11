@@ -1,17 +1,20 @@
 import http from "http";
 import request from "supertest";
 import { app, connectionPromise } from "../src/server";
-import { Connection } from "typeorm";
+import { Connection, Repository } from "typeorm";
+import { User } from "../src/entities";
 
+let connection: Connection;
 let server: http.Server;
 
 beforeEach(async () => {
-  const connection: Connection = await connectionPromise;
+  connection = await connectionPromise;
   console.log(
     `Establishing a connection (named "${connection.name}) to the DB - successful.`
   );
 
-  await connection.synchronize();
+  const dropBeforeSync = true;
+  await connection.synchronize(dropBeforeSync);
   console.log("Synchronizing the DB schema - successful.");
 
   const PORT_FOR_TESTING: number = 3001;
@@ -35,10 +38,29 @@ describe("POST /api/users", () => {
     });
 
     expect(response.status).toEqual(201);
+    expect(response.headers.location).toEqual("/api/users/1");
     expect(response.type).toEqual("application/json");
     expect(response.body).toEqual({
       id: 1,
       username: "ms",
+    });
+
+    const usersRepository: Repository<User> = connection.getRepository(User);
+    const users = await usersRepository.find();
+    expect(users.length).toEqual(1);
+    const { id, username, name, email, password } = users[0];
+    expect({
+      id,
+      username,
+      name,
+      email,
+      password,
+    }).toEqual({
+      id: 1,
+      username: "ms",
+      name: "Mary Smith",
+      email: "mary.smith@protonmail.com",
+      password: "456",
     });
   });
 });
@@ -50,7 +72,7 @@ describe("GET /api/users", () => {
     expect(response.status).toEqual(200);
     expect(response.type).toEqual("application/json");
     expect(response.body).toEqual({
-      users: [{ id: 1, username: "ms" }],
+      users: [],
     });
   });
 });
