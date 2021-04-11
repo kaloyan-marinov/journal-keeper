@@ -2,6 +2,7 @@ import Koa from "koa";
 import Router from "koa-router";
 import bodyParser from "koa-bodyparser";
 import logger from "koa-logger";
+import { connectToDB } from "./entities";
 
 /* Introduce an in-memory database. */
 interface IUser {
@@ -37,6 +38,8 @@ let users: IUsers = {
 
 /* Create a Koa application instance. */
 const app: Koa = new Koa();
+
+connectToDB(app).then(() => console.log("connected to the DB"));
 
 /* Configure the application instance to use a router middleware. */
 const router: Router = new Router();
