@@ -7,21 +7,33 @@ lrwxr-xr-x  1 <user>  <group>    21B Apr  7 07:07 ./node_modules/.bin/tsc@ -> ..
 
 ---
 
-to run the tests, issue any one of the following:
+1. to run the tests once, issue any one of the following:
 
-```
-$ ./node_modules/.bin/jest
-```
+    ```
+    $ ./node_modules/.bin/jest
+    ```
 
-```
-$ npm run test
-```
+    ```
+    $ npm run test
+    ```
 
-```
-$ npm test
-```
+    ```
+    $ npm test
+    ```
 
-which will create a `coverage/` folder with a report of test coverage; to view that report, open `coverage/index.html` in your web browser
+    which will create a `coverage/` folder with a report of test coverage; to view that report, open `coverage/index.html` in your web browser
+
+2. to run the tests in watch mode, issue any one of the following:
+
+    ```
+    $ ./node_modules/.bin/jest --watchAll
+    ```
+
+    ```
+    $ npm run test--watchAll
+    ```
+
+    each re-run of which will update the contents of the `coverage/` folder
 
 ---
 
