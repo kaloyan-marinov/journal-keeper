@@ -2,7 +2,7 @@ import Koa from "koa";
 import Router from "koa-router";
 import bodyParser from "koa-bodyparser";
 import logger from "koa-logger";
-import { connectToDB } from "./entities";
+import { Connection, createConnection } from "typeorm";
 
 /* Introduce an in-memory database. */
 interface IUser {
@@ -36,10 +36,16 @@ let users: IUsers = {
   },
 };
 
+/* Connect to the database. */
+const connectionName: string =
+  process.env.NODE_ENV === "test"
+    ? "connection-to-db-for-testing"
+    : "connection-to-db-for-dev";
+
+const connectionPromise: Promise<Connection> = createConnection(connectionName);
+
 /* Create a Koa application instance. */
 const app: Koa = new Koa();
-
-connectToDB(app).then(() => console.log("connected to the DB"));
 
 /* Configure the application instance to use a router middleware. */
 const router: Router = new Router();
@@ -105,9 +111,22 @@ app.use(router.allowedMethods());
 
 app.use(router.routes());
 
-/* Create and start an HTTP server. */
-const server = app.listen(3000, () => {
-  console.log(`Server listening on port 3000`);
-});
+/* Create and return an HTTP server. */
+if (process.env.NODE_ENV !== "test") {
+  const serverPromise = connectionPromise
+    .then((connection: Connection) => {
+      console.log(
+        `Establishing a connection (named "${connection.name}") to the DB - successful.`
+      );
 
-export default server;
+      const PORT: number = 3000;
+      const server = app.listen(PORT, () => {
+        console.log(`Server listening on port ${PORT}...`);
+      });
+
+      return server;
+    })
+    .catch((err) => console.error(err));
+}
+
+export { app, connectionPromise };

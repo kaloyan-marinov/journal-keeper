@@ -37,6 +37,29 @@ lrwxr-xr-x  1 <user>  <group>    21B Apr  7 07:07 ./node_modules/.bin/tsc@ -> ..
 
 ---
 
+to create an SQLite database:
+
+1. specifiy `DATABASE_URL` in `.env`
+
+2. create an initial migration script:
+    ```
+    $ ./node_modules/.bin/ts-node \
+      ./node_modules/typeorm/cli.js \
+      migration:generate \
+      -c connection-to-db-for-dev \
+      -n createUsersTable
+    ```
+
+3. run the migration script:
+    ```
+    $ ./node_modules/.bin/ts-node \
+      ./node_modules/typeorm/cli.js \
+      migration:run \
+      -c connection-to-db-for-dev
+    ```
+
+---
+
 1. recall the values for `"rootDir"` and `"outDir"` that are specified in the `tsconfig.json` file
 
 2. recognize that the `src` folder contains a(n admittedly minimal) software project, which is written in valid TypeScript
