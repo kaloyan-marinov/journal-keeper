@@ -11,10 +11,6 @@ interface IPublicUser {
   username: string;
 }
 
-interface IPublicUsers {
-  [index: string]: IPublicUser;
-}
-
 /* Connect to the database. */
 const connectionName: string =
   process.env.NODE_ENV === "test"
@@ -35,18 +31,12 @@ router.get("/api/users", async (ctx: Koa.Context) => {
   );
   const users: User[] = await usersRepository.find();
 
-  const publicUsers: IPublicUsers = users.reduce(
-    (obj: IPublicUsers, currUser: User) => {
-      obj[currUser.id!] = {
-        id: currUser.id!,
-        username: currUser.username!,
-      };
-      return obj;
-    },
-    {}
-  );
+  const publicUsers: IPublicUser[] = users.map((u) => ({
+    id: u.id!,
+    username: u.username!,
+  }));
 
-  ctx.body = publicUsers;
+  ctx.body = { users: publicUsers };
 });
 
 router.post("/api/users", async (ctx: Koa.Context) => {
