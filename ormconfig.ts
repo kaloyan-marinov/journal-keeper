@@ -20,4 +20,10 @@ module.exports = [
     },
     migrations: ["src/migration/*.ts"],
   },
+  {
+    name: "connection-to-db-for-testing",
+    type: "sqlite",
+    database: ":memory:",
+    entities: [User],
+  },
 ];
