@@ -89,6 +89,15 @@ to create an SQLite database:
 ```
 $ curl \
   -i \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"username": "jd", "name": "John Doe", "email": "john.doe@protonmail.com", "password": "123"}' \
+  localhost:3000/api/users
+```
+
+```
+$ curl \
+  -i \
   localhost:3000/api/users
 
 HTTP/1.1 200 OK
