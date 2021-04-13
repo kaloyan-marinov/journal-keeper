@@ -97,6 +97,27 @@ router.get("/api/users", async (ctx: Koa.Context) => {
   ctx.body = { users: publicUsers };
 });
 
+router.get("/api/users/:id", async (ctx: Koa.Context) => {
+  const userId: number = ctx.params.id;
+  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
+    User
+  );
+  const user: User | undefined = await usersRepository.findOne({ id: userId });
+
+  if (user === undefined) {
+    ctx.status = 404;
+    ctx.body = {
+      error: `There doesn't exist a User resource with an ID of ${userId}`,
+    };
+    return;
+  }
+
+  ctx.body = {
+    id: user.id,
+    username: user.username,
+  };
+});
+
 app.use(bodyParser());
 
 app.use(logger());

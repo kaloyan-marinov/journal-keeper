@@ -218,3 +218,44 @@ describe("GET /api/users", () => {
     }
   );
 });
+
+describe("GET /api/users/:id", () => {
+  test(
+    "if a client specifies a non-existent User ID," +
+      " the server should respond with a 404",
+    async () => {
+      const response = await request(server).get("/api/users/1");
+
+      expect(response.status).toEqual(404);
+      expect(response.type).toEqual("application/json");
+      expect(response.body).toEqual({
+        error: "There doesn't exist a User resource with an ID of 1",
+      });
+    }
+  );
+
+  test(
+    "if a client specifies an existing User ID," +
+      "the server should respond with (a public representation of) that User resource",
+    async () => {
+      const response1 = await request(server)
+        .post("/api/users")
+        .set("Content-Type", "application/json")
+        .send({
+          username: "jd",
+          name: "John Doe",
+          email: "john.doe@protonmail.com",
+          password: "123",
+        });
+
+      const response2 = await request(server).get("/api/users/1");
+
+      expect(response2.status).toEqual(200);
+      expect(response2.type).toEqual("application/json");
+      expect(response2.body).toEqual({
+        id: 1,
+        username: "jd",
+      });
+    }
+  );
+});
