@@ -118,6 +118,75 @@ router.get("/api/users/:id", async (ctx: Koa.Context) => {
   };
 });
 
+router.put("/api/users/:id", async (ctx: Koa.Context) => {
+  if (ctx.request.headers["content-type"] !== "application/json") {
+    ctx.status = 400;
+    ctx.body = {
+      error: "Your request did not include a 'Content-Type: application/json' header",
+    };
+    return;
+  }
+
+  const userId: number = ctx.params.id;
+  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
+    User
+  );
+  const user: User | undefined = await usersRepository.findOne({ id: userId });
+
+  if (user === undefined) {
+    ctx.status = 404;
+    ctx.body = {
+      error: `There doesn't exist a User resource with an ID of ${userId}`,
+    };
+    return;
+  }
+
+  const { username, name, email, password } = ctx.request.body;
+
+  let duplicateUser: User | undefined;
+
+  if (username !== undefined) {
+    duplicateUser = await usersRepository.findOne({ username });
+    if (duplicateUser !== undefined) {
+      ctx.status = 400;
+      ctx.body = {
+        error: `There already exists a User resource with a username of '${username}'`,
+      };
+      return;
+    }
+
+    user.username = username;
+  }
+
+  if (email !== undefined) {
+    duplicateUser = await usersRepository.findOne({ email });
+    if (duplicateUser !== undefined) {
+      ctx.status = 400;
+      ctx.body = {
+        error: `There already exists a User resource with an email of '${email}'`,
+      };
+      return;
+    }
+
+    user.email = email;
+  }
+
+  if (name !== undefined) {
+    user.name = name;
+  }
+
+  if (password !== undefined) {
+    user.password = password;
+  }
+
+  await usersRepository.save(user);
+
+  ctx.body = {
+    id: user.id,
+    username: user.username,
+  };
+});
+
 app.use(bodyParser());
 
 app.use(logger());

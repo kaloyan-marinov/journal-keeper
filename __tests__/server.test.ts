@@ -259,3 +259,140 @@ describe("GET /api/users/:id", () => {
     }
   );
 });
+
+describe("PUT /api/users/:id", () => {
+  test(
+    "if a client requests to edit a User resource without including a" +
+      " 'Content-Type: application/json' header," +
+      " the server should respond with a 400",
+    async () => {
+      const response1 = await request(server).post("/api/users").send({
+        username: "jd",
+        name: "John Doe",
+        email: "john.doe@protonmail.com",
+        password: "123",
+      });
+
+      const response2 = await request(server)
+        .put("/api/users/1")
+        .set("Content-Type", "text/html");
+
+      expect(response2.status).toEqual(400);
+      expect(response2.type).toEqual("application/json");
+      expect(response2.body).toEqual({
+        error: "Your request did not include a 'Content-Type: application/json' header",
+      });
+    }
+  );
+
+  test(
+    "if a client requests to edit a User resource that doesn't exist," +
+      " the server should respond with a 404",
+    async () => {
+      const response = await request(server)
+        .put("/api/users/1")
+        .set("Content-Type", "application/json")
+        .send({
+          username: "new-username",
+          name: "new-name",
+          email: "new-email",
+          password: "new-password",
+        });
+
+      expect(response.status).toEqual(404);
+      expect(response.type).toEqual("application/json");
+      expect(response.body).toEqual({
+        error: "There doesn't exist a User resource with an ID of 1",
+      });
+    }
+  );
+
+  test(
+    "if a client requests to edit a User resource in such a way that its new" +
+      " username (or email) would end up being the same as that of another User" +
+      " resource, the server should respond with a 400",
+    async () => {
+      const response1 = await request(server)
+        .post("/api/users")
+        .set("Content-Type", "application/json")
+        .send({
+          username: "jd",
+          name: "John Doe",
+          email: "john.doe@prootnmail.com",
+          password: "123",
+        });
+
+      const response2 = await request(server)
+        .post("/api/users")
+        .set("Content-Type", "application/json")
+        .send({
+          username: "ms",
+          name: "Mary Smith",
+          email: "mary.smith@protonmail.com",
+          password: "456",
+        });
+
+      // Attempt to edit the 1st User resource in such a way that its new username would
+      // end up being the same as that of the 2nd User resource.
+      const response3 = await request(server)
+        .put("/api/users/1")
+        .set("Content-Type", "application/json")
+        .send({ username: "ms" });
+
+      expect(response3.status).toEqual(400);
+      expect(response3.type).toEqual("application/json");
+      expect(response3.body).toEqual({
+        error: "There already exists a User resource with a username of 'ms'",
+      });
+
+      // Attempt to edit the 1st User resource in such a way that its new email would
+      // end up being the same as that of the 2nd User resource.
+      const response4 = await request(server)
+        .put("/api/users/1")
+        .set("Content-Type", "application/json")
+        .send({ email: "mary.smith@protonmail.com" });
+
+      expect(response4.status).toEqual(400);
+      expect(response4.type).toEqual("application/json");
+      expect(response4.body).toEqual({
+        error:
+          "There already exists a User resource with an email of" +
+          " 'mary.smith@protonmail.com'",
+      });
+    }
+  );
+
+  test(
+    "if a client specifies an existing User ID and provides a request body, which" +
+      " doesn't duplicate another User resource's username or email, the server" +
+      " should edit the targeted User resource",
+    async () => {
+      const response1 = await request(server)
+        .post("/api/users")
+        .set("Content-Type", "application/json")
+        .send({
+          username: "original-username",
+          name: "original-name",
+          email: "original-name",
+          password: "original-password",
+        });
+
+      const response2 = await request(server)
+        .put("/api/users/1")
+        .set("Content-Type", "application/json")
+        .send({
+          username: "new-username",
+          name: "new-name",
+          email: "new-email",
+          password: "new-password",
+        });
+
+      expect(response2.status).toEqual(200);
+      expect(response2.type).toEqual("application/json");
+      expect(response2.body).toEqual({
+        id: 1,
+        username: "new-username",
+      });
+    }
+  );
+});
