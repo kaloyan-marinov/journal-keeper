@@ -25,20 +25,6 @@ const app: Koa = new Koa();
 /* Configure the application instance to use a router middleware. */
 const router: Router = new Router();
 
-router.get("/api/users", async (ctx: Koa.Context) => {
-  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
-    User
-  );
-  const users: User[] = await usersRepository.find();
-
-  const publicUsers: IPublicUser[] = users.map((u) => ({
-    id: u.id!,
-    username: u.username!,
-  }));
-
-  ctx.body = { users: publicUsers };
-});
-
 router.post("/api/users", async (ctx: Koa.Context) => {
   if (ctx.request.headers["content-type"] !== "application/json") {
     ctx.status = 400;
@@ -95,6 +81,20 @@ router.post("/api/users", async (ctx: Koa.Context) => {
     username: user.username!,
   };
   ctx.body = newPublicUser;
+});
+
+router.get("/api/users", async (ctx: Koa.Context) => {
+  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
+    User
+  );
+  const users: User[] = await usersRepository.find();
+
+  const publicUsers: IPublicUser[] = users.map((u) => ({
+    id: u.id!,
+    username: u.username!,
+  }));
+
+  ctx.body = { users: publicUsers };
 });
 
 app.use(bodyParser());
