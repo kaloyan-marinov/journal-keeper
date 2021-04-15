@@ -118,6 +118,41 @@ router.get("/api/users/:id", async (ctx: Koa.Context) => {
   };
 });
 
+const basicAuth = async (ctx: Koa.Context, next: () => Promise<any>) => {
+  // Look at the request's Authorization header.
+  const authHeader = ctx.request.headers.authorization;
+  if (authHeader === undefined) {
+    ctx.status = 401;
+    ctx.body = {
+      error: "authentication required - via Basic authentication",
+    };
+    return;
+  }
+  // Drop the word "Basic"
+  const authCredsEncoded = authHeader.split(" ")[1];
+  // Extract the authentication credentials.
+  const authCredsDecoded = Buffer.from(authCredsEncoded, "base64").toString();
+  const [email, password] = authCredsDecoded.split(":");
+
+  // Validate the authentication credentials.
+  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
+    User
+  );
+  const user: User | undefined = await usersRepository.findOne({ email });
+  if (user === undefined || password !== user.password) {
+    ctx.status = 401;
+    ctx.body = {
+      error: "authentication required - incorrect email and/or password",
+    };
+    return;
+  }
+
+  // Store the authenticated User
+  // for the duration of the current request-response cycle.
+  ctx.user = user;
+  await next();
+};
+
 router.put("/api/users/:id", async (ctx: Koa.Context) => {
   if (ctx.request.headers["content-type"] !== "application/json") {
     ctx.status = 400;
