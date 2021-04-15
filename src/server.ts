@@ -228,21 +228,19 @@ router.put("/api/users/:id", async (ctx: Koa.Context) => {
   };
 });
 
-router.delete("/api/users/:id", async (ctx: Koa.Context) => {
-  const userId = ctx.params.id;
-  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
-    User
-  );
-  const user: User | undefined = await usersRepository.findOne({ id: userId });
-
-  if (user === undefined) {
-    ctx.status = 404;
+router.delete("/api/users/:id", basicAuth, async (ctx: Koa.Context) => {
+  const userId = parseInt(ctx.params.id);
+  if (userId !== ctx.user.id) {
+    ctx.status = 403;
     ctx.body = {
-      error: `There doesn't exist a User resource with an ID of ${userId}`,
+      error: "You are not allowed to delete any User resource different from your own",
     };
     return;
   }
 
+  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
+    User
+  );
   await usersRepository.delete({ id: userId });
 
   ctx.status = 204;

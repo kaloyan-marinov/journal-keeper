@@ -474,15 +474,83 @@ describe("PUT /api/users/:id", () => {
 
 describe("DELETE /api/users/:id", () => {
   test(
-    "if a client requests to delete a User resource that doesn't exist," +
-      " the server should respond with a 404",
+    "if a client attempts to" +
+      " delete a User resource without providing Basic Auth credentials," +
+      " the server should respond with a 401",
     async () => {
-      const response = await request(server).delete("/api/users/1");
+      const response1 = await request(server)
+        .post("/api/users")
+        .set("Content-Type", "application/json")
+        .send({
+          username: "jd",
+          name: "John Doe",
+          email: "john.doe@protonmail.com",
+          password: "123",
+        });
 
-      expect(response.status).toEqual(404);
-      expect(response.type).toEqual("application/json");
-      expect(response.body).toEqual({
-        error: "There doesn't exist a User resource with an ID of 1",
+      const response2 = await request(server).delete("/api/users/1");
+
+      expect(response2.status).toEqual(401);
+      expect(response2.body).toEqual({
+        error: "authentication required - via Basic authentication",
+      });
+    }
+  );
+
+  test(
+    "if a client attempts to" +
+      " delete a User resource by providing an invalid set of Basic Auth credentials," +
+      " the server should respond with a 401",
+    async () => {
+      const response1 = await request(server)
+        .post("/api/users")
+        .set("Content-Type", "application/json")
+        .send({
+          username: "jd",
+          name: "John Doe",
+          email: "john.doe@protonmail.com",
+          password: "123",
+        });
+
+      const response2 = await request(server)
+        .delete("/api/users/1")
+        .set(
+          "Authorization",
+          "Basic " + btoa("john.doe@protonmail.com:wrong-password")
+        );
+
+      expect(response2.status).toEqual(401);
+      expect(response2.body).toEqual({
+        error: "authentication required - incorrect email and/or password",
+      });
+    }
+  );
+
+  test(
+    "if a client attempts to delete a User resource," +
+      " which doesn't correspond to the user authenticated by the issued request's" +
+      " header," +
+      " the server should respond with a 403",
+    async () => {
+      const reponse1 = await request(server)
+        .post("/api/users")
+        .set("Content-Type", "application/json")
+        .send({
+          username: "jd",
+          name: "John Doe",
+          email: "john.doe@protonmail.com",
+          password: "123",
+        });
+
+      const response2 = await request(server)
+        .delete("/api/users/2")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+
+      expect(response2.status).toEqual(403);
+      expect(response2.type).toEqual("application/json");
+      expect(response2.body).toEqual({
+        error:
+          "You are not allowed to delete any User resource different from your own",
       });
     }
   );
@@ -501,7 +569,9 @@ describe("DELETE /api/users/:id", () => {
           password: "123",
         });
 
-      const response2 = await request(server).delete("/api/users/1");
+      const response2 = await request(server)
+        .delete("/api/users/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
 
       expect(response2.status).toEqual(204);
       expect(response2.body).toEqual({});
