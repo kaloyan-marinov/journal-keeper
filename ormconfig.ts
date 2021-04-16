@@ -1,5 +1,6 @@
 import { config } from "dotenv";
 import { User } from "./src/entities";
+import { ConnectionOptions } from "typeorm";
 
 config();
 const { DATABASE_URL } = process.env;
@@ -18,7 +19,7 @@ if (DATABASE_URL === undefined) {
   process.exit(1);
 }
 
-export default [
+const connectionsOptionsObjects: ConnectionOptions[] = [
   {
     name: "connection-to-db-for-dev",
     type: "sqlite",
@@ -36,3 +37,5 @@ export default [
     entities: [User],
   },
 ];
+
+export default connectionsOptionsObjects;
