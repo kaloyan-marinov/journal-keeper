@@ -3,13 +3,22 @@ import { User } from "./src/entities";
 
 config();
 const { DATABASE_URL } = process.env;
+console.log(
+  `${new Date().toISOString()} -` +
+    ` ${__filename}` +
+    ` - inspecting the environment variable DATABASE_URL:`
+);
 console.log(DATABASE_URL);
-if (typeof DATABASE_URL !== "string") {
+if (DATABASE_URL === undefined) {
+  console.log(
+    `${new Date().toISOString()} -` +
+      ` ${__filename} -` +
+      ` no environment variable DATABASE_URL has been found - aborting!`
+  );
   process.exit(1);
 }
 
-/* TODO: try using the other syntax for exports */
-module.exports = [
+export default [
   {
     name: "connection-to-db-for-dev",
     type: "sqlite",
