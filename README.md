@@ -62,21 +62,24 @@ to create an SQLite database:
 
 1. recall the values for `"rootDir"` and `"outDir"` that are specified in the `tsconfig.json` file
 
-2. recognize that the `src` folder contains a(n admittedly minimal) software project, which is written in valid TypeScript
+2. recognize that the `src` folder contains a(n admittedly small) software project, which is written in valid TypeScript; uses Koa.js and SQLite; and includes a test suite
 
     ```
-    $ ll src/
-    total 8
-    drwxr-xr-x   3 <user>  <group>    96B Apr  7 07:58 ./
-    drwxr-xr-x  11 <user>  <group>   352B Apr  7 08:13 ../
-    -rw-r--r--   1 <user>  <group>   195B Apr  7 08:13 server.ts
+    $ tree src/
+    src/
+    ├── entities.ts
+    ├── migration
+    │   └── 1618138069642-createUsersTable.ts
+    └── server.ts
+
+    1 directory, 3 files
     ```
 
 3. the ways of running the project can be broken down into two categories
 
     (a) without re-starting the project when changes are made
     
-      - (approach a.1): first, compile the whole project by issuing `$ ./node_modules/.bin/tsc`, which is going to create a `dist` folder containing JavaScript files (as the result result of the compilation process); second, run the compiled project by issuing `$ node dist/server.js`
+      - (approach a.1): first, compile the whole project by issuing `$ ./node_modules/.bin/tsc`, which is going to create a `dist` folder containing JavaScript files (as the result result of the compilation process) as well as an `ormconfig.js` file; second, run the compiled project by issuing `$ NODE_ENV=production node dist/server.js`
 
       - (approach a.2): directly run the whole project by issuing `$ ./node_modules/.bin/ts-node src/server.ts` or `$ npm run serve`
 
@@ -88,55 +91,104 @@ to create an SQLite database:
 
 ```
 $ curl \
-  -i \
+  -v \
   -X POST \
   -H "Content-Type: application/json" \
   -d '{"username": "jd", "name": "John Doe", "email": "john.doe@protonmail.com", "password": "123"}' \
-  localhost:3000/api/users
+  localhost:3000/api/users \
+  | json_pp
+
+...
+< HTTP/1.1 201 Created
+< Location: /api/users/1
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 24
+< Date: Sun, 18 Apr 2021 07:36:32 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+...
+{
+   "id" : 1,
+   "username" : "jd"
+}
 ```
 
 ```
 $ curl \
-  -i \
-  localhost:3000/api/users
+  -v \
+  localhost:3000/api/users \
+  | json_pp
 
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-Content-Length: 30
-Date: Fri, 09 Apr 2021 05:34:07 GMT
-Connection: keep-alive
-Keep-Alive: timeout=5
-
-{"1":{"id":1,"username":"jd"}}
+...
+< HTTP/1.1 200 OK
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 36
+< Date: Sun, 18 Apr 2021 07:36:42 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+<
+...
+{
+   "users" : [
+      {
+         "id" : 1,
+         "username" : "jd"
+      }
+   ]
+}
 ```
 
 ```
 $ curl \
-  -i \
+  -v \
   -X POST \
   -H "Content-Type: application/json" \
   -d '{"username": "ms", "name": "Mary Smith", "email": "mary.smith@protonmail.com", "password": "456"}' \
-  localhost:3000/api/users
+  localhost:3000/api/users \
+  | json_pp
 
-HTTP/1.1 201 Created
-Content-Type: application/json; charset=utf-8
-Content-Length: 24
-Date: Fri, 09 Apr 2021 05:34:40 GMT
-Connection: keep-alive
-Keep-Alive: timeout=5
+...
+< HTTP/1.1 201 Created
+< Location: /api/users/2
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 24
+< Date: Sun, 18 Apr 2021 07:41:16 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+<
+...
+{
+   "username" : "ms",
+   "id" : 2
+}
+```
 
-{"id":2,"username":"ms"}
-
-
-
-$ curl -i localhost:3000/api/users
-
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-Content-Length: 59
-Date: Fri, 09 Apr 2021 05:35:02 GMT
-Connection: keep-alive
-Keep-Alive: timeout=5
-
-{"1":{"id":1,"username":"jd"},"2":{"id":2,"username":"ms"}}
+```
+$ curl \
+  -v \
+  localhost:3000/api/users \
+  | json_pp
+  
+...
+< HTTP/1.1 200 OK
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 61
+< Date: Sun, 18 Apr 2021 07:41:22 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+< 
+...
+{
+   "users" : [
+      {
+         "id" : 1,
+         "username" : "jd"
+      },
+      {
+         "username" : "ms",
+         "id" : 2
+      }
+   ]
+}
 ```

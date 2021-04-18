@@ -1,6 +1,6 @@
 import { config } from "dotenv";
-import { User } from "./src/entities";
 import { ConnectionOptions } from "typeorm";
+import path from "path";
 
 config();
 const { DATABASE_URL } = process.env;
@@ -19,22 +19,30 @@ if (DATABASE_URL === undefined) {
   process.exit(1);
 }
 
+let sourceCodeFolder: string = process.env.NODE_ENV === "production" ? "dist" : "src";
+console.log(
+  `${new Date().toISOString()} -` +
+    ` ${__filename} -` +
+    ` inspecting the value of sourceCodeFolder:`
+);
+console.log(sourceCodeFolder);
+
 const connectionsOptionsObjects: ConnectionOptions[] = [
   {
     name: "connection-to-db-for-dev",
     type: "sqlite",
     database: DATABASE_URL,
-    entities: [User],
+    entities: [path.join(__dirname, sourceCodeFolder, "entities.*")],
     cli: {
-      migrationsDir: "src/migration",
+      migrationsDir: path.join(__dirname, sourceCodeFolder, "migration"),
     },
-    migrations: ["src/migration/*.ts"],
+    migrations: [path.join(__dirname, sourceCodeFolder, "migration", "*.ts")],
   },
   {
     name: "connection-to-db-for-testing",
     type: "sqlite",
     database: ":memory:",
-    entities: [User],
+    entities: [path.join(__dirname, sourceCodeFolder, "entities.*")],
   },
 ];
 
