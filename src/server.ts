@@ -68,9 +68,9 @@ router.post("/api/users", async (ctx: Koa.Context) => {
   }
 
   let user: User = new User();
-  user.username = username;
-  user.name = name;
-  user.email = email;
+  user.username = username.trim();
+  user.name = name.trim();
+  user.email = email.trim();
   user.password = password;
   await usersRepository.save(user);
 
