@@ -184,8 +184,8 @@ describe("POST /api/users", () => {
 
 describe("GET /api/users", () => {
   test(
-    "if a client requests all User resources," +
-      " the server should respond with public representations of all of them",
+    "if a client requests all User resources but there are no User resources," +
+      " the server should respond with an empty list",
     async () => {
       const response = await request(server).get("/api/users");
 
@@ -193,6 +193,27 @@ describe("GET /api/users", () => {
       expect(response.type).toEqual("application/json");
       expect(response.body).toEqual({
         users: [],
+      });
+    }
+  );
+
+  test(
+    "if a client requests all User resources," +
+      " the server should respond with public representations of all of them",
+    async () => {
+      const response1 = await request(server).post("/api/users").send({
+        username: "jd",
+        name: "John Doe",
+        email: "john.doe@protonmail.com",
+        password: "123",
+      });
+
+      const response2 = await request(server).get("/api/users");
+
+      expect(response2.status).toEqual(200);
+      expect(response2.type).toEqual("application/json");
+      expect(response2.body).toEqual({
+        users: [{ id: 1, username: "jd" }],
       });
     }
   );
