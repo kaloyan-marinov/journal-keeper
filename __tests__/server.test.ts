@@ -428,6 +428,48 @@ describe("PUT /api/users/:id", () => {
       });
     }
   );
+
+  test(
+    "if the username, name, and/or email provided by the client" +
+      " contain leading and trailing whitespace characters," +
+      " those characters are removed" +
+      " before the targeted User resource is updated in the DB",
+    async () => {
+      const response1 = await request(server).post("/api/users").send({
+        username: "jd",
+        name: "John Doe",
+        email: "john.doe@protonmail.com",
+        password: "123",
+      });
+      expect(response1.status).toEqual(201);
+
+      const response2 = await request(server).put("/api/users/1").send({
+        username: " ms ",
+        name: " Mary Smith ",
+        email: " mary.smith@protonmail.com ",
+        password: " 456 ",
+      });
+      expect(response2.status).toEqual(200);
+
+      const usersRepository: Repository<User> = connection.getRepository(User);
+      const user = await usersRepository.findOne({ id: 1 });
+      // At this point, we know from external means - namely, from the fact that both
+      // of the issued requests were successful ones - that `user` is not `null` or
+      // `undefined`. Therefore, we can use the "non-null assertion operator" `!` to
+      // coerce away those types:
+      expect({
+        username: user!.username,
+        name: user!.name,
+        email: user!.email,
+        password: user!.password,
+      }).toEqual({
+        username: "ms",
+        name: "Mary Smith",
+        email: "mary.smith@protonmail.com",
+        password: " 456 ",
+      });
+    }
+  );
 });
 
 describe("DELETE /api/users/:id", () => {
