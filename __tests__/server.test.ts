@@ -180,6 +180,39 @@ describe("POST /api/users", () => {
       expect(users[0].name).toEqual("John Doe");
     }
   );
+
+  test(
+    "if the username, name, and/or email provided by the client" +
+      " contain leading and trailing whitespace characters," +
+      " those characters are removed before a new User resource is inserted into the DB",
+    async () => {
+      const response = await request(server).post("/api/users").send({
+        username: " jd ",
+        name: " John Doe ",
+        email: " john.doe@protonmail.com ",
+        password: " 123 ",
+      });
+      expect(response.status).toEqual(201);
+
+      const usersRepository: Repository<User> = connection.getRepository(User);
+      const user = await usersRepository.findOne({ id: 1 });
+      // At this point, we know from external means - namely, from the fact that the
+      // issued request was a successful one - that `user` is not `null` or `undefined`.
+      // Therefore, we can use the "non-null assertion operator" `!` to coerce away
+      // those types:
+      expect({
+        username: user!.username,
+        name: user!.name,
+        email: user!.email,
+        password: user!.password,
+      }).toEqual({
+        username: "jd",
+        name: "John Doe",
+        email: "john.doe@protonmail.com",
+        password: " 123 ",
+      });
+    }
+  );
 });
 
 describe("GET /api/users", () => {
