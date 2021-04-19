@@ -146,33 +146,39 @@ router.put("/api/users/:id", async (ctx: Koa.Context) => {
   let duplicateUser: User | undefined;
 
   if (username !== undefined) {
-    duplicateUser = await usersRepository.findOne({ username });
+    const newUsername: string = username.trim();
+
+    duplicateUser = await usersRepository.findOne({ username: newUsername });
     if (duplicateUser !== undefined) {
       ctx.status = 400;
       ctx.body = {
-        error: `There already exists a User resource with a username of '${username}'`,
+        error: `There already exists a User resource with a username of '${newUsername}'`,
       };
       return;
     }
 
-    user.username = username;
+    user.username = newUsername;
   }
 
   if (email !== undefined) {
-    duplicateUser = await usersRepository.findOne({ email });
+    const newEmail: string = email.trim();
+
+    duplicateUser = await usersRepository.findOne({ email: newEmail });
     if (duplicateUser !== undefined) {
       ctx.status = 400;
       ctx.body = {
-        error: `There already exists a User resource with an email of '${email}'`,
+        error: `There already exists a User resource with an email of '${newEmail}'`,
       };
       return;
     }
 
-    user.email = email;
+    user.email = newEmail;
   }
 
   if (name !== undefined) {
-    user.name = name;
+    const newName: string = name.trim();
+
+    user.name = newName;
   }
 
   if (password !== undefined) {
