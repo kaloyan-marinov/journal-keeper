@@ -295,6 +295,61 @@ describe("GET /api/users/:id", () => {
 
 describe("PUT /api/users/:id", () => {
   test(
+    "if a client attempts to" +
+      " edit a User resource without providing Basic Auth credentials," +
+      " the server should respond with a 401",
+    async () => {
+      const response1 = await request(server)
+        .post("/api/users")
+        .set("Content-Type", "application/json")
+        .send({
+          username: "jd",
+          name: "John Doe",
+          email: "john.doe@protonmail.com",
+          password: "123",
+        });
+
+      const response2 = await request(server).put("/api/users/1").send({
+        username: "jd-s-new-username",
+      });
+
+      expect(response2.status).toEqual(401);
+      expect(response2.body).toEqual({
+        error: "authentication required - via Basic authentication",
+      });
+    }
+  );
+
+  test(
+    "if a client attempts to" +
+      " edit a User resource by providing an invalid set of Basic Auth credentials," +
+      " the server should respond with a 401",
+    async () => {
+      const response1 = await request(server)
+        .post("/api/users")
+        .set("Content-Type", "application/json")
+        .send({
+          username: "jd",
+          name: "John Doe",
+          email: "john.doe@protonmail.com",
+          password: "123",
+        });
+
+      const response2 = await request(server)
+        .put("/api/users/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:wrong-password"))
+        .send({
+          username: "jd-s-new-username",
+        });
+
+      expect(response2.status).toEqual(401);
+      expect(response2.body).toEqual({
+        error: "authentication required - incorrect email and/or password",
+      });
+    }
+  );
+
+  test(
     "if a client requests to edit a User resource without including a" +
       " 'Content-Type: application/json' header," +
       " the server should respond with a 400",
@@ -308,6 +363,7 @@ describe("PUT /api/users/:id", () => {
 
       const response2 = await request(server)
         .put("/api/users/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
         .set("Content-Type", "text/html");
 
       expect(response2.status).toEqual(400);
@@ -319,11 +375,21 @@ describe("PUT /api/users/:id", () => {
   );
 
   test(
-    "if a client requests to edit a User resource that doesn't exist," +
-      " the server should respond with a 404",
+    "if a client attempts to edit a User resource," +
+      " which doesn't correspond to the user authenticated by the issued request's" +
+      " header," +
+      " the server should respond with a 403",
     async () => {
-      const response = await request(server)
-        .put("/api/users/1")
+      const response1 = await request(server).post("/api/users").send({
+        username: "jd",
+        name: "John Doe",
+        email: "john.doe@protonmail.com",
+        password: "123",
+      });
+
+      const response2 = await request(server)
+        .put("/api/users/2")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
         .set("Content-Type", "application/json")
         .send({
           username: "new-username",
@@ -332,10 +398,10 @@ describe("PUT /api/users/:id", () => {
           password: "new-password",
         });
 
-      expect(response.status).toEqual(404);
-      expect(response.type).toEqual("application/json");
-      expect(response.body).toEqual({
-        error: "There doesn't exist a User resource with an ID of 1",
+      expect(response2.status).toEqual(403);
+      expect(response2.type).toEqual("application/json");
+      expect(response2.body).toEqual({
+        error: "You are not allowed to edit any User resource different from your own",
       });
     }
   );
@@ -351,7 +417,7 @@ describe("PUT /api/users/:id", () => {
         .send({
           username: "jd",
           name: "John Doe",
-          email: "john.doe@prootnmail.com",
+          email: "john.doe@protonmail.com",
           password: "123",
         });
 
@@ -369,6 +435,7 @@ describe("PUT /api/users/:id", () => {
       // end up being the same as that of the 2nd User resource.
       const response3 = await request(server)
         .put("/api/users/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
         .set("Content-Type", "application/json")
         .send({ username: "ms" });
 
@@ -382,6 +449,7 @@ describe("PUT /api/users/:id", () => {
       // end up being the same as that of the 2nd User resource.
       const response4 = await request(server)
         .put("/api/users/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
         .set("Content-Type", "application/json")
         .send({ email: "mary.smith@protonmail.com" });
 
@@ -406,12 +474,13 @@ describe("PUT /api/users/:id", () => {
         .send({
           username: "original-username",
           name: "original-name",
-          email: "original-name",
+          email: "original-email",
           password: "original-password",
         });
 
       const response2 = await request(server)
         .put("/api/users/1")
+        .set("Authorization", "Basic " + btoa("original-email:original-password"))
         .set("Content-Type", "application/json")
         .send({
           username: "new-username",
@@ -425,6 +494,26 @@ describe("PUT /api/users/:id", () => {
       expect(response2.body).toEqual({
         id: 1,
         username: "new-username",
+      });
+
+      const usersRepository: Repository<User> = connection.getRepository(User);
+      const u = await usersRepository.findOne({ id: 1 });
+      // At this point, we know from external means - namely, from the fact that both
+      // of the issued requests were successful ones - that `u` is not `null` or
+      // `undefined`. Therefore, we can use the "non-null assertion operator" `!` to
+      // coerce away those types:
+      expect({
+        id: u!.id,
+        username: u!.username,
+        name: u!.name,
+        email: u!.email,
+        password: u!.password,
+      }).toEqual({
+        id: 1,
+        username: "new-username",
+        name: "new-name",
+        email: "new-email",
+        password: "new-password",
       });
     }
   );
@@ -443,12 +532,15 @@ describe("PUT /api/users/:id", () => {
       });
       expect(response1.status).toEqual(201);
 
-      const response2 = await request(server).put("/api/users/1").send({
-        username: " ms ",
-        name: " Mary Smith ",
-        email: " mary.smith@protonmail.com ",
-        password: " 456 ",
-      });
+      const response2 = await request(server)
+        .put("/api/users/1")
+        .set("Authorization", "Bearer " + btoa("john.doe@protonmail.com:123"))
+        .send({
+          username: " ms ",
+          name: " Mary Smith ",
+          email: " mary.smith@protonmail.com ",
+          password: " 456 ",
+        });
       expect(response2.status).toEqual(200);
 
       const usersRepository: Repository<User> = connection.getRepository(User);
