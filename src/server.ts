@@ -22,6 +22,42 @@ const connectionPromise: Promise<Connection> = createConnection(connectionName);
 /* Create a Koa application instance. */
 const app: Koa = new Koa();
 
+/* Authentication middleware. */
+const basicAuth = async (ctx: Koa.Context, next: () => Promise<any>) => {
+  // Look at the request's Authorization header.
+  const authHeader = ctx.request.headers.authorization;
+  if (authHeader === undefined) {
+    ctx.status = 401;
+    ctx.body = {
+      error: "authentication required - via Basic authentication",
+    };
+    return;
+  }
+  // Drop the word "Basic"
+  const authCredsEncoded = authHeader.split(" ")[1];
+  // Extract the authentication credentials.
+  const authCredsDecoded = Buffer.from(authCredsEncoded, "base64").toString();
+  const [email, password] = authCredsDecoded.split(":");
+
+  // Validate the authentication credentials.
+  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
+    User
+  );
+  const user: User | undefined = await usersRepository.findOne({ email });
+  if (user === undefined || password !== user.password) {
+    ctx.status = 401;
+    ctx.body = {
+      error: "authentication required - incorrect email and/or password",
+    };
+    return;
+  }
+
+  // Store the authenticated User
+  // for the duration of the current request-response cycle.
+  ctx.user = user;
+  await next();
+};
+
 /* Configure the application instance to use a router middleware. */
 const router: Router = new Router();
 
@@ -118,7 +154,16 @@ router.get("/api/users/:id", async (ctx: Koa.Context) => {
   };
 });
 
-router.put("/api/users/:id", async (ctx: Koa.Context) => {
+router.put("/api/users/:id", basicAuth, async (ctx: Koa.Context) => {
+  const userId: number = parseInt(ctx.params.id);
+  if (userId !== ctx.user.id) {
+    ctx.status = 403;
+    ctx.body = {
+      error: "You are not allowed to edit any User resource different from your own",
+    };
+    return;
+  }
+
   if (ctx.request.headers["content-type"] !== "application/json") {
     ctx.status = 400;
     ctx.body = {
@@ -127,22 +172,14 @@ router.put("/api/users/:id", async (ctx: Koa.Context) => {
     return;
   }
 
-  const userId: number = ctx.params.id;
+  // Edit the User resource,
+  // which corresponds to the user authenticated by the request's header,
+  // with the information within the request's body.
+  const { username, name, email, password } = ctx.request.body;
+
   const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
     User
   );
-  const user: User | undefined = await usersRepository.findOne({ id: userId });
-
-  if (user === undefined) {
-    ctx.status = 404;
-    ctx.body = {
-      error: `There doesn't exist a User resource with an ID of ${userId}`,
-    };
-    return;
-  }
-
-  const { username, name, email, password } = ctx.request.body;
-
   let duplicateUser: User | undefined;
 
   if (username !== undefined) {
@@ -157,7 +194,7 @@ router.put("/api/users/:id", async (ctx: Koa.Context) => {
       return;
     }
 
-    user.username = newUsername;
+    ctx.user.username = newUsername;
   }
 
   if (email !== undefined) {
@@ -172,42 +209,41 @@ router.put("/api/users/:id", async (ctx: Koa.Context) => {
       return;
     }
 
-    user.email = newEmail;
+    ctx.user.email = newEmail;
   }
 
   if (name !== undefined) {
     const newName: string = name.trim();
 
-    user.name = newName;
+    ctx.user.name = newName;
   }
 
   if (password !== undefined) {
-    user.password = password;
+    ctx.user.password = password;
   }
 
-  await usersRepository.save(user);
+  // Save the edited User resource, and return its public representation.
+  await usersRepository.save(ctx.user);
 
   ctx.body = {
-    id: user.id,
-    username: user.username,
+    id: ctx.user.id,
+    username: ctx.user.username,
   };
 });
 
-router.delete("/api/users/:id", async (ctx: Koa.Context) => {
-  const userId = ctx.params.id;
-  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
-    User
-  );
-  const user: User | undefined = await usersRepository.findOne({ id: userId });
-
-  if (user === undefined) {
-    ctx.status = 404;
+router.delete("/api/users/:id", basicAuth, async (ctx: Koa.Context) => {
+  const userId = parseInt(ctx.params.id);
+  if (userId !== ctx.user.id) {
+    ctx.status = 403;
     ctx.body = {
-      error: `There doesn't exist a User resource with an ID of ${userId}`,
+      error: "You are not allowed to delete any User resource different from your own",
     };
     return;
   }
 
+  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
+    User
+  );
   await usersRepository.delete({ id: userId });
 
   ctx.status = 204;
