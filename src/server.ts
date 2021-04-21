@@ -134,7 +134,7 @@ router.get("/api/users", async (ctx: Koa.Context) => {
 });
 
 router.get("/api/users/:id", async (ctx: Koa.Context) => {
-  const userId: number = ctx.params.id;
+  const userId: number = parseInt(ctx.params.id);
   const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
     User
   );
@@ -291,6 +291,24 @@ router.get("/api/entries", basicAuth, async (ctx: Koa.Context) => {
   ).getRepository(Entry);
   const entries: Entry[] = await entriesRepository.find({ userId: ctx.user.id });
   ctx.body = { entries };
+});
+
+router.get("/api/entries/:id", basicAuth, async (ctx: Koa.Context) => {
+  const entryId: number = parseInt(ctx.params.id);
+  const entriesRepository: Repository<Entry> = getConnection(
+    connectionName
+  ).getRepository(Entry);
+  const entry: Entry | undefined = await entriesRepository.findOne({ id: entryId });
+
+  if (entry === undefined || entry.userId !== ctx.user.id) {
+    ctx.status = 404;
+    ctx.body = {
+      error: `Your User doesn't have an Entry resource with an ID of ${entryId}`,
+    };
+    return;
+  }
+
+  ctx.body = entry;
 });
 
 app.use(bodyParser());
