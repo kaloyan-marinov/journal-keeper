@@ -209,3 +209,25 @@ $ curl \
    ]
 }
 ```
+
+```
+$ curl \
+   -v \
+   -X POST \
+   -u john.doe@protonmail.com:123 \
+   -H "Content-Type: application/json" \
+   -d '{"timezone": "+02:00", "localTime": "2020-12-01 17:17", "content": "Then it dawned on me: there is no finish line!"}' \
+   localhost:3000/api/entries \
+   | json_pp
+```
+
+```
+$ curl \
+   -v \
+   -X POST \
+   -u mary.smith@protonmail.com:456 \
+   -H "Content-Type: application/json" \
+   -d '{"timezone": "+01:00", "localTime": "2019-08-20 14:17", "content": "Mallorca has beautiful sunny beaches!"}' \
+   localhost:3000/api/entries \
+   | json_pp
+```

@@ -3,7 +3,7 @@ import Router from "koa-router";
 import bodyParser from "koa-bodyparser";
 import logger from "koa-logger";
 import { Connection, createConnection, Repository, getConnection } from "typeorm";
-import { User } from "./entities";
+import { User, Entry } from "./entities";
 
 /* Introduce an in-memory database. */
 interface IPublicUser {
@@ -247,6 +247,42 @@ router.delete("/api/users/:id", basicAuth, async (ctx: Koa.Context) => {
   await usersRepository.delete({ id: userId });
 
   ctx.status = 204;
+});
+
+router.post("/api/entries", basicAuth, async (ctx: Koa.Context) => {
+  if (ctx.request.headers["content-type"] !== "application/json") {
+    ctx.status = 400;
+    ctx.body = {
+      error: "Your request did not include a 'Content-Type: application/json' header",
+    };
+    return;
+  }
+
+  const expectedFields: string[] = ["timezone", "localTime", "content"];
+  for (let field of expectedFields) {
+    if (!ctx.request.body.hasOwnProperty(field)) {
+      ctx.status = 400;
+      ctx.body = {
+        error: `Your request body did not specify a '${field}'`,
+      };
+      return;
+    }
+  }
+  const { timezone, localTime, content } = ctx.request.body;
+
+  const entry: Entry = new Entry();
+  entry.utcZoneOfTimestamp = timezone;
+  entry.timestampInUTC = localTime + timezone;
+  entry.content = content;
+  entry.userId = ctx.user.id;
+  const entriesRepository: Repository<Entry> = getConnection(
+    connectionName
+  ).getRepository(Entry);
+  await entriesRepository.save(entry);
+
+  ctx.status = 201;
+  ctx.set("Location", `/api/entries/${entry.id}`);
+  ctx.body = await entriesRepository.findOne({ id: entry.id });
 });
 
 app.use(bodyParser());

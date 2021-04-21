@@ -7,6 +7,10 @@ import { User } from "../src/entities";
 let connection: Connection;
 let server: http.Server;
 
+interface IIncompletePayload {
+  [index: string]: string;
+}
+
 beforeEach(async () => {
   connection = await connectionPromise;
   console.log(
@@ -56,12 +60,8 @@ describe("POST /api/users", () => {
         password: "123",
       };
 
-      interface IIncompleteUserPayload {
-        [index: string]: string;
-      }
-
       for (let field in completeUserPayload) {
-        let incompleteUserPayload: IIncompleteUserPayload = { ...completeUserPayload };
+        let incompleteUserPayload: IIncompletePayload = { ...completeUserPayload };
         delete incompleteUserPayload[field];
 
         const response = await request(server)
@@ -667,6 +667,136 @@ describe("DELETE /api/users/:id", () => {
 
       expect(response2.status).toEqual(204);
       expect(response2.body).toEqual({});
+    }
+  );
+});
+
+describe("POST /api/entries", () => {
+  test(
+    "if a client attempts to" +
+      " create an Entry resource without providing Basic Auth credentials," +
+      " the server should respond with a 401",
+    async () => {
+      const response1 = await request(server)
+        .post("/api/users")
+        .set("Content-Type", "application/json")
+        .send({
+          username: "jd",
+          name: "John Doe",
+          email: "john.doe@protonmail.com",
+          password: "123",
+        });
+
+      const response2 = await request(server).post("/api/entries").send({
+        timezone: "+02:00",
+        localTime: "2021-01-01 02:00:17",
+        content: "Happy New Year to everybody in the UK!",
+      });
+
+      expect(response2.status).toEqual(401);
+      expect(response2.body).toEqual({
+        error: "authentication required - via Basic authentication",
+      });
+    }
+  );
+
+  test(
+    "if a client attempts to create an Entry resource without including a" +
+      " 'Content-Type: application/json' header," +
+      " the server should respond with a 400",
+    async () => {
+      const response1 = await request(server).post("/api/users").send({
+        username: "jd",
+        name: "John Doe",
+        email: "john.doe@protonmail.com",
+        password: "123",
+      });
+
+      const response2 = await request(server)
+        .post("/api/entries")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .set("Content-Type", "text/html");
+
+      expect(response2.status).toEqual(400);
+      expect(response2.body).toEqual({
+        error: "Your request did not include a 'Content-Type: application/json' header",
+      });
+    }
+  );
+
+  test(
+    "if a client doesn't send all required fields," +
+      " the server should respond with a 400",
+    async () => {
+      const response1 = await request(server).post("/api/users").send({
+        username: "jd",
+        name: "John Doe",
+        email: "john.doe@protonmail.com",
+        password: "123",
+      });
+
+      const completeEntryPayload = {
+        timezone: "+02:00",
+        localTime: "2021-01-01 02:00:17",
+        content: "Happy New Year to everybody in the UK!",
+      };
+
+      for (let field in completeEntryPayload) {
+        let incompleteEntryPayload: IIncompletePayload = { ...completeEntryPayload };
+        delete incompleteEntryPayload[field];
+
+        const response2 = await request(server)
+          .post("/api/entries")
+          .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+          .send(incompleteEntryPayload);
+
+        expect(response2.status).toEqual(400);
+        expect(response2.type).toEqual("application/json");
+        expect(response2.body).toEqual({
+          error: `Your request body did not specify a '${field}'`,
+        });
+      }
+    }
+  );
+
+  test(
+    "if a client issues a valid request for creating an Entry resource," +
+      " then the server should create that resource",
+    async () => {
+      const response1 = await request(server).post("/api/users").send({
+        username: "jd",
+        name: "John Doe",
+        email: "john.doe@protonmail.com",
+        password: "123",
+      });
+
+      const response2 = await request(server)
+        .post("/api/entries")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .send({
+          timezone: "+02:00",
+          localTime: "2021-01-01 02:00:17",
+          content: "Happy New Year to everybody in the UK!",
+        });
+
+      expect(response2.status).toEqual(201);
+      expect(response2.headers.location).toEqual("/api/entries/1");
+      expect(response2.type).toEqual("application/json");
+
+      const response2Body = {
+        id: response2.body.id,
+        timestampInUTC: response2.body.timestampInUTC,
+        utcZoneOfTimestamp: response2.body.utcZoneOfTimestamp,
+        content: response2.body.content,
+        userId: response2.body.userId,
+      };
+      expect(response2Body).toEqual({
+        id: 1,
+        timestampInUTC: "2021-01-01T00:00:17.000Z",
+        utcZoneOfTimestamp: "+02:00",
+        content: "Happy New Year to everybody in the UK!",
+        userId: 1,
+      });
     }
   );
 });
