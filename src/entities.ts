@@ -68,8 +68,16 @@ export class Entry {
 
   @Column({
     nullable: false,
+    type: "datetime",
+    name: "timestamp_in_utc",
   })
-  timestamp?: string;
+  timestampInUTC?: Date;
+
+  @Column({
+    nullable: false,
+    name: "utc_zone_of_timestamp",
+  })
+  utcZoneOfTimestamp?: string;
 
   @Column({
     nullable: false,
