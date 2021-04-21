@@ -32,17 +32,17 @@ const connectionsOptionsObjects: ConnectionOptions[] = [
     name: "connection-to-db-for-dev",
     type: "sqlite",
     database: DATABASE_URL,
-    entities: [path.join(__dirname, sourceCodeFolder, "entities.*")],
+    entities: [path.join(sourceCodeFolder, "entities.*")],
     cli: {
-      migrationsDir: path.join(__dirname, sourceCodeFolder, "migration"),
+      migrationsDir: path.join(sourceCodeFolder, "migration"),
     },
-    migrations: [path.join(__dirname, sourceCodeFolder, "migration", "*.ts")],
+    migrations: [path.join(sourceCodeFolder, "migration", "*.ts")],
   },
   {
     name: "connection-to-db-for-testing",
     type: "sqlite",
     database: ":memory:",
-    entities: [path.join(__dirname, sourceCodeFolder, "entities.*")],
+    entities: [path.join(sourceCodeFolder, "entities.*")],
   },
 ];
 

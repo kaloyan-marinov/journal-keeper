@@ -41,20 +41,37 @@ to create an SQLite database:
 
 1. specifiy `DATABASE_URL` in `.env`
 
-2. create an initial migration script:
+2. to create a new migration script, issue one of the following:
+    
     ```
     $ ./node_modules/.bin/ts-node \
       ./node_modules/typeorm/cli.js \
       migration:generate \
       -c connection-to-db-for-dev \
-      -n createUsersTable
+      -n <newMigrationScript>
     ```
 
-3. run the migration script:
+    or
+
+    ```
+    $ npm run migration:generate -- \
+      -c connection-to-db-for-dev \
+      -n <newMigrationScript>
+    ```
+
+3. to run all migration scripts that haven't been applied yet, issue one of the following:
+
     ```
     $ ./node_modules/.bin/ts-node \
       ./node_modules/typeorm/cli.js \
       migration:run \
+      -c connection-to-db-for-dev
+    ```
+
+    or
+
+    ```
+    $ npm run migration:run -- \
       -c connection-to-db-for-dev
     ```
 
