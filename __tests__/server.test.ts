@@ -2,7 +2,7 @@ import http from "http";
 import request from "supertest";
 import { app, connectionPromise } from "../src/server";
 import { Connection, Repository } from "typeorm";
-import { User } from "../src/entities";
+import { User, Entry } from "../src/entities";
 
 let connection: Connection;
 let server: http.Server;
@@ -796,6 +796,87 @@ describe("POST /api/entries", () => {
         utcZoneOfTimestamp: "+02:00",
         content: "Happy New Year to everybody in the UK!",
         userId: 1,
+      });
+    }
+  );
+});
+
+describe("GET /api/entries", () => {
+  test(
+    "if a client requests all Entry resources" +
+      " without providing Basic Auth credentials," +
+      " the server should respond with a 401",
+    async () => {
+      const response = await request(server).get("/api/entries");
+
+      expect(response.status).toEqual(401);
+      expect(response.body).toEqual({
+        error: "authentication required - via Basic authentication",
+      });
+    }
+  );
+
+  test(
+    "if a client issues a valid request," +
+      " the server should respond with a list of all Entry resources" +
+      " that are associated with the user authenticated by the issued request's header",
+    async () => {
+      // Create two User resources, as well as one Entry resource per user.
+      const responseUser1 = await request(server).post("/api/users").send({
+        username: "jd",
+        name: "John Doe",
+        email: "john.doe@protonmail.com",
+        password: "123",
+      });
+
+      const responseUser2 = await request(server).post("/api/users").send({
+        username: "ms",
+        name: "Mary Smith",
+        email: "mary.smith@protonmail.com",
+        password: "456",
+      });
+
+      const responseEntry1 = await request(server)
+        .post("/api/entries")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .send({
+          timezone: "+02:00",
+          localTime: "2021-01-01 02:00:17",
+          content: "Happy New Year to everybody in the UK!",
+        });
+
+      const responseEntry2 = await request(server)
+        .post("/api/entries")
+        .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"))
+        .send({
+          timezone: "-05:00",
+          localTime: "2020-12-31 19:00:17",
+          content: "Happy New Year to everybody in the UK!",
+        });
+
+      // Get all Entry resources that are associated with the 1st user.
+      const response = await request(server)
+        .get("/api/entries")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+
+      expect(response.status).toEqual(200);
+
+      const responseBody = {
+        entries: response.body.entries.map((entry: Entry) => {
+          const { id, timestampInUTC, utcZoneOfTimestamp, content, userId } = entry;
+          return { id, timestampInUTC, utcZoneOfTimestamp, content, userId };
+        }),
+      };
+      expect(responseBody).toEqual({
+        entries: [
+          {
+            id: 1,
+            timestampInUTC: "2021-01-01T00:00:17.000Z",
+            utcZoneOfTimestamp: "+02:00",
+            content: "Happy New Year to everybody in the UK!",
+            userId: 1,
+          },
+        ],
       });
     }
   );

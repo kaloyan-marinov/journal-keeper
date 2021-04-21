@@ -285,6 +285,14 @@ router.post("/api/entries", basicAuth, async (ctx: Koa.Context) => {
   ctx.body = await entriesRepository.findOne({ id: entry.id });
 });
 
+router.get("/api/entries", basicAuth, async (ctx: Koa.Context) => {
+  const entriesRepository: Repository<Entry> = getConnection(
+    connectionName
+  ).getRepository(Entry);
+  const entries: Entry[] = await entriesRepository.find({ userId: ctx.user.id });
+  ctx.body = { entries };
+});
+
 app.use(bodyParser());
 
 app.use(logger());
