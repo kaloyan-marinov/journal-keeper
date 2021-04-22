@@ -1053,16 +1053,34 @@ describe("PUT /api/entries/:id", () => {
       " without providing Basic Auth credentials," +
       " the server should respond with a 401",
     async () => {
-      const response = await request(server).put("/api/entries/1").send({
+      const response1 = await request(server).put("/api/entries/1").send({
         timezone: "-08:00",
         localTime: "2020-12-31 16:00:34",
         content: "Happy New Year to everybody in the United Kingdom!",
       });
 
-      expect(response.status).toEqual(401);
-      expect(response.type).toEqual("application/json");
-      expect(response.body).toEqual({
+      // Make assertions about the response to the PUT request.
+      expect(response1.status).toEqual(401);
+      expect(response1.type).toEqual("application/json");
+      expect(response1.body).toEqual({
         error: "authentication required - via Basic authentication",
+      });
+
+      // Assert also that
+      // the Entry resource, which was targeted by the PUT request, didn't get edited.
+      const response2 = await request(server)
+        .get("/api/entries/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+      expect(response2.status).toEqual(200);
+      const response2Body = {
+        timestampInUTC: response2.body.timestampInUTC,
+        utcZoneOfTimestamp: response2.body.utcZoneOfTimestamp,
+        content: response2.body.content,
+      };
+      expect(response2Body).toEqual({
+        utcZoneOfTimestamp: "+02:00",
+        timestampInUTC: "2021-01-01T00:00:17.000Z",
+        content: "Happy New Year to everybody in the UK!",
       });
     }
   );
@@ -1093,7 +1111,7 @@ describe("PUT /api/entries/:id", () => {
       " by providing an invalid set of Basic Auth credentials," +
       " the server should respond with a 401",
     async () => {
-      const response = await request(server)
+      const response1 = await request(server)
         .put("/api/entries/1")
         .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:wrong-password"))
         .send({
@@ -1102,10 +1120,28 @@ describe("PUT /api/entries/:id", () => {
           content: "Happy New Year to everybody in the United Kingdom!",
         });
 
-      expect(response.status).toEqual(401);
-      expect(response.type).toEqual("application/json");
-      expect(response.body).toEqual({
+      // Make assertions about the response to the PUT request.
+      expect(response1.status).toEqual(401);
+      expect(response1.type).toEqual("application/json");
+      expect(response1.body).toEqual({
         error: "authentication required - incorrect email and/or password",
+      });
+
+      // Assert also that
+      // the Entry resource, which was targeted by the PUT request, didn't get edited.
+      const response2 = await request(server)
+        .get("/api/entries/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+      expect(response2.status).toEqual(200);
+      const response2Body = {
+        timestampInUTC: response2.body.timestampInUTC,
+        utcZoneOfTimestamp: response2.body.utcZoneOfTimestamp,
+        content: response2.body.content,
+      };
+      expect(response2Body).toEqual({
+        utcZoneOfTimestamp: "+02:00",
+        timestampInUTC: "2021-01-01T00:00:17.000Z",
+        content: "Happy New Year to everybody in the UK!",
       });
     }
   );
@@ -1116,7 +1152,7 @@ describe("PUT /api/entries/:id", () => {
       " isn't associated with the user authenticated by the issued request's header," +
       " the server should respond with a 404",
     async () => {
-      const response = await request(server)
+      const response1 = await request(server)
         .put("/api/entries/2")
         .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
         .send({
@@ -1125,10 +1161,28 @@ describe("PUT /api/entries/:id", () => {
           content: "Happy New Year to everybody in the United Kingdom!",
         });
 
-      expect(response.status).toEqual(404);
-      expect(response.type).toEqual("application/json");
-      expect(response.body).toEqual({
+      // Make assertions about the response to the PUT request.
+      expect(response1.status).toEqual(404);
+      expect(response1.type).toEqual("application/json");
+      expect(response1.body).toEqual({
         error: "Your User doesn't have an Entry resource with an ID of 2",
+      });
+
+      // Assert also that
+      // the Entry resource, which was targeted by the PUT request, didn't get edited.
+      const response2 = await request(server)
+        .get("/api/entries/2")
+        .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"));
+      expect(response2.status).toEqual(200);
+      const response2Body = {
+        timestampInUTC: response2.body.timestampInUTC,
+        utcZoneOfTimestamp: response2.body.utcZoneOfTimestamp,
+        content: response2.body.content,
+      };
+      expect(response2Body).toEqual({
+        utcZoneOfTimestamp: "-05:00",
+        timestampInUTC: "2021-01-01T00:00:17.000Z",
+        content: "Happy New Year to everybody in the UK!",
       });
     }
   );
@@ -1144,20 +1198,40 @@ describe("PUT /api/entries/:id", () => {
       };
 
       for (let field in completeEntryPayload) {
+        // Attempt to edit an Entry resource
+        // by providing an incomplete JSON payload in the request's body.
         let incompleteEntryPayload: IIncompletePayload = { ...completeEntryPayload };
         delete incompleteEntryPayload[field];
 
-        const response = await request(server)
+        const response1 = await request(server)
           .put("/api/entries/1")
           .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
           .send(incompleteEntryPayload);
 
-        expect(response.status).toEqual(400);
-        expect(response.type).toEqual("application/json");
-        expect(response.body).toEqual({
+        // Make assertions about the response to the PUT request.
+        expect(response1.status).toEqual(400);
+        expect(response1.type).toEqual("application/json");
+        expect(response1.body).toEqual({
           error:
             "Your request body must include" +
             " either both of 'timezone' and 'localTime', or neither one of them",
+        });
+
+        // Assert also that
+        // the Entry resource, which was targeted by the PUT request, didn't get edited.
+        const response2 = await request(server)
+          .get("/api/entries/1")
+          .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+        expect(response2.status).toEqual(200);
+        const response2Body = {
+          timestampInUTC: response2.body.timestampInUTC,
+          utcZoneOfTimestamp: response2.body.utcZoneOfTimestamp,
+          content: response2.body.content,
+        };
+        expect(response2Body).toEqual({
+          utcZoneOfTimestamp: "+02:00",
+          timestampInUTC: "2021-01-01T00:00:17.000Z",
+          content: "Happy New Year to everybody in the UK!",
         });
       }
     }
@@ -1176,6 +1250,7 @@ describe("PUT /api/entries/:id", () => {
           content: "Happy New Year to everybody in the United Kingdom!",
         });
 
+      // Make assertions about the response to the PUT request.
       expect(response.status).toEqual(200);
       const { id, timestampInUTC, utcZoneOfTimestamp, content, userId } = response.body;
       const responseBody = { id, timestampInUTC, utcZoneOfTimestamp, content, userId };
@@ -1185,6 +1260,24 @@ describe("PUT /api/entries/:id", () => {
         utcZoneOfTimestamp: "-08:00",
         content: "Happy New Year to everybody in the United Kingdom!",
         userId: 1,
+      });
+
+      // Assert also that
+      // the Entry resource, which was targeted by the PUT request,
+      // was edited successfully.
+      const response2 = await request(server)
+        .get("/api/entries/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+      expect(response2.status).toEqual(200);
+      const response2Body = {
+        timestampInUTC: response2.body.timestampInUTC,
+        utcZoneOfTimestamp: response2.body.utcZoneOfTimestamp,
+        content: response2.body.content,
+      };
+      expect(response2Body).toEqual({
+        utcZoneOfTimestamp: "-08:00",
+        timestampInUTC: "2021-01-01T00:00:34.000Z",
+        content: "Happy New Year to everybody in the United Kingdom!",
       });
     }
   );
