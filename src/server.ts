@@ -355,6 +355,25 @@ router.put("/api/entries/:id", basicAuth, async (ctx: Koa.Context) => {
   ctx.body = await entriesRepository.findOne({ id: entryId });
 });
 
+router.delete("/api/entries/:id", basicAuth, async (ctx: Koa.Context) => {
+  const entryId: number = parseInt(ctx.params.id);
+  const entriesRepository: Repository<Entry> = getConnection(
+    connectionName
+  ).getRepository(Entry);
+  const entry: Entry | undefined = await entriesRepository.findOne({ id: entryId });
+
+  if (entry === undefined || entry.userId !== ctx.user.id) {
+    ctx.status = 404;
+    ctx.body = {
+      error: `Your User doesn't have an Entry resource with an ID of ${entryId}`,
+    };
+    return;
+  }
+
+  await entriesRepository.delete({ id: entryId });
+  ctx.status = 204;
+});
+
 app.use(bodyParser());
 
 app.use(logger());

@@ -1012,8 +1012,8 @@ describe("GET /api/entries/:id", () => {
 describe("PUT /api/entries/:id", () => {
   beforeEach(async () => {
     /*
-      Create two User resources, as well as one Entry resource per user.
-      */
+    Create two User resources, as well as one Entry resource per user.
+    */
 
     const responseUser1 = await request(server).post("/api/users").send({
       username: "jd",
@@ -1282,3 +1282,213 @@ describe("PUT /api/entries/:id", () => {
     }
   );
 });
+
+describe("DELETE /api/entries/:id", () => {
+  beforeEach(async () => {
+    /*
+    Create two User resources, as well as one Entry resource per user.
+    */
+
+    const responseUser1 = await request(server).post("/api/users").send({
+      username: "jd",
+      name: "John Doe",
+      email: "john.doe@protonmail.com",
+      password: "123",
+    });
+
+    const responseUser2 = await request(server).post("/api/users").send({
+      username: "ms",
+      name: "Mary Smith",
+      email: "mary.smith@protonmail.com",
+      password: "456",
+    });
+
+    const responseEntry1 = await request(server)
+      .post("/api/entries")
+      .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+      .send({
+        timezone: "+02:00",
+        localTime: "2021-01-01 02:00:17",
+        content: "Happy New Year to everybody in the UK!",
+      });
+
+    const responseEntry2 = await request(server)
+      .post("/api/entries")
+      .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"))
+      .send({
+        timezone: "-05:00",
+        localTime: "2020-12-31 19:00:17",
+        content: "Happy New Year to everybody in the UK!",
+      });
+  });
+
+  test(
+    "if a client attempts to delete an Entry resource" +
+      " without providing Basic Auth credentials," +
+      " the server should respond with a 401",
+    async () => {
+      const response1 = await request(server).delete("/api/entries/1");
+
+      expect(response1.status).toEqual(401);
+      expect(response1.type).toEqual("application/json");
+      expect(response1.body).toEqual({
+        error: "authentication required - via Basic authentication",
+      });
+
+      const response2 = await request(server)
+        .get("/api/entries/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+      expect(response2.status).toEqual(200);
+    }
+  );
+
+  test(
+    "if a client attempts to delete an Entry resource" +
+      " by providing an invalid set of Basic Auth credentials," +
+      " the server should respond with a 401",
+    async () => {
+      const response1 = await request(server)
+        .delete("/api/entries/1")
+        .set(
+          "Authorization",
+          "Basic " + btoa("john.doe@protonmail.com:wrong-password")
+        );
+
+      expect(response1.status).toEqual(401);
+      expect(response1.type).toEqual("application/json");
+      expect(response1.body).toEqual({
+        error: "authentication required - incorrect email and/or password",
+      });
+
+      const response2 = await request(server)
+        .get("/api/entries/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+      expect(response2.status).toEqual(200);
+    }
+  );
+
+  test(
+    "if a client attempts to delete an Entry resource, which doesn't exist," +
+      " the server should respond with a 404",
+    async () => {
+      const response1 = await request(server)
+        .delete("/api/entries/17")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+
+      expect(response1.status).toEqual(404);
+
+      const response2 = await request(server)
+        .get("/api/entries")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+
+      expect(response2.body.entries.length).toEqual(1);
+    }
+  );
+
+  test(
+    "if a client attempts to delete an Entry resource," +
+      " which does exist but" +
+      " isn't associated with the user authenticated by the issued request's header," +
+      " the server should respond with a 404",
+    async () => {
+      const response1 = await request(server)
+        .delete("/api/entries/2")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+
+      expect(response1.status).toEqual(404);
+
+      const response2 = await request(server)
+        .get("/api/entries")
+        .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"));
+
+      expect(response2.body.entries.length).toEqual(1);
+    }
+  );
+
+  test(
+    "if a client issues a valid request for deleting an Entry resource," +
+      " the server should delete that resource",
+    async () => {
+      const response1 = await request(server)
+        .delete("/api/entries/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+
+      expect(response1.status).toEqual(204);
+      expect(response1.type).toEqual("");
+      expect(response1.body).toEqual({});
+
+      const response2 = await request(server)
+        .get("/api/entries/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+      expect(response2.status).toEqual(404);
+    }
+  );
+});
+
+describe(
+  "DELETE /api/user/:id should delete not only the targeted User resource" +
+    " but also all associated Entry resources",
+  () => {
+    beforeEach(async () => {
+      /*
+      Create two User resources, as well as one Entry resource per user.
+      */
+
+      const responseUser1 = await request(server).post("/api/users").send({
+        username: "jd",
+        name: "John Doe",
+        email: "john.doe@protonmail.com",
+        password: "123",
+      });
+
+      const responseUser2 = await request(server).post("/api/users").send({
+        username: "ms",
+        name: "Mary Smith",
+        email: "mary.smith@protonmail.com",
+        password: "456",
+      });
+
+      const responseEntry1 = await request(server)
+        .post("/api/entries")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .send({
+          timezone: "+02:00",
+          localTime: "2021-01-01 02:00:17",
+          content: "Happy New Year to everybody in the UK!",
+        });
+
+      const responseEntry2 = await request(server)
+        .post("/api/entries")
+        .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"))
+        .send({
+          timezone: "-05:00",
+          localTime: "2020-12-31 19:00:17",
+          content: "Happy New Year to everybody in the UK!",
+        });
+    });
+
+    test(
+      "if a client issues a valid request for deleting a User resource," +
+        " the server should delete not only the user authenticated by the issued" +
+        " request's header" +
+        " but also all of that User's associated Entries resources",
+      async () => {
+        const response1 = await request(server)
+          .delete("/api/users/1")
+          .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+
+        expect(response1.status).toEqual(204);
+
+        const entriesRepository: Repository<Entry> = connection.getRepository(Entry);
+        let entries: Entry[] | undefined;
+
+        entries = await entriesRepository.find({ userId: 1 });
+        expect(entries).toEqual([]);
+
+        entries = await entriesRepository.find();
+        const userIds: (number | undefined)[] = entries.map((e: Entry) => e.userId);
+        expect(userIds).toEqual([2]);
+      }
+    );
+  }
+);
