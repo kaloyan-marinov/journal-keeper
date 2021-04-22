@@ -311,6 +311,50 @@ router.get("/api/entries/:id", basicAuth, async (ctx: Koa.Context) => {
   ctx.body = entry;
 });
 
+router.put("/api/entries/:id", basicAuth, async (ctx: Koa.Context) => {
+  const entryId: number = parseInt(ctx.params.id);
+  const entriesRepository: Repository<Entry> = getConnection(
+    connectionName
+  ).getRepository(Entry);
+  const entry: Entry | undefined = await entriesRepository.findOne({ id: entryId });
+
+  if (entry === undefined || entry.userId !== ctx.user.id) {
+    ctx.status = 404;
+    ctx.body = {
+      error: `Your User doesn't have an Entry resource with an ID of ${entryId}`,
+    };
+    return;
+  }
+
+  // Edit the Entry resource with the information within the request's body.
+  const { timezone, localTime, content } = ctx.request.body;
+
+  if (
+    (timezone !== undefined && localTime === undefined) ||
+    (timezone === undefined && localTime !== undefined)
+  ) {
+    ctx.status = 400;
+    ctx.body = {
+      error:
+        "Your request body must include" +
+        " either both of 'timezone' and 'localTime', or neither one of them",
+    };
+    return;
+  } else if (timezone !== undefined && localTime !== undefined) {
+    entry.utcZoneOfTimestamp = timezone;
+    entry.timestampInUTC = localTime + timezone;
+  }
+
+  if (content !== undefined) {
+    entry.content = content;
+  }
+
+  // Save the edited Entry resource, and return its representation.
+  await entriesRepository.save(entry);
+
+  ctx.body = await entriesRepository.findOne({ id: entryId });
+});
+
 app.use(bodyParser());
 
 app.use(logger());

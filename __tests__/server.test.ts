@@ -1008,3 +1008,184 @@ describe("GET /api/entries/:id", () => {
     }
   );
 });
+
+describe("PUT /api/entries/:id", () => {
+  beforeEach(async () => {
+    /*
+      Create two User resources, as well as one Entry resource per user.
+      */
+
+    const responseUser1 = await request(server).post("/api/users").send({
+      username: "jd",
+      name: "John Doe",
+      email: "john.doe@protonmail.com",
+      password: "123",
+    });
+
+    const responseUser2 = await request(server).post("/api/users").send({
+      username: "ms",
+      name: "Mary Smith",
+      email: "mary.smith@protonmail.com",
+      password: "456",
+    });
+
+    const responseEntry1 = await request(server)
+      .post("/api/entries")
+      .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+      .send({
+        timezone: "+02:00",
+        localTime: "2021-01-01 02:00:17",
+        content: "Happy New Year to everybody in the UK!",
+      });
+
+    const responseEntry2 = await request(server)
+      .post("/api/entries")
+      .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"))
+      .send({
+        timezone: "-05:00",
+        localTime: "2020-12-31 19:00:17",
+        content: "Happy New Year to everybody in the UK!",
+      });
+  });
+
+  test(
+    "if a client attempts to edit an Entry resource" +
+      " without providing Basic Auth credentials," +
+      " the server should respond with a 401",
+    async () => {
+      const response = await request(server).put("/api/entries/1").send({
+        timezone: "-08:00",
+        localTime: "2020-12-31 16:00:34",
+        content: "Happy New Year to everybody in the United Kingdom!",
+      });
+
+      expect(response.status).toEqual(401);
+      expect(response.type).toEqual("application/json");
+      expect(response.body).toEqual({
+        error: "authentication required - via Basic authentication",
+      });
+    }
+  );
+
+  test(
+    "if a client attempts to edit an Entry resource, which doesn't exist," +
+      " the server should respond with a 404",
+    async () => {
+      const response = await request(server)
+        .put("/api/entries/17")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .send({
+          timezone: "-08:00",
+          localTime: "2020-12-31 16:00:34",
+          content: "Happy New Year to everybody in the United Kingdom!",
+        });
+
+      expect(response.status).toEqual(404);
+      expect(response.type).toEqual("application/json");
+      expect(response.body).toEqual({
+        error: "Your User doesn't have an Entry resource with an ID of 17",
+      });
+    }
+  );
+
+  test(
+    "if a client attempts to edit an Entry resource, which does exist," +
+      " by providing an invalid set of Basic Auth credentials," +
+      " the server should respond with a 401",
+    async () => {
+      const response = await request(server)
+        .put("/api/entries/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:wrong-password"))
+        .send({
+          timezone: "-08:00",
+          localTime: "2020-12-31 16:00:34",
+          content: "Happy New Year to everybody in the United Kingdom!",
+        });
+
+      expect(response.status).toEqual(401);
+      expect(response.type).toEqual("application/json");
+      expect(response.body).toEqual({
+        error: "authentication required - incorrect email and/or password",
+      });
+    }
+  );
+
+  test(
+    "if a client attempts to edit an Entry resource," +
+      " which does exist but" +
+      " isn't associated with the user authenticated by the issued request's header," +
+      " the server should respond with a 404",
+    async () => {
+      const response = await request(server)
+        .put("/api/entries/2")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .send({
+          timezone: "-08:00",
+          localTime: "2020-12-31 16:00:34",
+          content: "Happy New Year to everybody in the United Kingdom!",
+        });
+
+      expect(response.status).toEqual(404);
+      expect(response.type).toEqual("application/json");
+      expect(response.body).toEqual({
+        error: "Your User doesn't have an Entry resource with an ID of 2",
+      });
+    }
+  );
+
+  test(
+    "if a client attempts to edit an existing Entry resource" +
+      " by providing either a localTime without a timezone or vice verse," +
+      " the server should respond with a 400",
+    async () => {
+      const completeEntryPayload = {
+        timezone: "-08:00",
+        localTime: "2020-12-31 16:00:34",
+      };
+
+      for (let field in completeEntryPayload) {
+        let incompleteEntryPayload: IIncompletePayload = { ...completeEntryPayload };
+        delete incompleteEntryPayload[field];
+
+        const response = await request(server)
+          .put("/api/entries/1")
+          .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+          .send(incompleteEntryPayload);
+
+        expect(response.status).toEqual(400);
+        expect(response.type).toEqual("application/json");
+        expect(response.body).toEqual({
+          error:
+            "Your request body must include" +
+            " either both of 'timezone' and 'localTime', or neither one of them",
+        });
+      }
+    }
+  );
+
+  test(
+    "if a client issues a valid request for editing an Entry resource," +
+      " then the server should edit that resource",
+    async () => {
+      const response = await request(server)
+        .put("/api/entries/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .send({
+          timezone: "-08:00",
+          localTime: "2020-12-31 16:00:34",
+          content: "Happy New Year to everybody in the United Kingdom!",
+        });
+
+      expect(response.status).toEqual(200);
+      const { id, timestampInUTC, utcZoneOfTimestamp, content, userId } = response.body;
+      const responseBody = { id, timestampInUTC, utcZoneOfTimestamp, content, userId };
+      expect(responseBody).toEqual({
+        id: 1,
+        timestampInUTC: "2021-01-01T00:00:34.000Z",
+        utcZoneOfTimestamp: "-08:00",
+        content: "Happy New Year to everybody in the United Kingdom!",
+        userId: 1,
+      });
+    }
+  );
+});
