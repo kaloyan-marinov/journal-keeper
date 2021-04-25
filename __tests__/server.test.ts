@@ -936,24 +936,9 @@ describe("GET /api/entries/:id", () => {
   );
 
   test(
-    "the server should respond with a 404" +
-      " if a client attempts to fetch an Entry resource, which doesn't exist",
-    async () => {
-      const response = await request(server)
-        .get("/api/entries/17")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
-
-      expect(response.status).toEqual(404);
-      expect(response.body).toEqual({
-        error: "Your User doesn't have an Entry resource with an ID of 17",
-      });
-    }
-  );
-
-  test(
     "the server should respond with a 401" +
-      " if a client attempts to fetch an Entry resource, which does exist," +
-      " by providing an invalid set of Basic Auth credentials",
+      " if a client attempts to" +
+      " fetch an Entry resource by providing an invalid set of Basic Auth credentials",
     async () => {
       const response = await request(server)
         .get("/api/entries/1")
@@ -965,6 +950,21 @@ describe("GET /api/entries/:id", () => {
       expect(response.status).toEqual(401);
       expect(response.body).toEqual({
         error: "authentication required - incorrect email and/or password",
+      });
+    }
+  );
+
+  test(
+    "the server should respond with a 404" +
+      " if a client attempts to fetch an Entry resource, which doesn't exist",
+    async () => {
+      const response = await request(server)
+        .get("/api/entries/17")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+
+      expect(response.status).toEqual(404);
+      expect(response.body).toEqual({
+        error: "Your User doesn't have an Entry resource with an ID of 17",
       });
     }
   );
@@ -1086,29 +1086,8 @@ describe("PUT /api/entries/:id", () => {
   );
 
   test(
-    "the server should respond with a 404" +
-      " if a client attempts to edit an Entry resource, which doesn't exist",
-    async () => {
-      const response = await request(server)
-        .put("/api/entries/17")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
-        .send({
-          timezone: "-08:00",
-          localTime: "2020-12-31 16:00:34",
-          content: "Happy New Year to everybody in the United Kingdom!",
-        });
-
-      expect(response.status).toEqual(404);
-      expect(response.type).toEqual("application/json");
-      expect(response.body).toEqual({
-        error: "Your User doesn't have an Entry resource with an ID of 17",
-      });
-    }
-  );
-
-  test(
     "the server should respond with a 401" +
-      " if a client attempts to edit an Entry resource, which does exist," +
+      " if a client attempts to edit an Entry resource" +
       " by providing an invalid set of Basic Auth credentials",
     async () => {
       const response1 = await request(server)
@@ -1142,6 +1121,27 @@ describe("PUT /api/entries/:id", () => {
         utcZoneOfTimestamp: "+02:00",
         timestampInUTC: "2021-01-01T00:00:17.000Z",
         content: "Happy New Year to everybody in the UK!",
+      });
+    }
+  );
+
+  test(
+    "the server should respond with a 404" +
+      " if a client attempts to edit an Entry resource, which doesn't exist",
+    async () => {
+      const response = await request(server)
+        .put("/api/entries/17")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .send({
+          timezone: "-08:00",
+          localTime: "2020-12-31 16:00:34",
+          content: "Happy New Year to everybody in the United Kingdom!",
+        });
+
+      expect(response.status).toEqual(404);
+      expect(response.type).toEqual("application/json");
+      expect(response.body).toEqual({
+        error: "Your User doesn't have an Entry resource with an ID of 17",
       });
     }
   );
