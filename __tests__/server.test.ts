@@ -803,7 +803,7 @@ describe("POST /api/entries", () => {
 
 describe("GET /api/entries", () => {
   test(
-    "if a client requests all Entry resources" +
+    "if a client attempts to fetch all Entry resources" +
       " without providing Basic Auth credentials," +
       " the server should respond with a 401",
     async () => {
@@ -817,7 +817,7 @@ describe("GET /api/entries", () => {
   );
 
   test(
-    "if a client issues a valid request," +
+    "if a client issues a valid request for fetching all Entry resources," +
       " the server should respond with a list of all Entry resources" +
       " that are associated with the user authenticated by the issued request's header",
     async () => {
@@ -1189,7 +1189,7 @@ describe("PUT /api/entries/:id", () => {
 
   test(
     "if a client attempts to edit an existing Entry resource" +
-      " by providing either a localTime without a timezone or vice verse," +
+      " by providing either a localTime without a timezone or vice versa," +
       " the server should respond with a 400",
     async () => {
       const completeEntryPayload = {
@@ -1469,9 +1469,8 @@ describe(
 
     test(
       "if a client issues a valid request for deleting a User resource," +
-        " the server should delete not only the user authenticated by the issued" +
-        " request's header" +
-        " but also all of that User's associated Entries resources",
+        " the server should delete not only the targeted User resource" +
+        " but also all of that User's associated Entry resources",
       async () => {
         const response1 = await request(server)
           .delete("/api/users/1")
