@@ -80,45 +80,6 @@ describe("POST /api/users", () => {
   );
 
   test(
-    "if a client issues a valid request for creating a new User resource," +
-      " the server should create that resource",
-    async () => {
-      const response = await request(server).post("/api/users").send({
-        username: "ms",
-        name: "Mary Smith",
-        email: "mary.smith@protonmail.com",
-        password: "456",
-      });
-
-      expect(response.status).toEqual(201);
-      expect(response.headers.location).toEqual("/api/users/1");
-      expect(response.type).toEqual("application/json");
-      expect(response.body).toEqual({
-        id: 1,
-        username: "ms",
-      });
-
-      const usersRepository: Repository<User> = connection.getRepository(User);
-      const users = await usersRepository.find();
-      expect(users.length).toEqual(1);
-      const { id, username, name, email, password } = users[0];
-      expect({
-        id,
-        username,
-        name,
-        email,
-        password,
-      }).toEqual({
-        id: 1,
-        username: "ms",
-        name: "Mary Smith",
-        email: "mary.smith@protonmail.com",
-        password: "456",
-      });
-    }
-  );
-
-  test(
     "the server should respond with a 400" +
       " if a client attempts to create a new User resource" +
       " with a username which coincides with that of an existing User",
@@ -180,6 +141,45 @@ describe("POST /api/users", () => {
       const users: User[] = await usersRepository.find();
       expect(users.length).toEqual(1);
       expect(users[0].name).toEqual("John Doe");
+    }
+  );
+
+  test(
+    "if a client issues a valid request for creating a new User resource," +
+      " the server should create that resource",
+    async () => {
+      const response = await request(server).post("/api/users").send({
+        username: "ms",
+        name: "Mary Smith",
+        email: "mary.smith@protonmail.com",
+        password: "456",
+      });
+
+      expect(response.status).toEqual(201);
+      expect(response.headers.location).toEqual("/api/users/1");
+      expect(response.type).toEqual("application/json");
+      expect(response.body).toEqual({
+        id: 1,
+        username: "ms",
+      });
+
+      const usersRepository: Repository<User> = connection.getRepository(User);
+      const users = await usersRepository.find();
+      expect(users.length).toEqual(1);
+      const { id, username, name, email, password } = users[0];
+      expect({
+        id,
+        username,
+        name,
+        email,
+        password,
+      }).toEqual({
+        id: 1,
+        username: "ms",
+        name: "Mary Smith",
+        email: "mary.smith@protonmail.com",
+        password: "456",
+      });
     }
   );
 
@@ -353,31 +353,6 @@ describe("PUT /api/users/:id", () => {
   );
 
   test(
-    "the server should respond with a 400" +
-      " if a client attempts to edit a User resource without including a" +
-      " 'Content-Type: application/json' header",
-    async () => {
-      const response1 = await request(server).post("/api/users").send({
-        username: "jd",
-        name: "John Doe",
-        email: "john.doe@protonmail.com",
-        password: "123",
-      });
-
-      const response2 = await request(server)
-        .put("/api/users/1")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
-        .set("Content-Type", "text/html");
-
-      expect(response2.status).toEqual(400);
-      expect(response2.type).toEqual("application/json");
-      expect(response2.body).toEqual({
-        error: "Your request did not include a 'Content-Type: application/json' header",
-      });
-    }
-  );
-
-  test(
     "the server should respond with a 403" +
       " if a client attempts to edit a User resource," +
       " which doesn't correspond to the user authenticated by the issued request's" +
@@ -405,6 +380,31 @@ describe("PUT /api/users/:id", () => {
       expect(response2.type).toEqual("application/json");
       expect(response2.body).toEqual({
         error: "You are not allowed to edit any User resource different from your own",
+      });
+    }
+  );
+
+  test(
+    "the server should respond with a 400" +
+      " if a client attempts to edit a User resource without including a" +
+      " 'Content-Type: application/json' header",
+    async () => {
+      const response1 = await request(server).post("/api/users").send({
+        username: "jd",
+        name: "John Doe",
+        email: "john.doe@protonmail.com",
+        password: "123",
+      });
+
+      const response2 = await request(server)
+        .put("/api/users/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .set("Content-Type", "text/html");
+
+      expect(response2.status).toEqual(400);
+      expect(response2.type).toEqual("application/json");
+      expect(response2.body).toEqual({
+        error: "Your request did not include a 'Content-Type: application/json' header",
       });
     }
   );
