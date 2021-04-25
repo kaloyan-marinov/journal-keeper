@@ -356,8 +356,46 @@ describe("PUT /api/users/:id", () => {
   test(
     "the server should respond with a 403" +
       " if a client attempts to edit a User resource," +
-      " which doesn't correspond to the user authenticated by the issued request's" +
-      " header",
+      " which does exist but doesn't correspond to the user authenticated by the" +
+      " issued request's header",
+    async () => {
+      const response1 = await request(server).post("/api/users").send({
+        username: "jd",
+        name: "John Doe",
+        email: "john.doe@protonmail.com",
+        password: "123",
+      });
+
+      const response2 = await request(server).post("/api/users").send({
+        username: "ms",
+        name: "Mary Smith",
+        email: "mary.smith@protonmail.com",
+        password: "456",
+      });
+
+      const response3 = await request(server)
+        .put("/api/users/2")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .set("Content-Type", "application/json")
+        .send({
+          username: "new-username",
+          name: "new-name",
+          email: "new-email",
+          password: "new-password",
+        });
+
+      expect(response3.status).toEqual(403);
+      expect(response3.type).toEqual("application/json");
+      expect(response3.body).toEqual({
+        error: "You are not allowed to edit any User resource different from your own",
+      });
+    }
+  );
+
+  test(
+    "the server should respond with a 403" +
+      " if a client attempts to edit a User resource," +
+      " which doesn't exist",
     async () => {
       const response1 = await request(server).post("/api/users").send({
         username: "jd",
@@ -625,8 +663,46 @@ describe("DELETE /api/users/:id", () => {
   test(
     "the server should respond with a 403" +
       " if a client attempts to delete a User resource," +
-      " which doesn't correspond to the user authenticated by the issued request's" +
-      " header",
+      " which does exist but doesn't correspond to the user authenticated by the" +
+      " issued request's header",
+    async () => {
+      const reponse1 = await request(server)
+        .post("/api/users")
+        .set("Content-Type", "application/json")
+        .send({
+          username: "jd",
+          name: "John Doe",
+          email: "john.doe@protonmail.com",
+          password: "123",
+        });
+
+      const response2 = await request(server)
+        .post("/api/users")
+        .set("Content-Type", "application/json")
+        .send({
+          username: "ms",
+          name: "Mary Smith",
+          email: "mary.smith@protonmail.com",
+          password: "123",
+        });
+
+      const response3 = await request(server)
+        .delete("/api/users/2")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+
+      expect(response3.status).toEqual(403);
+      expect(response3.type).toEqual("application/json");
+      expect(response3.body).toEqual({
+        error:
+          "You are not allowed to delete any User resource different from your own",
+      });
+    }
+  );
+
+  test(
+    "the server should respond with a 403" +
+      " if a client attempts to delete a User resource," +
+      " which doesn't exist",
     async () => {
       const reponse1 = await request(server)
         .post("/api/users")
