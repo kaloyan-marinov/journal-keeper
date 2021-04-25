@@ -219,7 +219,8 @@ describe("POST /api/users", () => {
 
 describe("GET /api/users", () => {
   test(
-    "if a client requests all User resources but there are no User resources," +
+    "if a client issues a valid request for fetching all User resources" +
+      " but there are no User resources," +
       " the server should respond with an empty list",
     async () => {
       const response = await request(server).get("/api/users");
@@ -233,7 +234,7 @@ describe("GET /api/users", () => {
   );
 
   test(
-    "if a client requests all User resources," +
+    "if a client issues a valid request for fetching all User resources," +
       " the server should respond with public representations of all of them",
     async () => {
       const response1 = await request(server).post("/api/users").send({
