@@ -34,8 +34,9 @@ afterEach((done) => {
 
 describe("POST /api/users", () => {
   test(
-    "if a client request doesn't include a 'Content-Type: application/json' header," +
-      " the server should respond with a 400",
+    "the server should respond with a 400" +
+      " if a client attempts to create a User resource" +
+      " without including a 'Content-Type: application/json' header",
     async () => {
       const response = await request(server)
         .post("/api/users")
@@ -50,8 +51,9 @@ describe("POST /api/users", () => {
   );
 
   test(
-    "if a client doesn't send all required fields," +
-      " the server should respond with a 400",
+    "the server should respond with a 400" +
+      " if a client attempts to create a User resource" +
+      " without sending all required fields",
     async () => {
       const completeUserPayload = {
         username: "jd",
@@ -78,7 +80,7 @@ describe("POST /api/users", () => {
   );
 
   test(
-    "if a client requests to create a new User resource," +
+    "if a client issues a valid request for creating a new User resource," +
       " the server should create that resource",
     async () => {
       const response = await request(server).post("/api/users").send({
@@ -117,9 +119,9 @@ describe("POST /api/users", () => {
   );
 
   test(
-    "if a client requests to create a new User resource" +
-      " with a username which coincides with that of an existing User," +
-      " the server should respond with a 400",
+    "the server should respond with a 400" +
+      " if a client attempts to create a new User resource" +
+      " with a username which coincides with that of an existing User",
     async () => {
       const response1 = await request(server).post("/api/users").send({
         username: "jd",
@@ -150,9 +152,9 @@ describe("POST /api/users", () => {
   );
 
   test(
-    "if a client requests to create a new User resource" +
-      " with an email which coincides with that of an existing User," +
-      " the server should respond with a 400",
+    "the server should respond with a 400" +
+      " if a client attempts to create a new User resource" +
+      " with an email which coincides with that of an existing User",
     async () => {
       const response1 = await request(server).post("/api/users").send({
         username: "jd",
@@ -184,7 +186,7 @@ describe("POST /api/users", () => {
   test(
     "if the username, name, and/or email provided by the client" +
       " contain leading and trailing whitespace characters," +
-      " those characters are removed before a new User resource is inserted into the DB",
+      " those characters are removed before a new User (row) is inserted into the DB",
     async () => {
       const response = await request(server).post("/api/users").send({
         username: " jd ",
@@ -254,8 +256,9 @@ describe("GET /api/users", () => {
 
 describe("GET /api/users/:id", () => {
   test(
-    "if a client specifies a non-existent User ID," +
-      " the server should respond with a 404",
+    "the server should respond with a 404" +
+      " if there doesn't exist a User resource whose ID " +
+      " equals the one targeted by client's request",
     async () => {
       const response = await request(server).get("/api/users/1");
 
@@ -268,8 +271,8 @@ describe("GET /api/users/:id", () => {
   );
 
   test(
-    "if a client specifies an existing User ID," +
-      "the server should respond with (a public representation of) that User resource",
+    "if a client issues a valid request for fetching a User resource," +
+      " the server should respond with (a public representation of) that User resource",
     async () => {
       const response1 = await request(server)
         .post("/api/users")
@@ -295,9 +298,9 @@ describe("GET /api/users/:id", () => {
 
 describe("PUT /api/users/:id", () => {
   test(
-    "if a client attempts to" +
-      " edit a User resource without providing Basic Auth credentials," +
-      " the server should respond with a 401",
+    "the server should respond with a 401" +
+      " if a client attempts to" +
+      " edit a User resource without providing Basic Auth credentials",
     async () => {
       const response1 = await request(server)
         .post("/api/users")
@@ -321,9 +324,9 @@ describe("PUT /api/users/:id", () => {
   );
 
   test(
-    "if a client attempts to" +
-      " edit a User resource by providing an invalid set of Basic Auth credentials," +
-      " the server should respond with a 401",
+    "the server should respond with a 401" +
+      " if a client attempts to" +
+      " edit a User resource by providing an invalid set of Basic Auth credentials",
     async () => {
       const response1 = await request(server)
         .post("/api/users")
@@ -350,9 +353,9 @@ describe("PUT /api/users/:id", () => {
   );
 
   test(
-    "if a client requests to edit a User resource without including a" +
-      " 'Content-Type: application/json' header," +
-      " the server should respond with a 400",
+    "the server should respond with a 400" +
+      " if a client attempts to edit a User resource without including a" +
+      " 'Content-Type: application/json' header",
     async () => {
       const response1 = await request(server).post("/api/users").send({
         username: "jd",
@@ -375,10 +378,10 @@ describe("PUT /api/users/:id", () => {
   );
 
   test(
-    "if a client attempts to edit a User resource," +
+    "the server should respond with a 403" +
+      " if a client attempts to edit a User resource," +
       " which doesn't correspond to the user authenticated by the issued request's" +
-      " header," +
-      " the server should respond with a 403",
+      " header",
     async () => {
       const response1 = await request(server).post("/api/users").send({
         username: "jd",
@@ -407,9 +410,10 @@ describe("PUT /api/users/:id", () => {
   );
 
   test(
-    "if a client requests to edit a User resource in such a way that its new" +
+    "the server should respond with a 400" +
+      " if a client attempts to edit a User resource in such a way that its new" +
       " username (or email) would end up being the same as that of another User" +
-      " resource, the server should respond with a 400",
+      " resource",
     async () => {
       const response1 = await request(server)
         .post("/api/users")
@@ -464,9 +468,8 @@ describe("PUT /api/users/:id", () => {
   );
 
   test(
-    "if a client specifies an existing User ID and provides a request body, which" +
-      " doesn't duplicate another User resource's username or email, the server" +
-      " should edit the targeted User resource",
+    "if a client issues a valid request for editing a User resource," +
+      " the server should edit the targeted User resource",
     async () => {
       const response1 = await request(server)
         .post("/api/users")
@@ -566,9 +569,9 @@ describe("PUT /api/users/:id", () => {
 
 describe("DELETE /api/users/:id", () => {
   test(
-    "if a client attempts to" +
-      " delete a User resource without providing Basic Auth credentials," +
-      " the server should respond with a 401",
+    "the server should respond with a 401" +
+      " if a client attempts to" +
+      " delete a User resource without providing Basic Auth credentials",
     async () => {
       const response1 = await request(server)
         .post("/api/users")
@@ -590,9 +593,9 @@ describe("DELETE /api/users/:id", () => {
   );
 
   test(
-    "if a client attempts to" +
-      " delete a User resource by providing an invalid set of Basic Auth credentials," +
-      " the server should respond with a 401",
+    "the server should respond with a 401" +
+      " if a client attempts to" +
+      " delete a User resource by providing an invalid set of Basic Auth credentials",
     async () => {
       const response1 = await request(server)
         .post("/api/users")
@@ -619,10 +622,10 @@ describe("DELETE /api/users/:id", () => {
   );
 
   test(
-    "if a client attempts to delete a User resource," +
+    "the server should respond with a 403" +
+      " if a client attempts to delete a User resource," +
       " which doesn't correspond to the user authenticated by the issued request's" +
-      " header," +
-      " the server should respond with a 403",
+      " header",
     async () => {
       const reponse1 = await request(server)
         .post("/api/users")
@@ -648,8 +651,8 @@ describe("DELETE /api/users/:id", () => {
   );
 
   test(
-    "if a client requests to delete an existing User resource," +
-      " the server should delete that resource",
+    "if a client issues a valid request for deleting a User resource," +
+      " the server should delete the targeted resource",
     async () => {
       const response1 = await request(server)
         .post("/api/users")
@@ -1407,7 +1410,7 @@ describe("DELETE /api/entries/:id", () => {
 
   test(
     "if a client issues a valid request for deleting an Entry resource," +
-      " the server should delete that resource",
+      " the server should delete the targeted resource",
     async () => {
       const response1 = await request(server)
         .delete("/api/entries/1")
