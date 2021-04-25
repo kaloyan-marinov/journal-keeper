@@ -81,7 +81,7 @@ describe("POST /api/users", () => {
 
   test(
     "the server should respond with a 400" +
-      " if a client attempts to create a new User resource" +
+      " if a client attempts to create a User resource" +
       " with a username which coincides with that of an existing User",
     async () => {
       const response1 = await request(server).post("/api/users").send({
@@ -114,7 +114,7 @@ describe("POST /api/users", () => {
 
   test(
     "the server should respond with a 400" +
-      " if a client attempts to create a new User resource" +
+      " if a client attempts to create a User resource" +
       " with an email which coincides with that of an existing User",
     async () => {
       const response1 = await request(server).post("/api/users").send({
@@ -145,8 +145,8 @@ describe("POST /api/users", () => {
   );
 
   test(
-    "if a client issues a valid request for creating a new User resource," +
-      " the server should create that resource",
+    "if a client issues a valid request for creating a User resource," +
+      " the server should create such a resource",
     async () => {
       const response = await request(server).post("/api/users").send({
         username: "ms",
@@ -185,7 +185,7 @@ describe("POST /api/users", () => {
 
   test(
     "if the username, name, and/or email provided by the client" +
-      " contain leading and trailing whitespace characters," +
+      " contain leading and/or trailing whitespace characters," +
       " those characters are removed before a new User (row) is inserted into the DB",
     async () => {
       const response = await request(server).post("/api/users").send({
@@ -257,8 +257,8 @@ describe("GET /api/users", () => {
 describe("GET /api/users/:id", () => {
   test(
     "the server should respond with a 404" +
-      " if there doesn't exist a User resource whose ID " +
-      " equals the one targeted by client's request",
+      " if there doesn't exist a User resource" +
+      " with the ID targeted by client's request",
     async () => {
       const response = await request(server).get("/api/users/1");
 
@@ -272,7 +272,8 @@ describe("GET /api/users/:id", () => {
 
   test(
     "if a client issues a valid request for fetching a User resource," +
-      " the server should respond with (a public representation of) that User resource",
+      " the server should respond with (a public representation of) the targeted" +
+      " resource",
     async () => {
       const response1 = await request(server)
         .post("/api/users")
@@ -469,7 +470,7 @@ describe("PUT /api/users/:id", () => {
 
   test(
     "if a client issues a valid request for editing a User resource," +
-      " the server should edit the targeted User resource",
+      " the server should edit the targeted resource",
     async () => {
       const response1 = await request(server)
         .post("/api/users")
@@ -523,9 +524,9 @@ describe("PUT /api/users/:id", () => {
 
   test(
     "if the username, name, and/or email provided by the client" +
-      " contain leading and trailing whitespace characters," +
+      " contain leading and/or trailing whitespace characters," +
       " those characters are removed" +
-      " before the targeted User resource is updated in the DB",
+      " before the targeted User (row) is updated in the DB",
     async () => {
       const response1 = await request(server).post("/api/users").send({
         username: "jd",
