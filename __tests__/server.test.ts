@@ -673,9 +673,9 @@ describe("DELETE /api/users/:id", () => {
 
 describe("POST /api/entries", () => {
   test(
-    "if a client attempts to" +
-      " create an Entry resource without providing Basic Auth credentials," +
-      " the server should respond with a 401",
+    "the server should respond with a 401" +
+      " if a client attempts to" +
+      " create an Entry resource without providing Basic Auth credentials",
     async () => {
       const response1 = await request(server)
         .post("/api/users")
@@ -701,9 +701,9 @@ describe("POST /api/entries", () => {
   );
 
   test(
-    "if a client attempts to create an Entry resource without including a" +
-      " 'Content-Type: application/json' header," +
-      " the server should respond with a 400",
+    "the server should respond with a 400" +
+      " if a client attempts to create an Entry resource without including a" +
+      " 'Content-Type: application/json' header",
     async () => {
       const response1 = await request(server).post("/api/users").send({
         username: "jd",
@@ -725,8 +725,8 @@ describe("POST /api/entries", () => {
   );
 
   test(
-    "if a client doesn't send all required fields," +
-      " the server should respond with a 400",
+    "the server should respond with a 400" +
+      " if a client doesn't send all required fields",
     async () => {
       const response1 = await request(server).post("/api/users").send({
         username: "jd",
@@ -761,7 +761,7 @@ describe("POST /api/entries", () => {
 
   test(
     "if a client issues a valid request for creating an Entry resource," +
-      " then the server should create that resource",
+      " the server should create such a resource",
     async () => {
       const response1 = await request(server).post("/api/users").send({
         username: "jd",
@@ -803,9 +803,9 @@ describe("POST /api/entries", () => {
 
 describe("GET /api/entries", () => {
   test(
-    "if a client attempts to fetch all Entry resources" +
-      " without providing Basic Auth credentials," +
-      " the server should respond with a 401",
+    "the server should respond with a 401" +
+      " if a client attempts to fetch all Entry resources" +
+      " without providing Basic Auth credentials",
     async () => {
       const response = await request(server).get("/api/entries");
 
@@ -922,9 +922,9 @@ describe("GET /api/entries/:id", () => {
   });
 
   test(
-    "if a client attempts to" +
-      " fetch an Entry resource without providing Basic Auth credentials," +
-      " the server should respond with a 401",
+    "the server should respond with a 401" +
+      " if a client attempts to" +
+      " fetch an Entry resource without providing Basic Auth credentials",
     async () => {
       const response = await request(server).get("/api/entries/1");
 
@@ -936,8 +936,8 @@ describe("GET /api/entries/:id", () => {
   );
 
   test(
-    "if a client attempts to fetch an Entry resource, which doesn't exist," +
-      " the server should respond with a 404",
+    "the server should respond with a 404" +
+      " if a client attempts to fetch an Entry resource, which doesn't exist",
     async () => {
       const response = await request(server)
         .get("/api/entries/17")
@@ -951,9 +951,9 @@ describe("GET /api/entries/:id", () => {
   );
 
   test(
-    "if a client attempts to fetch an Entry resource, which does exist," +
-      " by providing an invalid set of Basic Auth credentials," +
-      " the server should respond with a 401",
+    "the server should respond with a 401" +
+      " if a client attempts to fetch an Entry resource, which does exist," +
+      " by providing an invalid set of Basic Auth credentials",
     async () => {
       const response = await request(server)
         .get("/api/entries/1")
@@ -970,10 +970,10 @@ describe("GET /api/entries/:id", () => {
   );
 
   test(
-    "if a client attempts to fetch an Entry resource," +
+    "the server should respond with a 404" +
+      " if a client attempts to fetch an Entry resource," +
       " which does exist but" +
-      " isn't associated with the user authenticated by the issued request's header," +
-      " the server should respond with a 404",
+      " isn't associated with the user authenticated by the issued request's header",
     async () => {
       const response = await request(server)
         .get("/api/entries/2")
@@ -988,7 +988,7 @@ describe("GET /api/entries/:id", () => {
 
   test(
     "if a client issues a valid request for fetching an Entry resource," +
-      " then the server should respond with that resource",
+      " the server should respond with that resource",
     async () => {
       const response = await request(server)
         .get("/api/entries/1")
@@ -1049,9 +1049,9 @@ describe("PUT /api/entries/:id", () => {
   });
 
   test(
-    "if a client attempts to edit an Entry resource" +
-      " without providing Basic Auth credentials," +
-      " the server should respond with a 401",
+    "the server should respond with a 401" +
+      " if a client attempts to edit an Entry resource" +
+      " without providing Basic Auth credentials",
     async () => {
       const response1 = await request(server).put("/api/entries/1").send({
         timezone: "-08:00",
@@ -1086,8 +1086,8 @@ describe("PUT /api/entries/:id", () => {
   );
 
   test(
-    "if a client attempts to edit an Entry resource, which doesn't exist," +
-      " the server should respond with a 404",
+    "the server should respond with a 404" +
+      " if a client attempts to edit an Entry resource, which doesn't exist",
     async () => {
       const response = await request(server)
         .put("/api/entries/17")
@@ -1107,9 +1107,9 @@ describe("PUT /api/entries/:id", () => {
   );
 
   test(
-    "if a client attempts to edit an Entry resource, which does exist," +
-      " by providing an invalid set of Basic Auth credentials," +
-      " the server should respond with a 401",
+    "the server should respond with a 401" +
+      " if a client attempts to edit an Entry resource, which does exist," +
+      " by providing an invalid set of Basic Auth credentials",
     async () => {
       const response1 = await request(server)
         .put("/api/entries/1")
@@ -1147,10 +1147,10 @@ describe("PUT /api/entries/:id", () => {
   );
 
   test(
-    "if a client attempts to edit an Entry resource," +
+    "the server should respond with a 404" +
+      " if a client attempts to edit an Entry resource," +
       " which does exist but" +
-      " isn't associated with the user authenticated by the issued request's header," +
-      " the server should respond with a 404",
+      " isn't associated with the user authenticated by the issued request's header",
     async () => {
       const response1 = await request(server)
         .put("/api/entries/2")
@@ -1188,9 +1188,9 @@ describe("PUT /api/entries/:id", () => {
   );
 
   test(
-    "if a client attempts to edit an existing Entry resource" +
-      " by providing either a localTime without a timezone or vice versa," +
-      " the server should respond with a 400",
+    "the server should respond with a 400" +
+      " if a client attempts to edit an existing Entry resource" +
+      " by providing either a localTime without a timezone or vice versa",
     async () => {
       const completeEntryPayload = {
         timezone: "-08:00",
@@ -1239,7 +1239,7 @@ describe("PUT /api/entries/:id", () => {
 
   test(
     "if a client issues a valid request for editing an Entry resource," +
-      " then the server should edit that resource",
+      " the server should edit that resource",
     async () => {
       const response = await request(server)
         .put("/api/entries/1")
@@ -1323,9 +1323,9 @@ describe("DELETE /api/entries/:id", () => {
   });
 
   test(
-    "if a client attempts to delete an Entry resource" +
-      " without providing Basic Auth credentials," +
-      " the server should respond with a 401",
+    "the server should respond with a 401" +
+      " if a client attempts to delete an Entry resource" +
+      " without providing Basic Auth credentials",
     async () => {
       const response1 = await request(server).delete("/api/entries/1");
 
@@ -1343,9 +1343,9 @@ describe("DELETE /api/entries/:id", () => {
   );
 
   test(
-    "if a client attempts to delete an Entry resource" +
-      " by providing an invalid set of Basic Auth credentials," +
-      " the server should respond with a 401",
+    "the server should respond with a 401" +
+      " if a client attempts to delete an Entry resource" +
+      " by providing an invalid set of Basic Auth credentials",
     async () => {
       const response1 = await request(server)
         .delete("/api/entries/1")
@@ -1368,8 +1368,8 @@ describe("DELETE /api/entries/:id", () => {
   );
 
   test(
-    "if a client attempts to delete an Entry resource, which doesn't exist," +
-      " the server should respond with a 404",
+    "the server should respond with a 404" +
+      " if a client attempts to delete an Entry resource, which doesn't exist",
     async () => {
       const response1 = await request(server)
         .delete("/api/entries/17")
@@ -1386,10 +1386,10 @@ describe("DELETE /api/entries/:id", () => {
   );
 
   test(
-    "if a client attempts to delete an Entry resource," +
+    "the server should respond with a 404" +
+      " if a client attempts to delete an Entry resource," +
       " which does exist but" +
-      " isn't associated with the user authenticated by the issued request's header," +
-      " the server should respond with a 404",
+      " isn't associated with the user authenticated by the issued request's header",
     async () => {
       const response1 = await request(server)
         .delete("/api/entries/2")
@@ -1425,69 +1425,65 @@ describe("DELETE /api/entries/:id", () => {
   );
 });
 
-describe(
-  "DELETE /api/user/:id should delete not only the targeted User resource" +
-    " but also all associated Entry resources",
-  () => {
-    beforeEach(async () => {
-      /*
-      Create two User resources, as well as one Entry resource per user.
-      */
+describe("DELETE /api/user/:id", () => {
+  beforeEach(async () => {
+    /*
+    Create two User resources, as well as one Entry resource per user.
+    */
 
-      const responseUser1 = await request(server).post("/api/users").send({
-        username: "jd",
-        name: "John Doe",
-        email: "john.doe@protonmail.com",
-        password: "123",
-      });
-
-      const responseUser2 = await request(server).post("/api/users").send({
-        username: "ms",
-        name: "Mary Smith",
-        email: "mary.smith@protonmail.com",
-        password: "456",
-      });
-
-      const responseEntry1 = await request(server)
-        .post("/api/entries")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
-        .send({
-          timezone: "+02:00",
-          localTime: "2021-01-01 02:00:17",
-          content: "Happy New Year to everybody in the UK!",
-        });
-
-      const responseEntry2 = await request(server)
-        .post("/api/entries")
-        .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"))
-        .send({
-          timezone: "-05:00",
-          localTime: "2020-12-31 19:00:17",
-          content: "Happy New Year to everybody in the UK!",
-        });
+    const responseUser1 = await request(server).post("/api/users").send({
+      username: "jd",
+      name: "John Doe",
+      email: "john.doe@protonmail.com",
+      password: "123",
     });
 
-    test(
-      "if a client issues a valid request for deleting a User resource," +
-        " the server should delete not only the targeted User resource" +
-        " but also all of that User's associated Entry resources",
-      async () => {
-        const response1 = await request(server)
-          .delete("/api/users/1")
-          .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+    const responseUser2 = await request(server).post("/api/users").send({
+      username: "ms",
+      name: "Mary Smith",
+      email: "mary.smith@protonmail.com",
+      password: "456",
+    });
 
-        expect(response1.status).toEqual(204);
+    const responseEntry1 = await request(server)
+      .post("/api/entries")
+      .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+      .send({
+        timezone: "+02:00",
+        localTime: "2021-01-01 02:00:17",
+        content: "Happy New Year to everybody in the UK!",
+      });
 
-        const entriesRepository: Repository<Entry> = connection.getRepository(Entry);
-        let entries: Entry[] | undefined;
+    const responseEntry2 = await request(server)
+      .post("/api/entries")
+      .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"))
+      .send({
+        timezone: "-05:00",
+        localTime: "2020-12-31 19:00:17",
+        content: "Happy New Year to everybody in the UK!",
+      });
+  });
 
-        entries = await entriesRepository.find({ userId: 1 });
-        expect(entries).toEqual([]);
+  test(
+    "if a client issues a valid request for deleting a User resource," +
+      " the server should delete not only the targeted User resource" +
+      " but also all of that User's associated Entry resources",
+    async () => {
+      const response1 = await request(server)
+        .delete("/api/users/1")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
 
-        entries = await entriesRepository.find();
-        const userIds: (number | undefined)[] = entries.map((e: Entry) => e.userId);
-        expect(userIds).toEqual([2]);
-      }
-    );
-  }
-);
+      expect(response1.status).toEqual(204);
+
+      const entriesRepository: Repository<Entry> = connection.getRepository(Entry);
+      let entries: Entry[] | undefined;
+
+      entries = await entriesRepository.find({ userId: 1 });
+      expect(entries).toEqual([]);
+
+      entries = await entriesRepository.find();
+      const userIds: (number | undefined)[] = entries.map((e: Entry) => e.userId);
+      expect(userIds).toEqual([2]);
+    }
+  );
+});
