@@ -4,6 +4,8 @@ import bodyParser from "koa-bodyparser";
 import logger from "koa-logger";
 import { Connection, createConnection, Repository, getConnection } from "typeorm";
 import { User, Entry } from "./entities";
+import { config } from "dotenv";
+import jwt from "jsonwebtoken";
 
 /* Introduce an in-memory database. */
 interface IPublicUser {
@@ -11,7 +13,18 @@ interface IPublicUser {
   username: string;
 }
 
-/* Connect to the database. */
+/* Extract environment-specific varialbes. */
+config();
+const SECRET_KEY: string | undefined = process.env.SECRET_KEY;
+if (SECRET_KEY === undefined) {
+  console.log(
+    `${new Date().toISOString()} -` +
+      ` ${__filename} -` +
+      ` no environment variable SECRET_KEY has been found - aborting!`
+  );
+  process.exit(1);
+}
+
 const connectionName: string =
   process.env.NODE_ENV === "test"
     ? "connection-to-db-for-testing"
@@ -48,6 +61,53 @@ const basicAuth = async (ctx: Koa.Context, next: () => Promise<any>) => {
     ctx.status = 401;
     ctx.body = {
       error: "authentication required - incorrect email and/or password",
+    };
+    return;
+  }
+
+  // Store the authenticated User
+  // for the duration of the current request-response cycle.
+  ctx.user = user;
+  await next();
+};
+
+const tokenAuth = async (ctx: Koa.Context, next: () => Promise<any>) => {
+  // Look at the request's Authorization header.
+  const authHeader = ctx.request.headers.authorization;
+  if (authHeader === undefined) {
+    ctx.status = 401;
+    ctx.body = {
+      error: "authentication required - via Bearer token",
+    };
+    return;
+  }
+
+  // Drop the word "Bearer"
+  const token = authHeader.split(" ")[1];
+
+  // Validate the JWS token.
+  let jwtPayload: { userId: string };
+  try {
+    jwtPayload = jwt.verify(token, SECRET_KEY) as { userId: string };
+    // TODO: perform a typecheck here?
+  } catch (err) {
+    ctx.status = 401;
+    ctx.body = {
+      error: "authentication required - invalid Bearer token",
+    };
+    return;
+  }
+
+  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
+    User
+  );
+  const user: User | undefined = await usersRepository.findOne({
+    id: parseInt(jwtPayload.userId),
+  });
+  if (user === undefined) {
+    ctx.status = 401;
+    ctx.body = {
+      error: "authentication required - invalid Bearer token",
     };
     return;
   }
@@ -249,7 +309,13 @@ router.delete("/api/users/:id", basicAuth, async (ctx: Koa.Context) => {
   ctx.status = 204;
 });
 
-router.post("/api/entries", basicAuth, async (ctx: Koa.Context) => {
+router.post("/api/tokens", basicAuth, async (ctx: Koa.Context) => {
+  const payload = { userId: ctx.user.id };
+  const token = jwt.sign(payload, SECRET_KEY);
+  ctx.body = { token };
+});
+
+router.post("/api/entries", tokenAuth, async (ctx: Koa.Context) => {
   if (ctx.request.headers["content-type"] !== "application/json") {
     ctx.status = 400;
     ctx.body = {
@@ -285,7 +351,7 @@ router.post("/api/entries", basicAuth, async (ctx: Koa.Context) => {
   ctx.body = await entriesRepository.findOne({ id: entry.id });
 });
 
-router.get("/api/entries", basicAuth, async (ctx: Koa.Context) => {
+router.get("/api/entries", tokenAuth, async (ctx: Koa.Context) => {
   const entriesRepository: Repository<Entry> = getConnection(
     connectionName
   ).getRepository(Entry);
@@ -293,7 +359,7 @@ router.get("/api/entries", basicAuth, async (ctx: Koa.Context) => {
   ctx.body = { entries };
 });
 
-router.get("/api/entries/:id", basicAuth, async (ctx: Koa.Context) => {
+router.get("/api/entries/:id", tokenAuth, async (ctx: Koa.Context) => {
   const entryId: number = parseInt(ctx.params.id);
   const entriesRepository: Repository<Entry> = getConnection(
     connectionName
@@ -311,7 +377,7 @@ router.get("/api/entries/:id", basicAuth, async (ctx: Koa.Context) => {
   ctx.body = entry;
 });
 
-router.put("/api/entries/:id", basicAuth, async (ctx: Koa.Context) => {
+router.put("/api/entries/:id", tokenAuth, async (ctx: Koa.Context) => {
   const entryId: number = parseInt(ctx.params.id);
   const entriesRepository: Repository<Entry> = getConnection(
     connectionName
@@ -355,7 +421,7 @@ router.put("/api/entries/:id", basicAuth, async (ctx: Koa.Context) => {
   ctx.body = await entriesRepository.findOne({ id: entryId });
 });
 
-router.delete("/api/entries/:id", basicAuth, async (ctx: Koa.Context) => {
+router.delete("/api/entries/:id", tokenAuth, async (ctx: Koa.Context) => {
   const entryId: number = parseInt(ctx.params.id);
   const entriesRepository: Repository<Entry> = getConnection(
     connectionName
@@ -384,6 +450,7 @@ app.use(router.routes());
 
 /* Create and return an HTTP server. */
 if (process.env.NODE_ENV !== "test") {
+  /* Connect to the database. */
   const serverPromise = connectionPromise
     .then((connection: Connection) => {
       console.log(
