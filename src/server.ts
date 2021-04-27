@@ -450,7 +450,6 @@ app.use(router.routes());
 
 /* Create and return an HTTP server. */
 if (process.env.NODE_ENV !== "test") {
-  /* Connect to the database. */
   const serverPromise = connectionPromise
     .then((connection: Connection) => {
       console.log(
