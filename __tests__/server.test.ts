@@ -752,11 +752,71 @@ describe("DELETE /api/users/:id", () => {
   );
 });
 
+describe("POST /api/tokens", () => {
+  beforeEach(async () => {
+    const response = await request(server).post("/api/users").send({
+      username: "jd",
+      name: "John Doe",
+      email: "john.doe@protonmail.com",
+      password: "123",
+    });
+  });
+
+  test(
+    "the server should respond with a 401 if a client attempts" +
+      " to have a JWS token issued without providing Basic Auth credentials",
+    async () => {
+      const response = await request(server).post("/api/tokens");
+
+      expect(response.status).toEqual(401);
+      expect(response.type).toEqual("application/json");
+      expect(response.body).toEqual({
+        error: "authentication required - via Basic authentication",
+      });
+    }
+  );
+
+  test(
+    "the server should respond with a 401 if a client attempts" +
+      " to have a JWS token issued" +
+      " by providing an invalid set of Basic Auth credentials",
+    async () => {
+      const response = await request(server)
+        .post("/api/tokens")
+        .set(
+          "Authorization",
+          "Basic " + btoa("john.doe@protonmail.com:wrong-password")
+        );
+
+      expect(response.status).toEqual(401);
+      expect(response.type).toEqual("application/json");
+      expect(response.body).toEqual({
+        error: "authentication required - incorrect email and/or password",
+      });
+    }
+  );
+
+  test(
+    "if a client issues a valid request for having a JWS token issued," +
+      " the server should issue such a token" +
+      " and (of course) include it in its HTTPS response to the client",
+    async () => {
+      const response = await request(server)
+        .post("/api/tokens")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+
+      expect(response.status).toEqual(200);
+      expect(response.type).toEqual("application/json");
+      expect(Object.keys(response.body)).toEqual(["token"]);
+    }
+  );
+});
+
 describe("POST /api/entries", () => {
   test(
     "the server should respond with a 401" +
       " if a client attempts to" +
-      " create an Entry resource without providing Basic Auth credentials",
+      " create an Entry resource without providing a Bearer Auth credential",
     async () => {
       const response1 = await request(server)
         .post("/api/users")
@@ -776,7 +836,7 @@ describe("POST /api/entries", () => {
 
       expect(response2.status).toEqual(401);
       expect(response2.body).toEqual({
-        error: "authentication required - via Basic authentication",
+        error: "authentication required - via Bearer token",
       });
     }
   );
@@ -793,9 +853,14 @@ describe("POST /api/entries", () => {
         password: "123",
       });
 
+      const issueTokenResponse = await request(server)
+        .post("/api/tokens")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+      const token: string = issueTokenResponse.body.token;
+
       const response2 = await request(server)
         .post("/api/entries")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .set("Authorization", "Bearer " + token)
         .set("Content-Type", "text/html");
 
       expect(response2.status).toEqual(400);
@@ -816,6 +881,11 @@ describe("POST /api/entries", () => {
         password: "123",
       });
 
+      const issueTokenResponse = await request(server)
+        .post("/api/tokens")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+      const token: string = issueTokenResponse.body.token;
+
       const completeEntryPayload = {
         timezone: "+02:00",
         localTime: "2021-01-01 02:00:17",
@@ -828,7 +898,7 @@ describe("POST /api/entries", () => {
 
         const response2 = await request(server)
           .post("/api/entries")
-          .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+          .set("Authorization", "Bearer " + token)
           .send(incompleteEntryPayload);
 
         expect(response2.status).toEqual(400);
@@ -851,9 +921,14 @@ describe("POST /api/entries", () => {
         password: "123",
       });
 
+      const issueTokenResponse = await request(server)
+        .post("/api/tokens")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+      const token: string = issueTokenResponse.body.token;
+
       const response2 = await request(server)
         .post("/api/entries")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .set("Authorization", "Bearer " + token)
         .send({
           timezone: "+02:00",
           localTime: "2021-01-01 02:00:17",
@@ -886,13 +961,13 @@ describe("GET /api/entries", () => {
   test(
     "the server should respond with a 401" +
       " if a client attempts to fetch all Entry resources" +
-      " without providing Basic Auth credentials",
+      " without providing a Bearer Auth credential",
     async () => {
       const response = await request(server).get("/api/entries");
 
       expect(response.status).toEqual(401);
       expect(response.body).toEqual({
-        error: "authentication required - via Basic authentication",
+        error: "authentication required - via Bearer token",
       });
     }
   );
@@ -917,9 +992,19 @@ describe("GET /api/entries", () => {
         password: "456",
       });
 
+      const issueTokenResponse1 = await request(server)
+        .post("/api/tokens")
+        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+      const token1: string = issueTokenResponse1.body.token;
+
+      const issueTokenResponse2 = await request(server)
+        .post("/api/tokens")
+        .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"));
+      const token2: string = issueTokenResponse2.body.token;
+
       const responseEntry1 = await request(server)
         .post("/api/entries")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .set("Authorization", "Bearer " + token1)
         .send({
           timezone: "+02:00",
           localTime: "2021-01-01 02:00:17",
@@ -928,7 +1013,7 @@ describe("GET /api/entries", () => {
 
       const responseEntry2 = await request(server)
         .post("/api/entries")
-        .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"))
+        .set("Authorization", "Bearer " + token2)
         .send({
           timezone: "-05:00",
           localTime: "2020-12-31 19:00:17",
@@ -938,7 +1023,7 @@ describe("GET /api/entries", () => {
       // Get all Entry resources that are associated with the 1st user.
       const response = await request(server)
         .get("/api/entries")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+        .set("Authorization", "Bearer " + token1);
 
       expect(response.status).toEqual(200);
 
@@ -964,6 +1049,9 @@ describe("GET /api/entries", () => {
 });
 
 describe("GET /api/entries/:id", () => {
+  let token1: string;
+  let token2: string;
+
   beforeEach(async () => {
     /*
     Create two User resources, as well as one Entry resource per user.
@@ -983,9 +1071,19 @@ describe("GET /api/entries/:id", () => {
       password: "456",
     });
 
+    const issueTokenResponse1 = await request(server)
+      .post("/api/tokens")
+      .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+    token1 = issueTokenResponse1.body.token;
+
+    const issueTokenResponse2 = await request(server)
+      .post("/api/tokens")
+      .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"));
+    token2 = issueTokenResponse2.body.token;
+
     const responseEntry1 = await request(server)
       .post("/api/entries")
-      .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+      .set("Authorization", "Bearer " + token1)
       .send({
         timezone: "+02:00",
         localTime: "2021-01-01 02:00:17",
@@ -994,7 +1092,7 @@ describe("GET /api/entries/:id", () => {
 
     const responseEntry2 = await request(server)
       .post("/api/entries")
-      .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"))
+      .set("Authorization", "Bearer " + token2)
       .send({
         timezone: "-05:00",
         localTime: "2020-12-31 19:00:17",
@@ -1005,13 +1103,13 @@ describe("GET /api/entries/:id", () => {
   test(
     "the server should respond with a 401" +
       " if a client attempts to" +
-      " fetch an Entry resource without providing Basic Auth credentials",
+      " fetch an Entry resource without providing a Bearer Auth credential",
     async () => {
       const response = await request(server).get("/api/entries/1");
 
       expect(response.status).toEqual(401);
       expect(response.body).toEqual({
-        error: "authentication required - via Basic authentication",
+        error: "authentication required - via Bearer token",
       });
     }
   );
@@ -1019,18 +1117,15 @@ describe("GET /api/entries/:id", () => {
   test(
     "the server should respond with a 401" +
       " if a client attempts to" +
-      " fetch an Entry resource by providing an invalid set of Basic Auth credentials",
+      " fetch an Entry resource by providing an invalid Bearer credential",
     async () => {
       const response = await request(server)
         .get("/api/entries/1")
-        .set(
-          "Authorization",
-          "Basic " + btoa("john.doe@protonmail.com:wrong-password")
-        );
+        .set("Authorization", "Bearer invalid-JWS-token");
 
       expect(response.status).toEqual(401);
       expect(response.body).toEqual({
-        error: "authentication required - incorrect email and/or password",
+        error: "authentication required - invalid Bearer token",
       });
     }
   );
@@ -1041,7 +1136,7 @@ describe("GET /api/entries/:id", () => {
     async () => {
       const response = await request(server)
         .get("/api/entries/17")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+        .set("Authorization", "Bearer " + token1);
 
       expect(response.status).toEqual(404);
       expect(response.body).toEqual({
@@ -1058,7 +1153,7 @@ describe("GET /api/entries/:id", () => {
     async () => {
       const response = await request(server)
         .get("/api/entries/2")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+        .set("Authorization", "Bearer " + token1);
 
       expect(response.status).toEqual(404);
       expect(response.body).toEqual({
@@ -1073,7 +1168,7 @@ describe("GET /api/entries/:id", () => {
     async () => {
       const response = await request(server)
         .get("/api/entries/1")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+        .set("Authorization", "Bearer " + token1);
 
       expect(response.status).toEqual(200);
 
@@ -1091,6 +1186,9 @@ describe("GET /api/entries/:id", () => {
 });
 
 describe("PUT /api/entries/:id", () => {
+  let token1: string;
+  let token2: string;
+
   beforeEach(async () => {
     /*
     Create two User resources, as well as one Entry resource per user.
@@ -1110,9 +1208,19 @@ describe("PUT /api/entries/:id", () => {
       password: "456",
     });
 
+    const issueTokenResponse1 = await request(server)
+      .post("/api/tokens")
+      .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+    token1 = issueTokenResponse1.body.token;
+
+    const issueTokenResponse2 = await request(server)
+      .post("/api/tokens")
+      .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"));
+    token2 = issueTokenResponse2.body.token;
+
     const responseEntry1 = await request(server)
       .post("/api/entries")
-      .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+      .set("Authorization", "Bearer " + token1)
       .send({
         timezone: "+02:00",
         localTime: "2021-01-01 02:00:17",
@@ -1121,7 +1229,7 @@ describe("PUT /api/entries/:id", () => {
 
     const responseEntry2 = await request(server)
       .post("/api/entries")
-      .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"))
+      .set("Authorization", "Bearer " + token2)
       .send({
         timezone: "-05:00",
         localTime: "2020-12-31 19:00:17",
@@ -1132,7 +1240,7 @@ describe("PUT /api/entries/:id", () => {
   test(
     "the server should respond with a 401" +
       " if a client attempts to edit an Entry resource" +
-      " without providing Basic Auth credentials",
+      " without providing a Bearer Auth credential",
     async () => {
       const response1 = await request(server).put("/api/entries/1").send({
         timezone: "-08:00",
@@ -1144,14 +1252,14 @@ describe("PUT /api/entries/:id", () => {
       expect(response1.status).toEqual(401);
       expect(response1.type).toEqual("application/json");
       expect(response1.body).toEqual({
-        error: "authentication required - via Basic authentication",
+        error: "authentication required - via Bearer token",
       });
 
       // Assert also that
       // the Entry resource, which was targeted by the PUT request, didn't get edited.
       const response2 = await request(server)
         .get("/api/entries/1")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+        .set("Authorization", "Bearer " + token1);
       expect(response2.status).toEqual(200);
       const response2Body = {
         timestampInUTC: response2.body.timestampInUTC,
@@ -1169,11 +1277,11 @@ describe("PUT /api/entries/:id", () => {
   test(
     "the server should respond with a 401" +
       " if a client attempts to edit an Entry resource" +
-      " by providing an invalid set of Basic Auth credentials",
+      " by providing an invalid Bearer Auth credential",
     async () => {
       const response1 = await request(server)
         .put("/api/entries/1")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:wrong-password"))
+        .set("Authorization", "Bearer " + "invalid-JWS-token")
         .send({
           timezone: "-08:00",
           localTime: "2020-12-31 16:00:34",
@@ -1184,14 +1292,14 @@ describe("PUT /api/entries/:id", () => {
       expect(response1.status).toEqual(401);
       expect(response1.type).toEqual("application/json");
       expect(response1.body).toEqual({
-        error: "authentication required - incorrect email and/or password",
+        error: "authentication required - invalid Bearer token",
       });
 
       // Assert also that
       // the Entry resource, which was targeted by the PUT request, didn't get edited.
       const response2 = await request(server)
         .get("/api/entries/1")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+        .set("Authorization", "Bearer " + token1);
       expect(response2.status).toEqual(200);
       const response2Body = {
         timestampInUTC: response2.body.timestampInUTC,
@@ -1212,7 +1320,7 @@ describe("PUT /api/entries/:id", () => {
     async () => {
       const response = await request(server)
         .put("/api/entries/17")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .set("Authorization", "Bearer " + token1)
         .send({
           timezone: "-08:00",
           localTime: "2020-12-31 16:00:34",
@@ -1235,7 +1343,7 @@ describe("PUT /api/entries/:id", () => {
     async () => {
       const response1 = await request(server)
         .put("/api/entries/2")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .set("Authorization", "Bearer " + token1)
         .send({
           timezone: "-08:00",
           localTime: "2020-12-31 16:00:34",
@@ -1253,7 +1361,7 @@ describe("PUT /api/entries/:id", () => {
       // the Entry resource, which was targeted by the PUT request, didn't get edited.
       const response2 = await request(server)
         .get("/api/entries/2")
-        .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"));
+        .set("Authorization", "Bearer " + token2);
       expect(response2.status).toEqual(200);
       const response2Body = {
         timestampInUTC: response2.body.timestampInUTC,
@@ -1286,7 +1394,7 @@ describe("PUT /api/entries/:id", () => {
 
         const response1 = await request(server)
           .put("/api/entries/1")
-          .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+          .set("Authorization", "Bearer " + token1)
           .send(incompleteEntryPayload);
 
         // Make assertions about the response to the PUT request.
@@ -1302,7 +1410,7 @@ describe("PUT /api/entries/:id", () => {
         // the Entry resource, which was targeted by the PUT request, didn't get edited.
         const response2 = await request(server)
           .get("/api/entries/1")
-          .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+          .set("Authorization", "Bearer " + token1);
         expect(response2.status).toEqual(200);
         const response2Body = {
           timestampInUTC: response2.body.timestampInUTC,
@@ -1324,7 +1432,7 @@ describe("PUT /api/entries/:id", () => {
     async () => {
       const response = await request(server)
         .put("/api/entries/1")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+        .set("Authorization", "Bearer " + token1)
         .send({
           timezone: "-08:00",
           localTime: "2020-12-31 16:00:34",
@@ -1348,7 +1456,7 @@ describe("PUT /api/entries/:id", () => {
       // was edited successfully.
       const response2 = await request(server)
         .get("/api/entries/1")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+        .set("Authorization", "Bearer " + token1);
       expect(response2.status).toEqual(200);
       const response2Body = {
         timestampInUTC: response2.body.timestampInUTC,
@@ -1365,6 +1473,9 @@ describe("PUT /api/entries/:id", () => {
 });
 
 describe("DELETE /api/entries/:id", () => {
+  let token1: string;
+  let token2: string;
+
   beforeEach(async () => {
     /*
     Create two User resources, as well as one Entry resource per user.
@@ -1384,9 +1495,19 @@ describe("DELETE /api/entries/:id", () => {
       password: "456",
     });
 
+    const issueTokenResponse1 = await request(server)
+      .post("/api/tokens")
+      .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+    token1 = issueTokenResponse1.body.token;
+
+    const issueTokenResponse2 = await request(server)
+      .post("/api/tokens")
+      .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"));
+    token2 = issueTokenResponse2.body.token;
+
     const responseEntry1 = await request(server)
       .post("/api/entries")
-      .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+      .set("Authorization", "Bearer " + token1)
       .send({
         timezone: "+02:00",
         localTime: "2021-01-01 02:00:17",
@@ -1395,7 +1516,7 @@ describe("DELETE /api/entries/:id", () => {
 
     const responseEntry2 = await request(server)
       .post("/api/entries")
-      .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"))
+      .set("Authorization", "Bearer " + token2)
       .send({
         timezone: "-05:00",
         localTime: "2020-12-31 19:00:17",
@@ -1406,19 +1527,19 @@ describe("DELETE /api/entries/:id", () => {
   test(
     "the server should respond with a 401" +
       " if a client attempts to delete an Entry resource" +
-      " without providing Basic Auth credentials",
+      " without providing a Bearer Auth credential",
     async () => {
       const response1 = await request(server).delete("/api/entries/1");
 
       expect(response1.status).toEqual(401);
       expect(response1.type).toEqual("application/json");
       expect(response1.body).toEqual({
-        error: "authentication required - via Basic authentication",
+        error: "authentication required - via Bearer token",
       });
 
       const response2 = await request(server)
         .get("/api/entries/1")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+        .set("Authorization", "Bearer " + token1);
       expect(response2.status).toEqual(200);
     }
   );
@@ -1426,24 +1547,21 @@ describe("DELETE /api/entries/:id", () => {
   test(
     "the server should respond with a 401" +
       " if a client attempts to delete an Entry resource" +
-      " by providing an invalid set of Basic Auth credentials",
+      " by providing an invalid Bearer Auth credential",
     async () => {
       const response1 = await request(server)
         .delete("/api/entries/1")
-        .set(
-          "Authorization",
-          "Basic " + btoa("john.doe@protonmail.com:wrong-password")
-        );
+        .set("Authorization", "Bearer " + "invalid-JWS-token");
 
       expect(response1.status).toEqual(401);
       expect(response1.type).toEqual("application/json");
       expect(response1.body).toEqual({
-        error: "authentication required - incorrect email and/or password",
+        error: "authentication required - invalid Bearer token",
       });
 
       const response2 = await request(server)
         .get("/api/entries/1")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+        .set("Authorization", "Bearer " + token1);
       expect(response2.status).toEqual(200);
     }
   );
@@ -1454,14 +1572,17 @@ describe("DELETE /api/entries/:id", () => {
     async () => {
       const response1 = await request(server)
         .delete("/api/entries/17")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+        .set("Authorization", "Bearer " + token1);
 
       expect(response1.status).toEqual(404);
+      expect(response1.type).toEqual("application/json");
+      expect(response1.body).toEqual({
+        error: "Your User doesn't have an Entry resource with an ID of 17",
+      });
 
       const response2 = await request(server)
         .get("/api/entries")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
-
+        .set("Authorization", "Bearer " + token1);
       expect(response2.body.entries.length).toEqual(1);
     }
   );
@@ -1474,14 +1595,17 @@ describe("DELETE /api/entries/:id", () => {
     async () => {
       const response1 = await request(server)
         .delete("/api/entries/2")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+        .set("Authorization", "Bearer " + token1);
 
       expect(response1.status).toEqual(404);
+      expect(response1.type).toEqual("application/json");
+      expect(response1.body).toEqual({
+        error: "Your User doesn't have an Entry resource with an ID of 2",
+      });
 
       const response2 = await request(server)
         .get("/api/entries")
-        .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"));
-
+        .set("Authorization", "Bearer " + token2);
       expect(response2.body.entries.length).toEqual(1);
     }
   );
@@ -1492,7 +1616,7 @@ describe("DELETE /api/entries/:id", () => {
     async () => {
       const response1 = await request(server)
         .delete("/api/entries/1")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+        .set("Authorization", "Bearer " + token1);
 
       expect(response1.status).toEqual(204);
       expect(response1.type).toEqual("");
@@ -1500,7 +1624,7 @@ describe("DELETE /api/entries/:id", () => {
 
       const response2 = await request(server)
         .get("/api/entries/1")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+        .set("Authorization", "Bearer " + token1);
       expect(response2.status).toEqual(404);
     }
   );
@@ -1526,9 +1650,19 @@ describe("DELETE /api/user/:id", () => {
       password: "456",
     });
 
+    const issueTokenResponse1 = await request(server)
+      .post("/api/tokens")
+      .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+    const token1: string = issueTokenResponse1.body.token;
+
+    const issueTokenResponse2 = await request(server)
+      .post("/api/tokens")
+      .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"));
+    const token2: string = issueTokenResponse2.body.token;
+
     const responseEntry1 = await request(server)
       .post("/api/entries")
-      .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+      .set("Authorization", "Bearer " + token1)
       .send({
         timezone: "+02:00",
         localTime: "2021-01-01 02:00:17",
@@ -1537,7 +1671,7 @@ describe("DELETE /api/user/:id", () => {
 
     const responseEntry2 = await request(server)
       .post("/api/entries")
-      .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"))
+      .set("Authorization", "Bearer " + token2)
       .send({
         timezone: "-05:00",
         localTime: "2020-12-31 19:00:17",
