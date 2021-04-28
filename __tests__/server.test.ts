@@ -859,29 +859,35 @@ describe("POST /api/tokens", () => {
 });
 
 describe("POST /api/entries", () => {
+  let token: string;
+
+  beforeEach(async () => {
+    const response1 = await request(server).post("/api/users").send({
+      username: "jd",
+      name: "John Doe",
+      email: "john.doe@protonmail.com",
+      password: "123",
+    });
+
+    const response2 = await request(server)
+      .post("/api/tokens")
+      .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+    token = response2.body.token;
+  });
+
   test(
     "the server should respond with a 401" +
       " if a client attempts to" +
       " create an Entry resource without providing a Bearer Auth credential",
     async () => {
-      const response1 = await request(server)
-        .post("/api/users")
-        .set("Content-Type", "application/json")
-        .send({
-          username: "jd",
-          name: "John Doe",
-          email: "john.doe@protonmail.com",
-          password: "123",
-        });
-
-      const response2 = await request(server).post("/api/entries").send({
+      const response = await request(server).post("/api/entries").send({
         timezone: "+02:00",
         localTime: "2021-01-01 02:00:17",
         content: "Happy New Year to everybody in the UK!",
       });
 
-      expect(response2.status).toEqual(401);
-      expect(response2.body).toEqual({
+      expect(response.status).toEqual(401);
+      expect(response.body).toEqual({
         error: "authentication required - via Bearer token",
       });
     }
@@ -892,25 +898,13 @@ describe("POST /api/entries", () => {
       " if a client attempts to create an Entry resource without including a" +
       " 'Content-Type: application/json' header",
     async () => {
-      const response1 = await request(server).post("/api/users").send({
-        username: "jd",
-        name: "John Doe",
-        email: "john.doe@protonmail.com",
-        password: "123",
-      });
-
-      const issueTokenResponse = await request(server)
-        .post("/api/tokens")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
-      const token: string = issueTokenResponse.body.token;
-
-      const response2 = await request(server)
+      const response = await request(server)
         .post("/api/entries")
         .set("Authorization", "Bearer " + token)
         .set("Content-Type", "text/html");
 
-      expect(response2.status).toEqual(400);
-      expect(response2.body).toEqual({
+      expect(response.status).toEqual(400);
+      expect(response.body).toEqual({
         error: "Your request did not include a 'Content-Type: application/json' header",
       });
     }
@@ -920,18 +914,6 @@ describe("POST /api/entries", () => {
     "the server should respond with a 400" +
       " if a client doesn't send all required fields",
     async () => {
-      const response1 = await request(server).post("/api/users").send({
-        username: "jd",
-        name: "John Doe",
-        email: "john.doe@protonmail.com",
-        password: "123",
-      });
-
-      const issueTokenResponse = await request(server)
-        .post("/api/tokens")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
-      const token: string = issueTokenResponse.body.token;
-
       const completeEntryPayload = {
         timezone: "+02:00",
         localTime: "2021-01-01 02:00:17",
@@ -942,14 +924,14 @@ describe("POST /api/entries", () => {
         let incompleteEntryPayload: IIncompletePayload = { ...completeEntryPayload };
         delete incompleteEntryPayload[field];
 
-        const response2 = await request(server)
+        const response = await request(server)
           .post("/api/entries")
           .set("Authorization", "Bearer " + token)
           .send(incompleteEntryPayload);
 
-        expect(response2.status).toEqual(400);
-        expect(response2.type).toEqual("application/json");
-        expect(response2.body).toEqual({
+        expect(response.status).toEqual(400);
+        expect(response.type).toEqual("application/json");
+        expect(response.body).toEqual({
           error: `Your request body did not specify a '${field}'`,
         });
       }
@@ -960,19 +942,7 @@ describe("POST /api/entries", () => {
     "if a client issues a valid request for creating an Entry resource," +
       " the server should create such a resource",
     async () => {
-      const response1 = await request(server).post("/api/users").send({
-        username: "jd",
-        name: "John Doe",
-        email: "john.doe@protonmail.com",
-        password: "123",
-      });
-
-      const issueTokenResponse = await request(server)
-        .post("/api/tokens")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
-      const token: string = issueTokenResponse.body.token;
-
-      const response2 = await request(server)
+      const response = await request(server)
         .post("/api/entries")
         .set("Authorization", "Bearer " + token)
         .send({
@@ -981,18 +951,18 @@ describe("POST /api/entries", () => {
           content: "Happy New Year to everybody in the UK!",
         });
 
-      expect(response2.status).toEqual(201);
-      expect(response2.headers.location).toEqual("/api/entries/1");
-      expect(response2.type).toEqual("application/json");
+      expect(response.status).toEqual(201);
+      expect(response.headers.location).toEqual("/api/entries/1");
+      expect(response.type).toEqual("application/json");
 
-      const response2Body = {
-        id: response2.body.id,
-        timestampInUTC: response2.body.timestampInUTC,
-        utcZoneOfTimestamp: response2.body.utcZoneOfTimestamp,
-        content: response2.body.content,
-        userId: response2.body.userId,
+      const responseBody = {
+        id: response.body.id,
+        timestampInUTC: response.body.timestampInUTC,
+        utcZoneOfTimestamp: response.body.utcZoneOfTimestamp,
+        content: response.body.content,
+        userId: response.body.userId,
       };
-      expect(response2Body).toEqual({
+      expect(responseBody).toEqual({
         id: 1,
         timestampInUTC: "2021-01-01T00:00:17.000Z",
         utcZoneOfTimestamp: "+02:00",
