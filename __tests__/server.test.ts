@@ -255,7 +255,7 @@ describe("GET /api/users/:id", () => {
   test(
     "the server should respond with a 404" +
       " if there doesn't exist a User resource" +
-      " with the ID targeted by client's request",
+      " with the ID targeted by the client's request",
     async () => {
       const response = await request(server).get("/api/users/1");
 
@@ -974,6 +974,57 @@ describe("POST /api/entries", () => {
 });
 
 describe("GET /api/entries", () => {
+  let token1: string;
+  let token2: string;
+
+  beforeEach(async () => {
+    /*
+    Create two User resources, as well as one Entry resource per user.
+    */
+
+    const responseUser1 = await request(server).post("/api/users").send({
+      username: "jd",
+      name: "John Doe",
+      email: "john.doe@protonmail.com",
+      password: "123",
+    });
+
+    const responseUser2 = await request(server).post("/api/users").send({
+      username: "ms",
+      name: "Mary Smith",
+      email: "mary.smith@protonmail.com",
+      password: "456",
+    });
+
+    const issueTokenResponse1 = await request(server)
+      .post("/api/tokens")
+      .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
+    token1 = issueTokenResponse1.body.token;
+
+    const issueTokenResponse2 = await request(server)
+      .post("/api/tokens")
+      .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"));
+    token2 = issueTokenResponse2.body.token;
+
+    const responseEntry1 = await request(server)
+      .post("/api/entries")
+      .set("Authorization", "Bearer " + token1)
+      .send({
+        timezone: "+02:00",
+        localTime: "2021-01-01 02:00:17",
+        content: "Happy New Year to everybody in the UK!",
+      });
+
+    const responseEntry2 = await request(server)
+      .post("/api/entries")
+      .set("Authorization", "Bearer " + token2)
+      .send({
+        timezone: "-05:00",
+        localTime: "2020-12-31 19:00:17",
+        content: "Happy New Year to everybody in the UK!",
+      });
+  });
+
   test(
     "the server should respond with a 401" +
       " if a client attempts to fetch all Entry resources" +
@@ -993,49 +1044,6 @@ describe("GET /api/entries", () => {
       " the server should respond with a list of all Entry resources" +
       " that are associated with the user authenticated by the issued request's header",
     async () => {
-      // Create two User resources, as well as one Entry resource per user.
-      const responseUser1 = await request(server).post("/api/users").send({
-        username: "jd",
-        name: "John Doe",
-        email: "john.doe@protonmail.com",
-        password: "123",
-      });
-
-      const responseUser2 = await request(server).post("/api/users").send({
-        username: "ms",
-        name: "Mary Smith",
-        email: "mary.smith@protonmail.com",
-        password: "456",
-      });
-
-      const issueTokenResponse1 = await request(server)
-        .post("/api/tokens")
-        .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"));
-      const token1: string = issueTokenResponse1.body.token;
-
-      const issueTokenResponse2 = await request(server)
-        .post("/api/tokens")
-        .set("Authorization", "Basic " + btoa("mary.smith@protonmail.com:456"));
-      const token2: string = issueTokenResponse2.body.token;
-
-      const responseEntry1 = await request(server)
-        .post("/api/entries")
-        .set("Authorization", "Bearer " + token1)
-        .send({
-          timezone: "+02:00",
-          localTime: "2021-01-01 02:00:17",
-          content: "Happy New Year to everybody in the UK!",
-        });
-
-      const responseEntry2 = await request(server)
-        .post("/api/entries")
-        .set("Authorization", "Bearer " + token2)
-        .send({
-          timezone: "-05:00",
-          localTime: "2020-12-31 19:00:17",
-          content: "Happy New Year to everybody in the UK!",
-        });
-
       // Get all Entry resources that are associated with the 1st user.
       const response = await request(server)
         .get("/api/entries")
