@@ -6,12 +6,15 @@ import { Connection, createConnection, Repository, getConnection } from "typeorm
 import { User, Entry } from "./entities";
 import { config } from "dotenv";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
-/* Introduce an in-memory database. */
+/* Define "globals". */
 interface IPublicUser {
   id: number;
   username: string;
 }
+
+const BCRYPT_SALT_ROUNDS: number = 10;
 
 /* Extract environment-specific varialbes. */
 config();
@@ -57,7 +60,16 @@ const basicAuth = async (ctx: Koa.Context, next: () => Promise<any>) => {
     User
   );
   const user: User | undefined = await usersRepository.findOne({ email });
-  if (user === undefined || password !== user.password) {
+  let isValidationSuccessful: boolean = false;
+  if (user !== undefined) {
+    isValidationSuccessful = await bcrypt.compare(password, user.passwordHash!);
+  }
+
+  // Depending on whether the validation was successful,
+  // either terminate the current request-response cycle by issuing a 401 response,
+  // or store the authenticated User
+  // for the duration of the current request-response cycle.
+  if (isValidationSuccessful === false) {
     ctx.status = 401;
     ctx.body = {
       error: "authentication required - incorrect email and/or password",
@@ -65,8 +77,6 @@ const basicAuth = async (ctx: Koa.Context, next: () => Promise<any>) => {
     return;
   }
 
-  // Store the authenticated User
-  // for the duration of the current request-response cycle.
   ctx.user = user;
   await next();
 };
@@ -167,7 +177,7 @@ router.post("/api/users", async (ctx: Koa.Context) => {
   user.username = username.trim();
   user.name = name.trim();
   user.email = email.trim();
-  user.password = password;
+  user.passwordHash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
   await usersRepository.save(user);
 
   ctx.status = 201;
@@ -279,7 +289,7 @@ router.put("/api/users/:id", basicAuth, async (ctx: Koa.Context) => {
   }
 
   if (password !== undefined) {
-    ctx.user.password = password;
+    ctx.user.passwordHash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
   }
 
   // Save the edited User resource, and return its public representation.

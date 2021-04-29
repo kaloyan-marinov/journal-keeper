@@ -37,8 +37,9 @@ export class User {
   @Column({
     nullable: false,
     length: 255,
+    name: "password_hash",
   })
-  password?: string;
+  passwordHash?: string;
 
   @CreateDateColumn({
     default: () => "CURRENT_TIMESTAMP",

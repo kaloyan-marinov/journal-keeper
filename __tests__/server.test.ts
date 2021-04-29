@@ -166,19 +166,17 @@ describe("POST /api/users", () => {
       const usersRepository: Repository<User> = connection.getRepository(User);
       const users = await usersRepository.find();
       expect(users.length).toEqual(1);
-      const { id, username, name, email, password } = users[0];
+      const { id, username, name, email } = users[0];
       expect({
         id,
         username,
         name,
         email,
-        password,
       }).toEqual({
         id: 1,
         username: "ms",
         name: "Mary Smith",
         email: "mary.smith@protonmail.com",
-        password: "456",
       });
     }
   );
@@ -192,7 +190,7 @@ describe("POST /api/users", () => {
         username: " jd ",
         name: " John Doe ",
         email: " john.doe@protonmail.com ",
-        password: " 123 ",
+        password: "123",
       });
       expect(response.status).toEqual(201);
 
@@ -206,12 +204,10 @@ describe("POST /api/users", () => {
         username: user!.username,
         name: user!.name,
         email: user!.email,
-        password: user!.password,
       }).toEqual({
         username: "jd",
         name: "John Doe",
         email: "john.doe@protonmail.com",
-        password: " 123 ",
       });
     }
   );
@@ -550,13 +546,11 @@ describe("PUT /api/users/:id", () => {
         username: u!.username,
         name: u!.name,
         email: u!.email,
-        password: u!.password,
       }).toEqual({
         id: 1,
         username: "new-username",
         name: "new-name",
         email: "new-email",
-        password: "new-password",
       });
     }
   );
@@ -582,7 +576,7 @@ describe("PUT /api/users/:id", () => {
           username: " ms ",
           name: " Mary Smith ",
           email: " mary.smith@protonmail.com ",
-          password: " 456 ",
+          password: "456",
         });
       expect(response2.status).toEqual(200);
 
@@ -596,12 +590,10 @@ describe("PUT /api/users/:id", () => {
         username: user!.username,
         name: user!.name,
         email: user!.email,
-        password: user!.password,
       }).toEqual({
         username: "ms",
         name: "Mary Smith",
         email: "mary.smith@protonmail.com",
-        password: " 456 ",
       });
     }
   );
@@ -751,6 +743,60 @@ describe("DELETE /api/users/:id", () => {
     }
   );
 });
+
+describe(
+  "leverage 'DELETE /api/users/:id' to test endpoints," +
+    " which can set or edit a user's password",
+  () => {
+    test(
+      "if a client issues a valid request for creating a User resource," +
+        " the server should create such a resource" +
+        " whereby it preserves any leading and/or trailing whitespace characters" +
+        " that may be in the password provided by the client",
+      async () => {
+        const response1 = await request(server).post("/api/users").send({
+          username: "jd",
+          name: "John Doe",
+          email: "john.doe@protonmail.com",
+          password: " 123 ",
+        });
+        expect(response1.status).toEqual(201);
+
+        const response2 = await request(server)
+          .delete("/api/users/1")
+          .set("Authorization", "Basic " + btoa("john.doe@protonmail.com: 123 "));
+        expect(response2.status).toEqual(204);
+      }
+    );
+
+    test(
+      "if a client issues a valid request for editing a User resource," +
+        " the server should edit the targeted resource in such a way that" +
+        " it preserves any leading and/or trailing whitespace characters" +
+        " that may be in the password provided by the client",
+      async () => {
+        const response1 = await request(server).post("/api/users").send({
+          username: "jd",
+          name: "John Doe",
+          email: "john.doe@protonmail.com",
+          password: "123",
+        });
+        expect(response1.status).toEqual(201);
+
+        const response2 = await request(server)
+          .put("/api/users/1")
+          .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+          .send({ password: " 123 " });
+        expect(response2.status).toEqual(200);
+
+        const response3 = await request(server)
+          .delete("/api/users/1")
+          .set("Authorization", "Basic " + btoa("john.doe@protonmail.com: 123 "));
+        expect(response3.status).toEqual(204);
+      }
+    );
+  }
+);
 
 describe("POST /api/tokens", () => {
   beforeEach(async () => {

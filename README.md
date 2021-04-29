@@ -88,7 +88,7 @@
       "username" varchar(255) NOT NULL,
       "name" varchar(255) NOT NULL,
       "email" varchar(255) NOT NULL,
-      "password" varchar(255) NOT NULL,
+      "password_hash" varchar(255) NOT NULL,
       "created_at" datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP),
       "updated_at" datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP),
       CONSTRAINT "UQ_fe0bb3f6520ee0469504521e710" UNIQUE ("username"),
