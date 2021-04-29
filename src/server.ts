@@ -66,7 +66,7 @@ const basicAuth = async (ctx: Koa.Context, next: () => Promise<any>) => {
   }
 
   // Depending on whether the validation was successful,
-  // either terminate the request handling by issuing a 401 response,
+  // either terminate the current request-response cycle by issuing a 401 response,
   // or store the authenticated User
   // for the duration of the current request-response cycle.
   if (isValidationSuccessful === false) {

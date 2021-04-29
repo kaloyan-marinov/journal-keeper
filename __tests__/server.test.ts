@@ -744,6 +744,60 @@ describe("DELETE /api/users/:id", () => {
   );
 });
 
+describe(
+  "leverage 'DELETE /api/users/:id' to test endpoints," +
+    " which can set or edit a user's password",
+  () => {
+    test(
+      "if a client issues a valid request for creating a User resource," +
+        " the server should create such a resource" +
+        " whereby it preserves any leading and/or trailing whitespace characters" +
+        " that may be in the password provided by the client",
+      async () => {
+        const response1 = await request(server).post("/api/users").send({
+          username: "jd",
+          name: "John Doe",
+          email: "john.doe@protonmail.com",
+          password: " 123 ",
+        });
+        expect(response1.status).toEqual(201);
+
+        const response2 = await request(server)
+          .delete("/api/users/1")
+          .set("Authorization", "Basic " + btoa("john.doe@protonmail.com: 123 "));
+        expect(response2.status).toEqual(204);
+      }
+    );
+
+    test(
+      "if a client issues a valid request for editing a User resource," +
+        " the server should edit the targeted resource in such a way that" +
+        " it preserves any leading and/or trailing whitespace characters" +
+        " that may be in the password provided by the client",
+      async () => {
+        const response1 = await request(server).post("/api/users").send({
+          username: "jd",
+          name: "John Doe",
+          email: "john.doe@protonmail.com",
+          password: "123",
+        });
+        expect(response1.status).toEqual(201);
+
+        const response2 = await request(server)
+          .put("/api/users/1")
+          .set("Authorization", "Basic " + btoa("john.doe@protonmail.com:123"))
+          .send({ password: " 123 " });
+        expect(response2.status).toEqual(200);
+
+        const response3 = await request(server)
+          .delete("/api/users/1")
+          .set("Authorization", "Basic " + btoa("john.doe@protonmail.com: 123 "));
+        expect(response3.status).toEqual(204);
+      }
+    );
+  }
+);
+
 describe("POST /api/tokens", () => {
   beforeEach(async () => {
     const response = await request(server).post("/api/users").send({
