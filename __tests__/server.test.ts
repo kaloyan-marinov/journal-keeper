@@ -166,19 +166,17 @@ describe("POST /api/users", () => {
       const usersRepository: Repository<User> = connection.getRepository(User);
       const users = await usersRepository.find();
       expect(users.length).toEqual(1);
-      const { id, username, name, email, password } = users[0];
+      const { id, username, name, email } = users[0];
       expect({
         id,
         username,
         name,
         email,
-        password,
       }).toEqual({
         id: 1,
         username: "ms",
         name: "Mary Smith",
         email: "mary.smith@protonmail.com",
-        password: "456",
       });
     }
   );
@@ -206,12 +204,10 @@ describe("POST /api/users", () => {
         username: user!.username,
         name: user!.name,
         email: user!.email,
-        password: user!.password,
       }).toEqual({
         username: "jd",
         name: "John Doe",
         email: "john.doe@protonmail.com",
-        password: " 123 ",
       });
     }
   );
@@ -550,13 +546,11 @@ describe("PUT /api/users/:id", () => {
         username: u!.username,
         name: u!.name,
         email: u!.email,
-        password: u!.password,
       }).toEqual({
         id: 1,
         username: "new-username",
         name: "new-name",
         email: "new-email",
-        password: "new-password",
       });
     }
   );
@@ -596,12 +590,10 @@ describe("PUT /api/users/:id", () => {
         username: user!.username,
         name: user!.name,
         email: user!.email,
-        password: user!.password,
       }).toEqual({
         username: "ms",
         name: "Mary Smith",
         email: "mary.smith@protonmail.com",
-        password: " 456 ",
       });
     }
   );
