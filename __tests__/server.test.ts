@@ -190,7 +190,7 @@ describe("POST /api/users", () => {
         username: " jd ",
         name: " John Doe ",
         email: " john.doe@protonmail.com ",
-        password: " 123 ",
+        password: "123",
       });
       expect(response.status).toEqual(201);
 
@@ -576,7 +576,7 @@ describe("PUT /api/users/:id", () => {
           username: " ms ",
           name: " Mary Smith ",
           email: " mary.smith@protonmail.com ",
-          password: " 456 ",
+          password: "456",
         });
       expect(response2.status).toEqual(200);
 
