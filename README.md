@@ -1,28 +1,36 @@
-# Introduction
+# Brief introductory remarks
 
-1. note the version of TypeScript:
+1. concerning the `backend` subfolder:
 
-   ```
-   $ ./node_modules/.bin/tsc --version
-   Version 4.2.3
-   $ ll ./node_modules/.bin/tsc 
-   lrwxr-xr-x  1 <user>  <group>    21B Apr  7 07:07 ./node_modules/.bin/tsc@ -> ../typescript/bin/tsc
-   ```
+   - note the version of TypeScript:
 
-2. recall the values for `"rootDir"` and `"outDir"` that are specified in the `tsconfig.json` file
+      ```
+      backend $ ./node_modules/.bin/tsc --version
+      Version 4.2.3
+      backend $ ll ./node_modules/.bin/tsc 
+      lrwxr-xr-x  1 <user>  <group>    21B Apr  7 07:07 ./node_modules/.bin/tsc@ -> ../typescript/bin/tsc
+      ```
 
-3. recognize that the `src` folder contains a(n admittedly small) software project, which is written in valid TypeScript; uses Koa.js and SQLite; and includes a test suite
+   - recall the values for `"rootDir"` and `"outDir"` that are specified in the `backend/tsconfig.json` file
 
-    ```
-    $ tree src/
-    src/
-    ├── entities.ts
-    ├── migration
-    │   └── 1618138069642-createUsersTable.ts
-    └── server.ts
+   - recognize that the `backend/src` folder contains a(n admittedly small) backend web application, which is written in valid TypeScript; uses Koa.js and SQLite; and includes a test suite
 
-    1 directory, 3 files
-    ```
+      ```
+      $ tree backend/src/
+      backend/src/
+      ├── entities.ts
+      ├── migration
+      │   ├── 1618138069642-createUsersTable.ts
+      │   ├── 1618908389832-createEntriesTable.ts
+      │   └── 1619667023165-switchToStoringPasswordsInHashedForm.ts
+      └── server.ts
+
+      1 directory, 5 files
+      ```
+
+2. concerning the `frontend` subfolder:
+
+   - TBD
 
 # How to set up the project locally
 
@@ -122,158 +130,162 @@
 
    - launch another terminal window and, in it, issue the following requests:
 
-   ```
-   $ curl \
-   -v \
-   -X POST \
-   -H "Content-Type: application/json" \
-   -d '{"username": "jd", "name": "John Doe", "email": "john.doe@protonmail.com", "password": "123"}' \
-   localhost:3000/api/users \
-   | json_pp
-
-   ...
-   < HTTP/1.1 201 Created
-   < Location: /api/users/1
-   < Content-Type: application/json; charset=utf-8
-   < Content-Length: 24
-   < Date: Sun, 18 Apr 2021 07:36:32 GMT
-   < Connection: keep-alive
-   < Keep-Alive: timeout=5
-   < 
-   ...
-   {
-      "id" : 1,
-      "username" : "jd"
-   }
-   ```
-
-   ```
-   $ curl \
-   -v \
-   localhost:3000/api/users \
-   | json_pp
-
-   ...
-   < HTTP/1.1 200 OK
-   < Content-Type: application/json; charset=utf-8
-   < Content-Length: 36
-   < Date: Sun, 18 Apr 2021 07:36:42 GMT
-   < Connection: keep-alive
-   < Keep-Alive: timeout=5
-   <
-   ...
-   {
-      "users" : [
-         {
-            "id" : 1,
-            "username" : "jd"
-         }
-      ]
-   }
-   ```
-
-   ```
-   $ curl \
-   -v \
-   -X POST \
-   -H "Content-Type: application/json" \
-   -d '{"username": "ms", "name": "Mary Smith", "email": "mary.smith@protonmail.com", "password": "456"}' \
-   localhost:3000/api/users \
-   | json_pp
-
-   ...
-   < HTTP/1.1 201 Created
-   < Location: /api/users/2
-   < Content-Type: application/json; charset=utf-8
-   < Content-Length: 24
-   < Date: Sun, 18 Apr 2021 07:41:16 GMT
-   < Connection: keep-alive
-   < Keep-Alive: timeout=5
-   <
-   ...
-   {
-      "username" : "ms",
-      "id" : 2
-   }
-   ```
-
-   ```
-   $ curl \
-   -v \
-   localhost:3000/api/users \
-   | json_pp
-   
-   ...
-   < HTTP/1.1 200 OK
-   < Content-Type: application/json; charset=utf-8
-   < Content-Length: 61
-   < Date: Sun, 18 Apr 2021 07:41:22 GMT
-   < Connection: keep-alive
-   < Keep-Alive: timeout=5
-   < 
-   ...
-   {
-      "users" : [
-         {
-            "id" : 1,
-            "username" : "jd"
-         },
-         {
-            "username" : "ms",
-            "id" : 2
-         }
-      ]
-   }
-   ```
-
-   ```
-   $ curl \
+      ```
+      $ curl \
       -v \
       -X POST \
-      -u john.doe@protonmail.com:123 \
-      localhost:3000/api/tokens \
-      | json_pp
-
-   $ export T1=<the-value-of-the-returned JWS-token>
-   ```
-
-   ```
-   $ curl \
-      -v \
-      -X POST \
-      -u mary.smith@protonmail.com:456 \
-      localhost:3000/api/tokens \
-      | json_pp
-
-   $ export T2=<the-value-of-the-returned JWS-token>
-   ```
-
-   ```
-   $ curl \
-      -v \
-      -X POST \
-      -H "Authorization: Bearer ${T1}" \
       -H "Content-Type: application/json" \
-      -d '{"timezone": "+02:00", "localTime": "2020-12-01 17:17", "content": "Then it dawned on me: there is no finish line!"}' \
-      localhost:3000/api/entries \
+      -d '{"username": "jd", "name": "John Doe", "email": "john.doe@protonmail.com", "password": "123"}' \
+      localhost:3000/api/users \
       | json_pp
-   ```
 
-   ```
-   $ curl \
+      ...
+      < HTTP/1.1 201 Created
+      < Location: /api/users/1
+      < Content-Type: application/json; charset=utf-8
+      < Content-Length: 24
+      < Date: Sun, 18 Apr 2021 07:36:32 GMT
+      < Connection: keep-alive
+      < Keep-Alive: timeout=5
+      < 
+      ...
+      {
+         "id" : 1,
+         "username" : "jd"
+      }
+      ```
+
+      ```
+      $ curl \
+      -v \
+      localhost:3000/api/users \
+      | json_pp
+
+      ...
+      < HTTP/1.1 200 OK
+      < Content-Type: application/json; charset=utf-8
+      < Content-Length: 36
+      < Date: Sun, 18 Apr 2021 07:36:42 GMT
+      < Connection: keep-alive
+      < Keep-Alive: timeout=5
+      <
+      ...
+      {
+         "users" : [
+            {
+               "id" : 1,
+               "username" : "jd"
+            }
+         ]
+      }
+      ```
+
+      ```
+      $ curl \
       -v \
       -X POST \
-      -H "Authorization: Bearer ${T2}" \
       -H "Content-Type: application/json" \
-      -d '{"timezone": "+01:00", "localTime": "2019-08-20 14:17", "content": "Mallorca has beautiful sunny beaches!"}' \
-      localhost:3000/api/entries \
+      -d '{"username": "ms", "name": "Mary Smith", "email": "mary.smith@protonmail.com", "password": "456"}' \
+      localhost:3000/api/users \
       | json_pp
-   ```
 
-   ```
-   $ curl \
+      ...
+      < HTTP/1.1 201 Created
+      < Location: /api/users/2
+      < Content-Type: application/json; charset=utf-8
+      < Content-Length: 24
+      < Date: Sun, 18 Apr 2021 07:41:16 GMT
+      < Connection: keep-alive
+      < Keep-Alive: timeout=5
+      <
+      ...
+      {
+         "username" : "ms",
+         "id" : 2
+      }
+      ```
+
+      ```
+      $ curl \
       -v \
-      -H "Authorization: Bearer ${T1}" \
-      localhost:3000/api/entries \
+      localhost:3000/api/users \
       | json_pp
-   ```
+      
+      ...
+      < HTTP/1.1 200 OK
+      < Content-Type: application/json; charset=utf-8
+      < Content-Length: 61
+      < Date: Sun, 18 Apr 2021 07:41:22 GMT
+      < Connection: keep-alive
+      < Keep-Alive: timeout=5
+      < 
+      ...
+      {
+         "users" : [
+            {
+               "id" : 1,
+               "username" : "jd"
+            },
+            {
+               "username" : "ms",
+               "id" : 2
+            }
+         ]
+      }
+      ```
+
+      ```
+      $ curl \
+         -v \
+         -X POST \
+         -u john.doe@protonmail.com:123 \
+         localhost:3000/api/tokens \
+         | json_pp
+
+      $ export T1=<the-value-of-the-returned JWS-token>
+      ```
+
+      ```
+      $ curl \
+         -v \
+         -X POST \
+         -u mary.smith@protonmail.com:456 \
+         localhost:3000/api/tokens \
+         | json_pp
+
+      $ export T2=<the-value-of-the-returned JWS-token>
+      ```
+
+      ```
+      $ curl \
+         -v \
+         -X POST \
+         -H "Authorization: Bearer ${T1}" \
+         -H "Content-Type: application/json" \
+         -d '{"timezone": "+02:00", "localTime": "2020-12-01 17:17", "content": "Then it dawned on me: there is no finish line!"}' \
+         localhost:3000/api/entries \
+         | json_pp
+      ```
+
+      ```
+      $ curl \
+         -v \
+         -X POST \
+         -H "Authorization: Bearer ${T2}" \
+         -H "Content-Type: application/json" \
+         -d '{"timezone": "+01:00", "localTime": "2019-08-20 14:17", "content": "Mallorca has beautiful sunny beaches!"}' \
+         localhost:3000/api/entries \
+         | json_pp
+      ```
+
+      ```
+      $ curl \
+         -v \
+         -H "Authorization: Bearer ${T1}" \
+         localhost:3000/api/entries \
+         | json_pp
+      ```
+
+4. set up the frontend:
+
+   - TBD
