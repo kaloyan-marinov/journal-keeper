@@ -2,6 +2,8 @@ import React from "react";
 import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
 
 const App = () => {
+  console.log(`${new Date().toISOString()} - ${__filename} - React is rendering <App>`);
+
   return (
     <React.Fragment>
       {"<App>"}
@@ -30,25 +32,44 @@ const App = () => {
   );
 };
 
-export const SignUp = () => (
-  <React.Fragment>
-    {"<SignUp>"}
-    <div>Create a new account!</div>
-  </React.Fragment>
-);
+export const SignUp = () => {
+  console.log(
+    `${new Date().toISOString()} - ${__filename} - React is rendering <SignUp>`
+  );
 
-export const SignIn = () => (
-  <React.Fragment>
-    {"<SignIn>"}
-    <div>Log in to your account!</div>
-  </React.Fragment>
-);
+  return (
+    <React.Fragment>
+      {"<SignUp>"}
+      <div>Create a new account!</div>
+    </React.Fragment>
+  );
+};
 
-export const MyMonthlyJournal = () => (
-  <React.Fragment>
-    {"<MyMonthlyJournal>"}
-    <div>Review the entries in MyMonthlyJournal!</div>
-  </React.Fragment>
-);
+export const SignIn = () => {
+  console.log(
+    `${new Date().toISOString()} - ${__filename} - React is rendering <SignIn>`
+  );
+
+  return (
+    <React.Fragment>
+      {"<SignIn>"}
+      <div>Log in to your account!</div>
+    </React.Fragment>
+  );
+};
+
+export const MyMonthlyJournal = () => {
+  console.log(
+    `${new Date().toISOString()} - ${__filename}` +
+      ` - React is rendering <MyMonthlyJournal>`
+  );
+
+  return (
+    <React.Fragment>
+      {"<MyMonthlyJournal>"}
+      <div>Review the entries in MyMonthlyJournal!</div>
+    </React.Fragment>
+  );
+};
 
 export default App;
