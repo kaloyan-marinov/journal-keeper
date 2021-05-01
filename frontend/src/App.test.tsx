@@ -1,4 +1,5 @@
 import { render } from "@testing-library/react";
+import { BrowserRouter } from "react-router-dom";
 
 import App, { SignUp, SignIn, MyMonthlyJournal } from "./App";
 
@@ -50,11 +51,19 @@ describe("<SignIn>", () => {
 
 describe("<MyMonthlyJournal>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
-    const { getByText } = render(<MyMonthlyJournal />);
+    const { getByText, getAllByText } = render(
+      <BrowserRouter>
+        <MyMonthlyJournal />
+      </BrowserRouter>
+    );
 
     getByText("Review the entries in MyMonthlyJournal!");
+    getByText("Create a new entry");
 
     getByText("Then it dawned on me: there is no finish line!");
     getByText("Mallorca has beautiful sunny beaches!");
+
+    const editLinks = getAllByText("Edit");
+    expect(editLinks.length).toEqual(2);
   });
 });

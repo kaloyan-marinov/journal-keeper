@@ -138,6 +138,7 @@ export const MyMonthlyJournal = () => {
         <hr></hr>
         <h3>{e.timestampInUTC} UTC</h3>
         <p>{e.content}</p>
+        <Link to="#">Edit</Link>
       </div>
     );
   });
@@ -146,6 +147,7 @@ export const MyMonthlyJournal = () => {
     <React.Fragment>
       {"<MyMonthlyJournal>"}
       <div>Review the entries in MyMonthlyJournal!</div>
+      <Link to="#">Create a new entry</Link>
       {entries}
     </React.Fragment>
   );
