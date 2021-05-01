@@ -8,6 +8,8 @@ describe("<App>", () => {
 
     getByText("Home");
     getByText("Sign Up");
+    getByText("Sign In");
+    getByText("MyMonthlyJournal");
 
     getByText("Welcome to MyMonthlyJournal!");
   });
