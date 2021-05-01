@@ -76,6 +76,17 @@ export const SignIn = () => {
     <React.Fragment>
       {"<SignIn>"}
       <div>Log in to your account!</div>
+      <form name="sign-in-form">
+        <div>
+          <input type="text" placeholder="Enter your username..." name="username" />
+        </div>
+        <div>
+          <input type="password" placeholder="Enter your password..." name="password" />
+        </div>
+        <div>
+          <input type="submit" value="Sign me in" />
+        </div>
+      </form>
     </React.Fragment>
   );
 };

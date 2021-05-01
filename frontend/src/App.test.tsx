@@ -35,9 +35,16 @@ describe("<SignUp>", () => {
 
 describe("<SignIn>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
-    const { getByText } = render(<SignIn />);
+    const { getByText, getAllByRole, getByPlaceholderText } = render(<SignIn />);
 
     getByText("Log in to your account!");
+
+    const forms = getAllByRole("form");
+    expect(forms.length).toEqual(1);
+
+    getByPlaceholderText("Enter your username...");
+    getByPlaceholderText("Enter your password...");
+    getByText("Sign me in");
   });
 });
 
