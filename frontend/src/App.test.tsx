@@ -17,9 +17,19 @@ describe("<App>", () => {
 
 describe("<SignUp>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
-    const { getByText } = render(<SignUp />);
+    const { getByText, getAllByRole, getByPlaceholderText } = render(<SignUp />);
 
     getByText("Create a new account!");
+
+    const forms = getAllByRole("form");
+    expect(forms.length).toEqual(1);
+
+    getByPlaceholderText("Choose a username...");
+    getByPlaceholderText("Enter your name...");
+    getByPlaceholderText("Enter your email address...");
+    getByPlaceholderText("Choose a password...");
+    getByPlaceholderText("Repeat the chosen password...");
+    getByText("Create an account for me");
   });
 });
 

@@ -41,6 +41,28 @@ export const SignUp = () => {
     <React.Fragment>
       {"<SignUp>"}
       <div>Create a new account!</div>
+      <form name="sign-up-form">
+        <div>
+          <input type="text" placeholder="Choose a username..." name="username" />
+        </div>
+        <div>
+          <input type="text" placeholder="Enter your name..." name="name" />
+        </div>
+        <div>
+          <input type="email" placeholder="Enter your email address..." name="email" />
+        </div>
+        <div>
+          <input type="password" placeholder="Choose a password..." name="password" />
+        </div>
+        <div>
+          <input
+            type="password"
+            placeholder="Repeat the chosen password..."
+            name="repeatPassword"
+          />
+        </div>
+        <input type="submit" value="Create an account for me" />
+      </form>
     </React.Fragment>
   );
 };
