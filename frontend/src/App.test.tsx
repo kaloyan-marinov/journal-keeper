@@ -53,5 +53,8 @@ describe("<MyMonthlyJournal>", () => {
     const { getByText } = render(<MyMonthlyJournal />);
 
     getByText("Review the entries in MyMonthlyJournal!");
+
+    getByText("Then it dawned on me: there is no finish line!");
+    getByText("Mallorca has beautiful sunny beaches!");
   });
 });

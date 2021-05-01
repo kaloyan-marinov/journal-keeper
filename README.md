@@ -284,6 +284,59 @@
          -H "Authorization: Bearer ${T1}" \
          localhost:3000/api/entries \
          | json_pp
+      
+      ...
+      < HTTP/1.1 200 OK
+      < Content-Type: application/json; charset=utf-8
+      < Content-Length: 244
+      < Date: Sat, 01 May 2021 06:35:22 GMT
+      < Connection: keep-alive
+      < Keep-Alive: timeout=5
+      ...
+      {
+         "entries" : [
+            {
+               "timestampInUTC" : "2020-12-01T15:17:00.000Z",
+               "createdAt" : "2021-04-29T05:10:56.000Z",
+               "userId" : 1,
+               "content" : "Then it dawned on me: there is no finish line!",
+               "utcZoneOfTimestamp" : "+02:00",
+               "id" : 1,
+               "updatedAt" : "2021-04-29T05:10:56.000Z"
+            }
+         ]
+      }
+      ```
+
+      ```
+      $ curl \
+         -v \
+         -H "Authorization: Bearer ${T2}" \
+         localhost:3000/api/entries \
+         | json_pp
+      
+      ...
+      < HTTP/1.1 200 OK
+      < Content-Type: application/json; charset=utf-8
+      < Content-Length: 235
+      < Date: Sat, 01 May 2021 06:35:31 GMT
+      < Connection: keep-alive
+      < Keep-Alive: timeout=5
+      < 
+      ...
+      {
+         "entries" : [
+            {
+               "timestampInUTC" : "2019-08-20T13:17:00.000Z",
+               "utcZoneOfTimestamp" : "+01:00",
+               "id" : 2,
+               "userId" : 2,
+               "content" : "Mallorca has beautiful sunny beaches!",
+               "createdAt" : "2021-04-29T05:11:01.000Z",
+               "updatedAt" : "2021-04-29T05:11:01.000Z"
+            }
+         ]
+      }
       ```
 
 4. set up the frontend:
