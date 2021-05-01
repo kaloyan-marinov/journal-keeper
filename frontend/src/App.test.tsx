@@ -6,6 +6,6 @@ describe("<App>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
     const { getByText } = render(<App />);
 
-    getByText("Hello world!");
+    getByText("Welcome to MyMonthlyJournal!");
   });
 });
