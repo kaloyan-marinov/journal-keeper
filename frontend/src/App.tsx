@@ -112,16 +112,39 @@ export const SignIn = () => {
     `${new Date().toISOString()} - ${__filename} - React is rendering <SignIn>`
   );
 
+  const [formData, setFormData] = React.useState({
+    email: "",
+    password: "",
+  });
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   return (
     <React.Fragment>
       {"<SignIn>"}
       <div>Log in to your account!</div>
       <form name="sign-in-form">
         <div>
-          <input type="text" placeholder="Enter your username..." name="username" />
+          <input
+            type="email"
+            placeholder="Enter your email..."
+            name="email"
+            value={formData.email}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e)}
+          />
         </div>
         <div>
-          <input type="password" placeholder="Enter your password..." name="password" />
+          <input
+            type="password"
+            placeholder="Enter your password..."
+            name="password"
+            value={formData.password}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e)}
+          />
         </div>
         <div>
           <input type="submit" value="Sign me in" />

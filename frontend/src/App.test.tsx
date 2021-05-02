@@ -67,9 +67,22 @@ describe("<SignIn>", () => {
     const forms = getAllByRole("form");
     expect(forms.length).toEqual(1);
 
-    getByPlaceholderText("Enter your username...");
+    getByPlaceholderText("Enter your email...");
     getByPlaceholderText("Enter your password...");
     getByText("Sign me in");
+  });
+
+  test("the user fills out the form (without submitting it)", () => {
+    const { getByPlaceholderText, getByDisplayValue } = render(<SignIn />);
+
+    const emailInput = getByPlaceholderText("Enter your email...");
+    const passwordInput = getByPlaceholderText("Enter your password...");
+
+    fireEvent.change(emailInput, { target: { value: "[f-e] jd" } });
+    fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
+
+    getByDisplayValue("[f-e] jd");
+    getByDisplayValue("[f-e] 123");
   });
 });
 
