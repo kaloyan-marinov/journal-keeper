@@ -17,16 +17,16 @@ describe("action creators", () => {
     const action = createUserPending();
 
     expect(action).toEqual({
-      type: "createUser/pending",
+      type: "auth/createUser/pending",
     });
   });
 
   test("createUserRejected", () => {
-    const action = createUserRejected("create-User-Rejected");
+    const action = createUserRejected("auth-createUser-rejected");
 
     expect(action).toEqual({
-      type: "createUser/rejected",
-      error: "create-User-Rejected",
+      type: "auth/createUser/rejected",
+      error: "auth-createUser-rejected",
     });
   });
 
@@ -34,75 +34,99 @@ describe("action creators", () => {
     const action = createUserFulfilled();
 
     expect(action).toEqual({
-      type: "createUser/fulfilled",
+      type: "auth/createUser/fulfilled",
     });
   });
 });
 
 describe("reducers", () => {
-  test("createUser/pending should update state.requestStatus to 'loading'", () => {
-    const initialState = {
-      requestStatus: "idle",
-      requestError: null,
-    };
-    const action = {
-      type: "createUser/pending",
-    };
-
-    const newState = rootReducer(initialState, action);
-
-    expect(newState).toEqual({
-      requestStatus: "loading",
-      requestError: null,
-    });
-  });
-
   test(
-    "createUser/rejected should update" +
-      " both state.requestStatus and state.requestError",
+    "auth/createUser/pending should" +
+      " update state.auth.requestStatus" +
+      " to 'loading'",
     () => {
       const initialState = {
-        requestStatus: "pending",
-        requestError: null,
+        auth: {
+          requestStatus: "idle",
+          requestError: null,
+        },
       };
       const action = {
-        type: "createUser/rejected",
-        error: "create-User-Rejected",
+        type: "auth/createUser/pending",
       };
 
       const newState = rootReducer(initialState, action);
 
       expect(newState).toEqual({
-        requestStatus: "failed",
-        requestError: "create-User-Rejected",
+        auth: {
+          requestStatus: "loading",
+          requestError: null,
+        },
       });
     }
   );
 
-  test("createUser/fulfilled should update state.requestStatus to 'succeeded'", () => {
-    const initialState = {
-      requestStatus: "pending",
-      requestError: "create-User-Rejected",
-    };
-    const action = {
-      type: "createUser/fulfilled",
-    };
+  test(
+    "auth/createUser/rejected should update" +
+      " both state.auth.requestStatus and state.auth.requestError",
+    () => {
+      const initialState = {
+        auth: {
+          requestStatus: "pending",
+          requestError: null,
+        },
+      };
+      const action = {
+        type: "auth/createUser/rejected",
+        error: "auth-createUser-rejected",
+      };
 
-    const newState = rootReducer(initialState, action);
+      const newState = rootReducer(initialState, action);
 
-    expect(newState).toEqual({
-      requestStatus: "succeeded",
-      requestError: null,
-    });
-  });
+      expect(newState).toEqual({
+        auth: {
+          requestStatus: "failed",
+          requestError: "auth-createUser-rejected",
+        },
+      });
+    }
+  );
+
+  test(
+    "auth/createUser/fulfilled should" +
+      " update state.auth.requestStatus to 'succeeded'" +
+      " and clear state.auth.requestError",
+    () => {
+      const initialState = {
+        auth: {
+          requestStatus: "pending",
+          requestError: "auth-createUser-rejected",
+        },
+      };
+      const action = {
+        type: "auth/createUser/fulfilled",
+      };
+
+      const newState = rootReducer(initialState, action);
+
+      expect(newState).toEqual({
+        auth: {
+          requestStatus: "succeeded",
+          requestError: null,
+        },
+      });
+    }
+  );
 
   test(
     "an action, which the rootReducer doesn't specifically handle," +
       " should not modify the state",
     () => {
       const initialState = {
-        requestStatus: "original-status",
-        requestError: "original-error",
+        auth: {
+          requestStatus: "original-status",
+          requestError: "original-error",
+        },
       };
       const action = {
         type: "an action, which the rootReducer doesn't specifically handle",

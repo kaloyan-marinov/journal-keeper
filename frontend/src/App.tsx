@@ -13,20 +13,24 @@ enum RequestStatus {
 }
 
 interface IState {
-  requestStatus: RequestStatus;
-  requestError: string | null;
+  auth: {
+    requestStatus: RequestStatus;
+    requestError: string | null;
+  };
 }
 
 export const initialState: IState = {
-  requestStatus: RequestStatus.IDLE,
-  requestError: null,
+  auth: {
+    requestStatus: RequestStatus.IDLE,
+    requestError: null,
+  },
 };
 
 /* Action creators */
 enum CreateUserActionTypes {
-  PENDING = "createUser/pending",
-  REJECTED = "createUser/rejected",
-  FULFILLED = "createUser/fulfilled",
+  PENDING = "auth/createUser/pending",
+  REJECTED = "auth/createUser/rejected",
+  FULFILLED = "auth/createUser/fulfilled",
 }
 
 interface ICreateUserPendingAction {
@@ -71,20 +75,26 @@ export const rootReducer = (state: IState = initialState, action: CreateUserActi
   switch (action.type) {
     case CreateUserActionTypes.PENDING:
       return {
-        ...state,
-        requestStatus: RequestStatus.LOADING,
+        auth: {
+          ...state.auth,
+          requestStatus: RequestStatus.LOADING,
+        },
       };
     case CreateUserActionTypes.REJECTED:
       return {
-        ...state,
-        requestStatus: RequestStatus.FAILED,
-        requestError: action.error,
+        auth: {
+          ...state.auth,
+          requestStatus: RequestStatus.FAILED,
+          requestError: action.error,
+        },
       };
     case CreateUserActionTypes.FULFILLED:
       return {
-        ...state,
-        requestStatus: RequestStatus.SUCCEEDED,
-        requestError: null,
+        auth: {
+          ...state.auth,
+          requestStatus: RequestStatus.SUCCEEDED,
+          requestError: null,
+        },
       };
     default:
       return state;
