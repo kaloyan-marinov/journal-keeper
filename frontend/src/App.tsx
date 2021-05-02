@@ -1,5 +1,7 @@
 import React from "react";
 import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
+import { createStore } from "redux";
+import { useDispatch, useSelector } from "react-redux";
 
 /* Specify an initial value for the Redux state. */
 enum RequestStatus {
@@ -59,7 +61,7 @@ type CreateUserAction =
 
 /*
 Define a root reducer function,
-which will be used to instantiate a single Redux store.
+which serves to instantiate a single Redux store.
 
 (In turn, that store will be tasked with keeping track of the React application's
 global state.)
@@ -87,6 +89,8 @@ export const rootReducer = (state: IState = initialState, action: CreateUserActi
       return state;
   }
 };
+
+export const store = createStore(rootReducer);
 
 /* Create React components. */
 const App = () => {
@@ -125,6 +129,14 @@ export const SignUp = () => {
     `${new Date().toISOString()} - ${__filename} - React is rendering <SignUp>`
   );
 
+  const dispatch = useDispatch();
+
+  const state = useSelector((state: IState) => state);
+  console.log(
+    `${new Date().toISOString()} - ${__filename} - the state of/in the Redux store is:`
+  );
+  console.log(state);
+
   const [formData, setFormData] = React.useState({
     username: "",
     name: "",
@@ -139,11 +151,26 @@ export const SignUp = () => {
     });
   };
 
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (formData.password !== formData.repeatPassword) {
+      console.log("invalid situation - `repeatPassword` doesn't match `password`");
+    } else {
+      console.log("dispatching the following action to the Redux store:");
+      console.log(createUserPending());
+      dispatch(createUserPending());
+    }
+  };
+
   return (
     <React.Fragment>
       {"<SignUp>"}
       <div>Create a new account!</div>
-      <form name="sign-up-form">
+      <form
+        name="sign-up-form"
+        onSubmit={(e: React.FormEvent<HTMLFormElement>) => onSubmit(e)}
+      >
         <div>
           <input
             type="text"

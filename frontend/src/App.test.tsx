@@ -9,6 +9,9 @@ import {
 } from "./App";
 import App, { SignUp, SignIn, MyMonthlyJournal } from "./App";
 
+import { Provider } from "react-redux";
+import { store } from "./App";
+
 describe("action creators", () => {
   test("createUserPending", () => {
     const action = createUserPending();
@@ -127,7 +130,11 @@ describe("<App>", () => {
 
 describe("<SignUp>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
-    const { getByText, getAllByRole, getByPlaceholderText } = render(<SignUp />);
+    const { getByText, getAllByRole, getByPlaceholderText } = render(
+      <Provider store={store}>
+        <SignUp />
+      </Provider>
+    );
 
     getByText("Create a new account!");
 
@@ -143,7 +150,11 @@ describe("<SignUp>", () => {
   });
 
   test("the user fills out the form (without submitting it)", () => {
-    const { getByPlaceholderText, getByDisplayValue } = render(<SignUp />);
+    const { getByPlaceholderText, getByDisplayValue } = render(
+      <Provider store={store}>
+        <SignUp />
+      </Provider>
+    );
 
     const usernameInput = getByPlaceholderText("Choose a username...");
     const nameInput = getByPlaceholderText("Enter your name...");
