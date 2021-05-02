@@ -341,4 +341,22 @@
 
 4. set up the frontend:
 
-   - TBD
+   - navigate into the the `frontend` subfolder:
+      ```
+      $ cd frontend
+      ```
+
+   - install the Node.js dependencies:
+      ```
+      frontend $ npm install
+      ```
+
+   - ensure that running the tests results in a PASS by issuing the following:
+
+      ```
+      frontend $ npm test -- --coverage
+      ```
+
+      which will create a `coverage` folder with a report of test coverage; to view that report, open `coverage/index.html` in your web browser
+
+      (to run the tests in watch mode, issue any one of the following: `frontend $ npm test -- --coverage --watchAll`; each re-run of which will update the contents of the `coverage` folder)
