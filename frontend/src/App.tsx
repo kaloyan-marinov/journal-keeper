@@ -37,28 +37,68 @@ export const SignUp = () => {
     `${new Date().toISOString()} - ${__filename} - React is rendering <SignUp>`
   );
 
+  const [formData, setFormData] = React.useState({
+    username: "",
+    name: "",
+    email: "",
+    password: "",
+    repeatPassword: "",
+  });
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   return (
     <React.Fragment>
       {"<SignUp>"}
       <div>Create a new account!</div>
       <form name="sign-up-form">
         <div>
-          <input type="text" placeholder="Choose a username..." name="username" />
+          <input
+            type="text"
+            placeholder="Choose a username..."
+            name="username"
+            value={formData.username}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e)}
+          />
         </div>
         <div>
-          <input type="text" placeholder="Enter your name..." name="name" />
+          <input
+            type="text"
+            placeholder="Enter your name..."
+            name="name"
+            value={formData.name}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e)}
+          />
         </div>
         <div>
-          <input type="email" placeholder="Enter your email address..." name="email" />
+          <input
+            type="email"
+            placeholder="Enter your email address..."
+            name="email"
+            value={formData.email}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e)}
+          />
         </div>
         <div>
-          <input type="password" placeholder="Choose a password..." name="password" />
+          <input
+            type="password"
+            placeholder="Choose a password..."
+            name="password"
+            value={formData.password}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e)}
+          />
         </div>
         <div>
           <input
             type="password"
             placeholder="Repeat the chosen password..."
             name="repeatPassword"
+            value={formData.repeatPassword}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e)}
           />
         </div>
         <input type="submit" value="Create an account for me" />
