@@ -1,11 +1,23 @@
 import { render, fireEvent } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 
-import App, { SignUp, SignIn, MyMonthlyJournal } from "./App";
+import App, { SignUp, SignIn, MyMonthlyJournal, store } from "./App";
+import { Provider } from "react-redux";
 
 describe("<App>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
-    const { getByText } = render(<App />);
+    const { getByTestId, getByText } = render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    );
+
+    const div = getByTestId("div-static-redux-store");
+    expect(div.outerHTML).toContain(
+      "This React application is currently endowed with a"
+    );
+    expect(div.outerHTML).toContain("<em>static</em>");
+    expect(div.outerHTML).toContain("Redux store.");
 
     getByText("Home");
     getByText("Sign Up");

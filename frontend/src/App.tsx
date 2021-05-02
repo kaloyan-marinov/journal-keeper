@@ -1,12 +1,57 @@
 import React from "react";
 import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
+import { createStore } from "redux";
+import { useSelector } from "react-redux";
 
+/* Create a Redux store. */
+enum RequestStatus {
+  IDLE = "idle",
+  LOADING = "loading",
+  FAILED = "failed",
+  SUCCEEDED = "succeeded",
+}
+
+interface IState {
+  requestStatus: RequestStatus;
+  requestError: string | null;
+}
+
+export const initialState: IState = {
+  requestStatus: RequestStatus.FAILED,
+  requestError: "request-Error",
+};
+
+interface IAction {
+  type: string;
+}
+
+export const rootReducer = (state: IState = initialState, action: IAction) => {
+  switch (action.type) {
+    default:
+      return state;
+  }
+};
+
+export const store = createStore(rootReducer);
+
+/* Create React components. */
 const App = () => {
   console.log(`${new Date().toISOString()} - ${__filename} - React is rendering <App>`);
+
+  const reduxState = useSelector((state: IState) => state);
 
   return (
     <React.Fragment>
       {"<App>"}
+      <div style={{ color: "green" }} data-testid="div-static-redux-store">
+        This React application is currently endowed with a <em>static</em> Redux store.
+        The state kept in that store is a JavaScript object, which is made up of the
+        following (key, value) pairs:
+        <ul>
+          <li>("requestStatus", "{reduxState.requestStatus}")</li>
+          <li>("requestError", "{reduxState.requestError}")</li>
+        </ul>
+      </div>
       <BrowserRouter>
         <div>
           <Link to="/">Home</Link> | <Link to="/sign-up">Sign Up</Link> |{" "}
