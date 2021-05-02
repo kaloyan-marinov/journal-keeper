@@ -1,7 +1,8 @@
 import React from "react";
 import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
 import { createStore } from "redux";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { composeWithDevTools } from "redux-devtools-extension";
 
 /* Specify an initial value for the Redux state. */
 enum RequestStatus {
@@ -90,7 +91,8 @@ export const rootReducer = (state: IState = initialState, action: CreateUserActi
   }
 };
 
-export const store = createStore(rootReducer);
+const composedEnhancer = composeWithDevTools();
+export const store = createStore(rootReducer, composedEnhancer);
 
 /* Create React components. */
 const App = () => {
@@ -131,12 +133,6 @@ export const SignUp = () => {
 
   const dispatch = useDispatch();
 
-  const state = useSelector((state: IState) => state);
-  console.log(
-    `${new Date().toISOString()} - ${__filename} - the state of/in the Redux store is:`
-  );
-  console.log(state);
-
   const [formData, setFormData] = React.useState({
     username: "",
     name: "",
@@ -157,8 +153,6 @@ export const SignUp = () => {
     if (formData.password !== formData.repeatPassword) {
       console.log("invalid situation - `repeatPassword` doesn't match `password`");
     } else {
-      console.log("dispatching the following action to the Redux store:");
-      console.log(createUserPending());
       dispatch(createUserPending());
     }
   };
