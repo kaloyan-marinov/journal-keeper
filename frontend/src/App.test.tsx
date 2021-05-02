@@ -1,23 +1,120 @@
 import { render, fireEvent } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 
-import App, { SignUp, SignIn, MyMonthlyJournal, store } from "./App";
-import { Provider } from "react-redux";
+import {
+  createUserPending,
+  createUserRejected,
+  createUserFulfilled,
+  rootReducer,
+} from "./App";
+import App, { SignUp, SignIn, MyMonthlyJournal } from "./App";
+
+describe("action creators", () => {
+  test("createUserPending", () => {
+    const action = createUserPending();
+
+    expect(action).toEqual({
+      type: "createUser/pending",
+    });
+  });
+
+  test("createUserRejected", () => {
+    const action = createUserRejected("create-User-Rejected");
+
+    expect(action).toEqual({
+      type: "createUser/rejected",
+      error: "create-User-Rejected",
+    });
+  });
+
+  test("createUserFulfilled", () => {
+    const action = createUserFulfilled();
+
+    expect(action).toEqual({
+      type: "createUser/fulfilled",
+    });
+  });
+});
+
+describe("reducers", () => {
+  test("createUser/pending should update state.requestStatus to 'loading'", () => {
+    const initialState = {
+      requestStatus: "idle",
+      requestError: null,
+    };
+    const action = {
+      type: "createUser/pending",
+    };
+
+    const newState = rootReducer(initialState, action);
+
+    expect(newState).toEqual({
+      requestStatus: "loading",
+      requestError: null,
+    });
+  });
+
+  test(
+    "createUser/rejected should update" +
+      " both state.requestStatus and state.requestError",
+    () => {
+      const initialState = {
+        requestStatus: "pending",
+        requestError: null,
+      };
+      const action = {
+        type: "createUser/rejected",
+        error: "create-User-Rejected",
+      };
+
+      const newState = rootReducer(initialState, action);
+
+      expect(newState).toEqual({
+        requestStatus: "failed",
+        requestError: "create-User-Rejected",
+      });
+    }
+  );
+
+  test("createUser/fulfilled should update state.requestStatus to 'succeeded'", () => {
+    const initialState = {
+      requestStatus: "pending",
+      requestError: "create-User-Rejected",
+    };
+    const action = {
+      type: "createUser/fulfilled",
+    };
+
+    const newState = rootReducer(initialState, action);
+
+    expect(newState).toEqual({
+      requestStatus: "succeeded",
+      requestError: null,
+    });
+  });
+
+  test(
+    "an action, which the rootReducer doesn't specifically handle," +
+      " should not modify the state",
+    () => {
+      const initialState = {
+        requestStatus: "original-status",
+        requestError: "original-error",
+      };
+      const action = {
+        type: "an action, which the rootReducer doesn't specifically handle",
+      };
+
+      const newState = rootReducer(initialState, action);
+
+      expect(newState).toEqual(initialState);
+    }
+  );
+});
 
 describe("<App>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
-    const { getByTestId, getByText } = render(
-      <Provider store={store}>
-        <App />
-      </Provider>
-    );
-
-    const div = getByTestId("div-static-redux-store");
-    expect(div.outerHTML).toContain(
-      "This React application is currently endowed with a"
-    );
-    expect(div.outerHTML).toContain("<em>static</em>");
-    expect(div.outerHTML).toContain("Redux store.");
+    const { getByText } = render(<App />);
 
     getByText("Home");
     getByText("Sign Up");

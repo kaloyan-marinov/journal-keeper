@@ -1,9 +1,7 @@
 import React from "react";
 import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
-import { createStore } from "redux";
-import { useSelector } from "react-redux";
 
-/* Create a Redux store. */
+/* Specify an initial value for the Redux state. */
 enum RequestStatus {
   IDLE = "idle",
   LOADING = "loading",
@@ -17,41 +15,86 @@ interface IState {
 }
 
 export const initialState: IState = {
-  requestStatus: RequestStatus.FAILED,
-  requestError: "request-Error",
+  requestStatus: RequestStatus.IDLE,
+  requestError: null,
 };
 
-interface IAction {
-  type: string;
+/* Action creators */
+enum CreateUserActionTypes {
+  PENDING = "createUser/pending",
+  REJECTED = "createUser/rejected",
+  FULFILLED = "createUser/fulfilled",
 }
 
-export const rootReducer = (state: IState = initialState, action: IAction) => {
+interface ICreateUserPendingAction {
+  type: typeof CreateUserActionTypes.PENDING;
+}
+
+interface ICreateUserRejectedAction {
+  type: typeof CreateUserActionTypes.REJECTED;
+  error: string;
+}
+
+interface ICreateUserFulfilledAction {
+  type: typeof CreateUserActionTypes.FULFILLED;
+}
+
+export const createUserPending = (): ICreateUserPendingAction => ({
+  type: CreateUserActionTypes.PENDING,
+});
+
+export const createUserRejected = (error: string): ICreateUserRejectedAction => ({
+  type: CreateUserActionTypes.REJECTED,
+  error,
+});
+
+export const createUserFulfilled = (): ICreateUserFulfilledAction => ({
+  type: CreateUserActionTypes.FULFILLED,
+});
+
+type CreateUserAction =
+  | ICreateUserPendingAction
+  | ICreateUserRejectedAction
+  | ICreateUserFulfilledAction;
+
+/*
+Define a root reducer function,
+which will be used to instantiate a single Redux store.
+
+(In turn, that store will be tasked with keeping track of the React application's
+global state.)
+*/
+export const rootReducer = (state: IState = initialState, action: CreateUserAction) => {
   switch (action.type) {
+    case CreateUserActionTypes.PENDING:
+      return {
+        ...state,
+        requestStatus: RequestStatus.LOADING,
+      };
+    case CreateUserActionTypes.REJECTED:
+      return {
+        ...state,
+        requestStatus: RequestStatus.FAILED,
+        requestError: action.error,
+      };
+    case CreateUserActionTypes.FULFILLED:
+      return {
+        ...state,
+        requestStatus: RequestStatus.SUCCEEDED,
+        requestError: null,
+      };
     default:
       return state;
   }
 };
 
-export const store = createStore(rootReducer);
-
 /* Create React components. */
 const App = () => {
   console.log(`${new Date().toISOString()} - ${__filename} - React is rendering <App>`);
 
-  const reduxState = useSelector((state: IState) => state);
-
   return (
     <React.Fragment>
       {"<App>"}
-      <div style={{ color: "green" }} data-testid="div-static-redux-store">
-        This React application is currently endowed with a <em>static</em> Redux store.
-        The state kept in that store is a JavaScript object, which is made up of the
-        following (key, value) pairs:
-        <ul>
-          <li>("requestStatus", "{reduxState.requestStatus}")</li>
-          <li>("requestError", "{reduxState.requestError}")</li>
-        </ul>
-      </div>
       <BrowserRouter>
         <div>
           <Link to="/">Home</Link> | <Link to="/sign-up">Sign Up</Link> |{" "}
