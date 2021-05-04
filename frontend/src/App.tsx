@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
 import { createStore } from "redux";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { composeWithDevTools } from "redux-devtools-extension";
 import { v4 as uuidv4 } from "uuid";
 
@@ -18,13 +18,15 @@ interface IAlert {
   message: string;
 }
 
-interface IState {
-  alerts: {
-    ids: string[];
-    entities: {
-      [alertId: string]: IAlert;
-    };
+interface IStateAlerts {
+  ids: string[];
+  entities: {
+    [alertId: string]: IAlert;
   };
+}
+
+interface IState {
+  alerts: IStateAlerts;
   auth: {
     requestStatus: RequestStatus;
     requestError: string | null;
@@ -212,6 +214,7 @@ const App = () => {
           <Link to="/sign-in">Sign In</Link> |{" "}
           <Link to="/my-monthly-journal">MyMonthlyJournal</Link>
         </div>
+        <Alerts />
         <Switch>
           <Route exact path="/">
             <div>Welcome to MyMonthlyJournal!</div>
@@ -325,6 +328,31 @@ export const SignUp = () => {
         <input type="submit" value="Create an account for me" />
       </form>
     </React.Fragment>
+  );
+};
+
+const Alerts = () => {
+  console.log(
+    `${new Date().toISOString()} - ${__filename} - React is rendering <Alerts>`
+  );
+
+  const alerts: IStateAlerts = useSelector((state: IState) => state.alerts);
+
+  return (
+    <>
+      {"<Alerts>"}
+      <br />
+      {alerts.ids.length === 0 ? (
+        <br />
+      ) : (
+        alerts.ids.map((id: string) => (
+          <div key={id} style={{ color: "red" }}>
+            <button>X</button>
+            {alerts.entities[id].message}
+          </div>
+        ))
+      )}
+    </>
   );
 };
 

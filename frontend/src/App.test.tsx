@@ -300,7 +300,11 @@ describe("reducers", () => {
 
 describe("<App>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
-    const { getByText } = render(<App />);
+    const { getByText } = render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    );
 
     getByText("Home");
     getByText("Sign Up");
