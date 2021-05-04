@@ -7,7 +7,7 @@ import {
   createUserFulfilled,
   rootReducer,
 } from "./App";
-import App, { SignUp, SignIn, MyMonthlyJournal } from "./App";
+import App, { Alert, SignUp, SignIn, MyMonthlyJournal } from "./App";
 
 import { Provider } from "react-redux";
 import { store } from "./App";
@@ -312,6 +312,21 @@ describe("<App>", () => {
     getByText("MyMonthlyJournal");
 
     getByText("Welcome to MyMonthlyJournal!");
+  });
+});
+
+describe("<Alert>", () => {
+  test("initial render (i.e. before/without any user interaction)", () => {
+    const { getByText, getByRole } = render(
+      <Provider store={store}>
+        <Alert id="id-17" message="Reporting an encountered error, within the UI" />
+      </Provider>
+    );
+
+    // Use a regex to match a substring:
+    getByText(/Reporting an encountered error, within the UI/);
+
+    getByRole("button");
   });
 });
 

@@ -4,6 +4,7 @@ import { createStore } from "redux";
 import { useDispatch, useSelector } from "react-redux";
 import { composeWithDevTools } from "redux-devtools-extension";
 import { v4 as uuidv4 } from "uuid";
+import { Dispatch } from "redux";
 
 /* Specify an initial value for the Redux state. */
 enum RequestStatus {
@@ -239,7 +240,9 @@ export const SignUp = () => {
     `${new Date().toISOString()} - ${__filename} - React is rendering <SignUp>`
   );
 
-  const dispatch = useDispatch();
+  const dispatch: Dispatch<
+    IAlertCreateAction | ICreateUserPendingAction
+  > = useDispatch();
 
   const [formData, setFormData] = React.useState({
     username: "",
@@ -346,13 +349,34 @@ const Alerts = () => {
         <br />
       ) : (
         alerts.ids.map((id: string) => (
-          <div key={id} style={{ color: "red" }}>
-            <button>X</button>
-            {alerts.entities[id].message}
-          </div>
+          <Alert key={id} id={id} message={alerts.entities[id].message} />
         ))
       )}
     </>
+  );
+};
+
+export const Alert = (props: IAlert) => {
+  console.log(
+    `${new Date().toISOString()} - ${__filename} - React is rendering <Alert>`
+  );
+
+  const { id: alertId, message: alertMessage } = props;
+
+  const dispatch: Dispatch<IAlertRemoveAction> = useDispatch();
+
+  const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    dispatch(alertRemove(alertId));
+  };
+
+  return (
+    <div key={alertId} style={{ color: "red" }}>
+      {"\u00A0\u00A0\u00A0\u00A0<Alert>"}
+      <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => onClick(e)}>
+        X
+      </button>
+      {alertMessage}
+    </div>
   );
 };
 
