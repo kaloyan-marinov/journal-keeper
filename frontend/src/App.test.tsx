@@ -12,6 +12,8 @@ import App, { SignUp, SignIn, MyMonthlyJournal } from "./App";
 import { Provider } from "react-redux";
 import { store } from "./App";
 
+import { alertCreate, alertRemove } from "./App";
+
 describe("action creators", () => {
   test("createUserPending", () => {
     const action = createUserPending();
@@ -37,6 +39,29 @@ describe("action creators", () => {
       type: "auth/createUser/fulfilled",
     });
   });
+
+  test("alertCreate", () => {
+    const action = alertCreate("id-17", "the-undertaken-action-is-illegitimate");
+
+    expect(action).toEqual({
+      type: "alerts/create",
+      payload: {
+        id: "id-17",
+        message: "the-undertaken-action-is-illegitimate",
+      },
+    });
+  });
+
+  test("alertRemove", () => {
+    const action = alertRemove("id-17");
+
+    expect(action).toEqual({
+      type: "alerts/remove",
+      payload: {
+        id: "id-17",
+      },
+    });
+  });
 });
 
 describe("reducers", () => {
@@ -46,6 +71,10 @@ describe("reducers", () => {
       " to 'loading'",
     () => {
       const initialState = {
+        alerts: {
+          entities: {},
+          ids: [],
+        },
         auth: {
           requestStatus: "idle",
           requestError: null,
@@ -58,6 +87,10 @@ describe("reducers", () => {
       const newState = rootReducer(initialState, action);
 
       expect(newState).toEqual({
+        alerts: {
+          entities: {},
+          ids: [],
+        },
         auth: {
           requestStatus: "loading",
           requestError: null,
@@ -71,6 +104,10 @@ describe("reducers", () => {
       " both state.auth.requestStatus and state.auth.requestError",
     () => {
       const initialState = {
+        alerts: {
+          entities: {},
+          ids: [],
+        },
         auth: {
           requestStatus: "pending",
           requestError: null,
@@ -84,6 +121,10 @@ describe("reducers", () => {
       const newState = rootReducer(initialState, action);
 
       expect(newState).toEqual({
+        alerts: {
+          entities: {},
+          ids: [],
+        },
         auth: {
           requestStatus: "failed",
           requestError: "auth-createUser-rejected",
@@ -98,6 +139,10 @@ describe("reducers", () => {
       " and clear state.auth.requestError",
     () => {
       const initialState = {
+        alerts: {
+          entities: {},
+          ids: [],
+        },
         auth: {
           requestStatus: "pending",
           requestError: "auth-createUser-rejected",
@@ -110,8 +155,113 @@ describe("reducers", () => {
       const newState = rootReducer(initialState, action);
 
       expect(newState).toEqual({
+        alerts: {
+          entities: {},
+          ids: [],
+        },
         auth: {
           requestStatus: "succeeded",
+          requestError: null,
+        },
+      });
+    }
+  );
+
+  test(
+    "alerts/create should add an alert to" +
+      " both state.alerts.ids and state.alerts.entities",
+    () => {
+      const initialState = {
+        alerts: {
+          ids: ["id-17"],
+          entities: {
+            "id-17": {
+              id: "id-17",
+              message: "the-undertaken-action-is-illegitimate",
+            },
+          },
+        },
+        auth: {
+          requestStatus: "idle",
+          requestError: null,
+        },
+      };
+      const action = {
+        type: "alerts/create",
+        payload: {
+          id: "id-34",
+          message: "once-again-the-undertaken-action-is-illegitimate",
+        },
+      };
+
+      const newState = rootReducer(initialState, action);
+
+      expect(newState).toEqual({
+        alerts: {
+          ids: ["id-34", "id-17"],
+          entities: {
+            "id-34": {
+              id: "id-34",
+              message: "once-again-the-undertaken-action-is-illegitimate",
+            },
+            "id-17": {
+              id: "id-17",
+              message: "the-undertaken-action-is-illegitimate",
+            },
+          },
+        },
+        auth: {
+          requestStatus: "idle",
+          requestError: null,
+        },
+      });
+    }
+  );
+
+  test(
+    "alerts/remove should remove an alert from" +
+      " both state.alerts.ids and state.alerts.entities",
+    () => {
+      const initialState = {
+        alerts: {
+          ids: ["id-17", "id-34"],
+          entities: {
+            "id-17": {
+              id: "id-17",
+              message: "the-undertaken-action-is-illegitimate",
+            },
+            "id-34": {
+              id: "id-34",
+              message: "once-again-the-undertaken-action-is-illegitimate",
+            },
+          },
+        },
+        auth: {
+          requestStatus: "idle",
+          requestError: null,
+        },
+      };
+      const action = {
+        type: "alerts/remove",
+        payload: {
+          id: "id-34",
+        },
+      };
+
+      const newState = rootReducer(initialState, action);
+
+      expect(newState).toEqual({
+        alerts: {
+          ids: ["id-17"],
+          entities: {
+            "id-17": {
+              id: "id-17",
+              message: "the-undertaken-action-is-illegitimate",
+            },
+          },
+        },
+        auth: {
+          requestStatus: "idle",
           requestError: null,
         },
       });
@@ -123,6 +273,15 @@ describe("reducers", () => {
       " should not modify the state",
     () => {
       const initialState = {
+        alerts: {
+          ids: ["id-17"],
+          entities: {
+            "id-17": {
+              id: "id-17",
+              message: "the-undertaken-action-is-illegitimate",
+            },
+          },
+        },
         auth: {
           requestStatus: "original-status",
           requestError: "original-error",

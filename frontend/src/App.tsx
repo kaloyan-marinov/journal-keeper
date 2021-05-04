@@ -3,6 +3,7 @@ import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
 import { createStore } from "redux";
 import { useDispatch } from "react-redux";
 import { composeWithDevTools } from "redux-devtools-extension";
+import { v4 as uuidv4 } from "uuid";
 
 /* Specify an initial value for the Redux state. */
 enum RequestStatus {
@@ -12,7 +13,18 @@ enum RequestStatus {
   SUCCEEDED = "succeeded",
 }
 
+interface IAlert {
+  id: string;
+  message: string;
+}
+
 interface IState {
+  alerts: {
+    ids: string[];
+    entities: {
+      [alertId: string]: IAlert;
+    };
+  };
   auth: {
     requestStatus: RequestStatus;
     requestError: string | null;
@@ -20,6 +32,10 @@ interface IState {
 }
 
 export const initialState: IState = {
+  alerts: {
+    ids: [],
+    entities: {},
+  },
   auth: {
     requestStatus: RequestStatus.IDLE,
     requestError: null,
@@ -64,6 +80,43 @@ type CreateUserAction =
   | ICreateUserRejectedAction
   | ICreateUserFulfilledAction;
 
+enum AlertActionTypes {
+  CREATE = "alerts/create",
+  REMOVE = "alerts/remove",
+}
+
+interface IAlertCreateAction {
+  type: typeof AlertActionTypes.CREATE;
+  payload: {
+    id: string;
+    message: string;
+  };
+}
+
+interface IAlertRemoveAction {
+  type: typeof AlertActionTypes.REMOVE;
+  payload: {
+    id: string;
+  };
+}
+
+export const alertCreate = (id: string, message: string): IAlertCreateAction => ({
+  type: AlertActionTypes.CREATE,
+  payload: {
+    id,
+    message,
+  },
+});
+
+export const alertRemove = (id: string): IAlertRemoveAction => ({
+  type: AlertActionTypes.REMOVE,
+  payload: {
+    id,
+  },
+});
+
+type AlertAction = IAlertCreateAction | IAlertRemoveAction;
+
 /*
 Define a root reducer function,
 which serves to instantiate a single Redux store.
@@ -71,10 +124,14 @@ which serves to instantiate a single Redux store.
 (In turn, that store will be tasked with keeping track of the React application's
 global state.)
 */
-export const rootReducer = (state: IState = initialState, action: CreateUserAction) => {
+export const rootReducer = (
+  state: IState = initialState,
+  action: CreateUserAction | AlertAction
+) => {
   switch (action.type) {
     case CreateUserActionTypes.PENDING:
       return {
+        ...state,
         auth: {
           ...state.auth,
           requestStatus: RequestStatus.LOADING,
@@ -82,6 +139,7 @@ export const rootReducer = (state: IState = initialState, action: CreateUserActi
       };
     case CreateUserActionTypes.REJECTED:
       return {
+        ...state,
         auth: {
           ...state.auth,
           requestStatus: RequestStatus.FAILED,
@@ -90,10 +148,47 @@ export const rootReducer = (state: IState = initialState, action: CreateUserActi
       };
     case CreateUserActionTypes.FULFILLED:
       return {
+        ...state,
         auth: {
           ...state.auth,
           requestStatus: RequestStatus.SUCCEEDED,
           requestError: null,
+        },
+      };
+    case AlertActionTypes.CREATE:
+      const id: string = action.payload.id;
+      const message: string = action.payload.message;
+
+      const newIds: string[] = [id, ...state.alerts.ids];
+
+      const newEntities = { ...state.alerts.entities };
+      newEntities[id] = {
+        id,
+        message,
+      };
+
+      return {
+        ...state,
+        alerts: {
+          ids: newIds,
+          entities: newEntities,
+        },
+      };
+    case AlertActionTypes.REMOVE:
+      const idOfDeletedAlert: string = action.payload.id;
+
+      const remainingIds: string[] = state.alerts.ids.filter(
+        (id) => id !== idOfDeletedAlert
+      );
+
+      const remainingEntities = { ...state.alerts.entities };
+      delete remainingEntities[idOfDeletedAlert];
+
+      return {
+        ...state,
+        alerts: {
+          ids: remainingIds,
+          entities: remainingEntities,
         },
       };
     default:
@@ -161,9 +256,16 @@ export const SignUp = () => {
     e.preventDefault();
 
     if (formData.password !== formData.repeatPassword) {
+      const id: string = uuidv4();
+      const message: string = "THE PROVIDED PASSWORDS DON'T MATCH!";
+      dispatch(alertCreate(id, message));
       console.log("invalid situation - `repeatPassword` doesn't match `password`");
     } else {
       dispatch(createUserPending());
+      // Note to self:
+      // doing anything beyond simple `console.log` calls in this `else` clause
+      // should be postponed until
+      // after the logic within the `if` clause has been _properly_ implemented.
     }
   };
 
