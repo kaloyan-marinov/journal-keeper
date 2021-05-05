@@ -235,6 +235,42 @@ const App = () => {
   );
 };
 
+export const Alerts = () => {
+  console.log(
+    `${new Date().toISOString()} - ${__filename} - React is rendering <Alerts>`
+  );
+
+  const dispatch = useDispatch();
+
+  const alerts: IStateAlerts = useSelector((state: IState) => state.alerts);
+
+  const onClick = (id: string, e: React.MouseEvent<HTMLButtonElement>) => {
+    dispatch(alertRemove(id));
+  };
+
+  return (
+    <>
+      {"<Alerts>"}
+      <br />
+      {alerts.ids.length === 0 ? (
+        <br />
+      ) : (
+        alerts.ids.map((id: string) => (
+          <div key={id} style={{ color: "red" }}>
+            {"\u00A0\u00A0\u00A0\u00A0<Alert>"}
+            <button
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => onClick(id, e)}
+            >
+              X
+            </button>
+            {alerts.entities[id].message}
+          </div>
+        ))
+      )}
+    </>
+  );
+};
+
 export const SignUp = () => {
   console.log(
     `${new Date().toISOString()} - ${__filename} - React is rendering <SignUp>`
@@ -331,52 +367,6 @@ export const SignUp = () => {
         <input type="submit" value="Create an account for me" />
       </form>
     </React.Fragment>
-  );
-};
-
-const Alerts = () => {
-  console.log(
-    `${new Date().toISOString()} - ${__filename} - React is rendering <Alerts>`
-  );
-
-  const alerts: IStateAlerts = useSelector((state: IState) => state.alerts);
-
-  return (
-    <>
-      {"<Alerts>"}
-      <br />
-      {alerts.ids.length === 0 ? (
-        <br />
-      ) : (
-        alerts.ids.map((id: string) => (
-          <Alert key={id} id={id} message={alerts.entities[id].message} />
-        ))
-      )}
-    </>
-  );
-};
-
-export const Alert = (props: IAlert) => {
-  console.log(
-    `${new Date().toISOString()} - ${__filename} - React is rendering <Alert>`
-  );
-
-  const { id: alertId, message: alertMessage } = props;
-
-  const dispatch: Dispatch<IAlertRemoveAction> = useDispatch();
-
-  const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    dispatch(alertRemove(alertId));
-  };
-
-  return (
-    <div key={alertId} style={{ color: "red" }}>
-      {"\u00A0\u00A0\u00A0\u00A0<Alert>"}
-      <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => onClick(e)}>
-        X
-      </button>
-      {alertMessage}
-    </div>
   );
 };
 

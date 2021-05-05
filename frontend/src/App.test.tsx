@@ -1,4 +1,4 @@
-import { render, fireEvent } from "@testing-library/react";
+import { render, fireEvent, waitFor } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 
 import {
@@ -7,7 +7,7 @@ import {
   createUserFulfilled,
   rootReducer,
 } from "./App";
-import App, { Alert, SignUp, SignIn, MyMonthlyJournal } from "./App";
+import App, { Alerts, SignUp, SignIn, MyMonthlyJournal } from "./App";
 
 import { Provider } from "react-redux";
 import { store } from "./App";
@@ -315,8 +315,68 @@ describe("<App>", () => {
   });
 });
 
-describe("<Alert>", () => {
+describe("<Alerts>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
+    const { getByText } = render(
+      <Provider store={store}>
+        <Alerts />
+      </Provider>
+    );
+
+    getByText("<Alerts>");
+  });
+
+  test(
+    "initial render (i.e. before/without any user interaction)" +
+      " - illustration of how to assert that" +
+      " a function (or other block of code) will throw an error",
+    () => {
+      const { getByText } = render(
+        <Provider store={store}>
+          <Alerts />
+        </Provider>
+      );
+
+      /*
+      The official Jest documentation makes the following closely-related statements:
+        (
+          https://jestjs.io/docs/using-matchers
+          >>
+          Note:
+          the function that throws an exception
+          needs to be invoked within a wrapping function[;]
+          otherwise[,] the `toThrow` assertion will fail.
+        )
+      and
+        (
+          https://jestjs.io/docs/expect
+          >>
+          You must wrap the code in a function,
+          otherwise the error will not be caught and the assertion will fail.
+        )
+      
+      Both of the above statements can be condensed into the following single one:
+          If you want to write a test which asserts that
+          a function (or other block of code) will throw an error,
+          then:
+          (a) the function (or block of code) must be invoked
+              within a "wrapping function", and
+          (b) that "wrapping function" must be passed into Jest's `expect` function.
+
+          Otherwise, the `toThrow` matcher will not catch the error,
+          which gets thrown by the input of `expect`,
+          _and_ that uncaught error will cause the encompassing test-case to fail.
+      */
+
+      // expect(getByText(/some non-existent alert text/)).toThrow(); // This won't work.
+
+      expect(() => getByText(/some non-existent alert text/)).toThrow(); // This works.
+    }
+  );
+});
+
+describe("<Alert>", () => {
+  xtest("initial render (i.e. before/without any user interaction)", () => {
     const { getByText, getByRole } = render(
       <Provider store={store}>
         <Alert id="id-17" message="Reporting an encountered error, within the UI" />
@@ -327,6 +387,28 @@ describe("<Alert>", () => {
     getByText(/Reporting an encountered error, within the UI/);
 
     getByRole("button");
+  });
+
+  xtest("the user clicks on the 'X' button", () => {
+    const { getByRole, getByText } = render(
+      <Provider store={store}>
+        <Alert id="id-17" message="Reporting an encountered error, within the UI" />
+      </Provider>
+    );
+
+    const button = getByRole("button");
+    fireEvent.click(button);
+
+    const temp = getByText(/Reporting an encountered error, within the UI/);
+
+    waitFor(() => {
+      // expect.assertions(1);
+      expect(() => {
+        console.log("wooo");
+        const u = getByText(/Reporting an encountered error, within the UI/);
+        console.log(u.outerHTML);
+      }).toThrow();
+    });
   });
 });
 
