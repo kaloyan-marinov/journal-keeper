@@ -14,6 +14,8 @@ import { store } from "./App";
 
 import { alertCreate, alertRemove } from "./App";
 
+import { createStore } from "redux";
+
 describe("action creators", () => {
   test("createUserPending", () => {
     const action = createUserPending();
@@ -373,6 +375,46 @@ describe("<Alerts>", () => {
       expect(() => getByText(/some non-existent alert text/)).toThrow(); // This works.
     }
   );
+
+  test(
+    "the user clicks on the 'X' button," +
+      " which is associated with a particular alert message",
+    () => {
+      const initialStateWithAlerts = {
+        alerts: {
+          ids: ["a-id-0", "a-id-1"],
+          entities: {
+            "a-id-0": {
+              id: "a-id-0",
+              message: "Alert Message #0",
+            },
+            "a-id-1": {
+              id: "a-id-1",
+              message: "Alert Message #1",
+            },
+          },
+        },
+        auth: {
+          requestStatus: "n/a",
+          requestError: "n/a",
+        },
+      };
+      const storeWithAlerts = createStore(rootReducer, initialStateWithAlerts);
+      const { getAllByRole, getByText } = render(
+        <Provider store={storeWithAlerts}>
+          <Alerts />
+        </Provider>
+      );
+
+      const buttons = getAllByRole("button");
+      fireEvent.click(buttons[0]);
+
+      expect(() => {
+        getByText(/Alert Message #0/);
+      }).toThrow();
+      getByText(/Alert Message #1/);
+    }
+  );
 });
 
 describe("<Alert>", () => {
@@ -387,28 +429,6 @@ describe("<Alert>", () => {
     getByText(/Reporting an encountered error, within the UI/);
 
     getByRole("button");
-  });
-
-  xtest("the user clicks on the 'X' button", () => {
-    const { getByRole, getByText } = render(
-      <Provider store={store}>
-        <Alert id="id-17" message="Reporting an encountered error, within the UI" />
-      </Provider>
-    );
-
-    const button = getByRole("button");
-    fireEvent.click(button);
-
-    const temp = getByText(/Reporting an encountered error, within the UI/);
-
-    waitFor(() => {
-      // expect.assertions(1);
-      expect(() => {
-        console.log("wooo");
-        const u = getByText(/Reporting an encountered error, within the UI/);
-        console.log(u.outerHTML);
-      }).toThrow();
-    });
   });
 });
 
