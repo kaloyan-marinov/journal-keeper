@@ -370,9 +370,9 @@ describe("<Alerts>", () => {
           _and_ that uncaught error will cause the encompassing test-case to fail.
       */
 
-      // expect(getByText(/some non-existent alert text/)).toThrow(); // This won't work.
+      // expect(getByText("some non-existent alert text")).toThrow(); // This won't work.
 
-      expect(() => getByText(/some non-existent alert text/)).toThrow(); // This works.
+      expect(() => getByText("some non-existent alert text")).toThrow(); // This works.
     }
   );
 
@@ -410,26 +410,13 @@ describe("<Alerts>", () => {
       fireEvent.click(buttons[0]);
 
       expect(() => {
+        // Use a regex to match a substring:
         getByText(/Alert Message #0/);
       }).toThrow();
+      // Again, use a regex to match a substring:
       getByText(/Alert Message #1/);
     }
   );
-});
-
-describe("<Alert>", () => {
-  xtest("initial render (i.e. before/without any user interaction)", () => {
-    const { getByText, getByRole } = render(
-      <Provider store={store}>
-        <Alert id="id-17" message="Reporting an encountered error, within the UI" />
-      </Provider>
-    );
-
-    // Use a regex to match a substring:
-    getByText(/Reporting an encountered error, within the UI/);
-
-    getByRole("button");
-  });
 });
 
 describe("<SignUp>", () => {
