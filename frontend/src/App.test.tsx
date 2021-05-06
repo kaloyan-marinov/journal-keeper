@@ -469,6 +469,36 @@ describe("<SignUp>", () => {
   });
 });
 
+describe("<Alerts> + <SignUp>", () => {
+  test("the user fills out the form in an invalid way and submits it", () => {
+    const { getByPlaceholderText, getByRole, getByText } = render(
+      <Provider store={store}>
+        <Alerts />
+        <SignUp />
+      </Provider>
+    );
+
+    const usernameInput = getByPlaceholderText("Choose a username...");
+    const nameInput = getByPlaceholderText("Enter your name...");
+    const emailInput = getByPlaceholderText("Enter your email address...");
+    const passwordInput = getByPlaceholderText("Choose a password...");
+    const repeatPasswordInput = getByPlaceholderText("Repeat the chosen password...");
+
+    fireEvent.change(usernameInput, { target: { value: "[f-e] jd" } });
+    fireEvent.change(nameInput, { target: { value: "[f-e] John Doe" } });
+    fireEvent.change(emailInput, {
+      target: { value: "[f-e] john.doe@protonmail.com" },
+    });
+    fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
+    fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 456" } });
+
+    const button = getByRole("button");
+    fireEvent.click(button);
+
+    getByText(/THE PROVIDED PASSWORDS DON'T MATCH/);
+  });
+});
+
 describe("<SignIn>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
     const { getByText, getAllByRole, getByPlaceholderText } = render(<SignIn />);

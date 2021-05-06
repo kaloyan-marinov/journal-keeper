@@ -45,7 +45,7 @@ export const initialState: IState = {
   },
 };
 
-/* Action creators */
+/* "auth/createUser/" action creators */
 enum CreateUserActionTypes {
   PENDING = "auth/createUser/pending",
   REJECTED = "auth/createUser/rejected",
@@ -83,6 +83,7 @@ type CreateUserAction =
   | ICreateUserRejectedAction
   | ICreateUserFulfilledAction;
 
+/* "alerts/" action creators */
 enum AlertActionTypes {
   CREATE = "alerts/create",
   REMOVE = "alerts/remove",
@@ -257,7 +258,6 @@ export const Alerts = () => {
       ) : (
         alerts.ids.map((id: string) => (
           <div key={id} style={{ color: "red" }}>
-            {"\u00A0\u00A0\u00A0\u00A0<Alert>"}
             <button
               onClick={(e: React.MouseEvent<HTMLButtonElement>) => onClick(id, e)}
             >
@@ -301,7 +301,6 @@ export const SignUp = () => {
       const id: string = uuidv4();
       const message: string = "THE PROVIDED PASSWORDS DON'T MATCH!";
       dispatch(alertCreate(id, message));
-      console.log("invalid situation - `repeatPassword` doesn't match `password`");
     } else {
       dispatch(createUserPending());
       // Note to self:
