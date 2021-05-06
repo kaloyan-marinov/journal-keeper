@@ -6,6 +6,10 @@ import { composeWithDevTools } from "redux-devtools-extension";
 import { v4 as uuidv4 } from "uuid";
 import { Dispatch } from "redux";
 
+import { applyMiddleware } from "redux";
+import thunkMiddleware from "redux-thunk";
+import axios from "axios";
+
 /* Specify an initial value for the Redux state. */
 enum RequestStatus {
   IDLE = "idle",
@@ -82,6 +86,39 @@ type CreateUserAction =
   | ICreateUserPendingAction
   | ICreateUserRejectedAction
   | ICreateUserFulfilledAction;
+
+/* "auth/createUser" thunk-action creator */
+export const createUser = (
+  username: string,
+  name: string,
+  email: string,
+  password: string
+) => async (dispatch: Dispatch<CreateUserAction>) => {
+  const config = {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
+
+  const body = JSON.stringify({
+    username,
+    name,
+    email,
+    password,
+  });
+
+  dispatch(createUserPending());
+  try {
+    const response = await axios.post("/api/users", body, config);
+    dispatch(createUserFulfilled());
+    return Promise.resolve();
+  } catch (err) {
+    const responseBody = err.response.data;
+    const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
+    dispatch(createUserRejected(responseBodyError));
+    return Promise.reject(responseBodyError);
+  }
+};
 
 /* "alerts/" action creators */
 enum AlertActionTypes {
@@ -200,7 +237,11 @@ export const rootReducer = (
   }
 };
 
-const composedEnhancer = composeWithDevTools();
+const composedEnhancer = composeWithDevTools(
+  /* Add all middleware functions, which you actually want to use, here: */
+  applyMiddleware(thunkMiddleware)
+  /* Add other store enhancers if any */
+);
 export const store = createStore(rootReducer, composedEnhancer);
 
 /* Create React components. */
@@ -277,7 +318,7 @@ export const SignUp = () => {
   );
 
   const dispatch: Dispatch<
-    IAlertCreateAction | ICreateUserPendingAction
+    IAlertCreateAction | ICreateUserPendingAction | any
   > = useDispatch();
 
   const [formData, setFormData] = React.useState({
@@ -294,19 +335,32 @@ export const SignUp = () => {
     });
   };
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    const id: string = uuidv4();
     if (formData.password !== formData.repeatPassword) {
-      const id: string = uuidv4();
       const message: string = "THE PROVIDED PASSWORDS DON'T MATCH!";
       dispatch(alertCreate(id, message));
     } else {
-      dispatch(createUserPending());
       // Note to self:
       // doing anything beyond simple `console.log` calls in this `else` clause
       // should be postponed until
       // after the logic within the `if` clause has been _properly_ implemented.
+      try {
+        await dispatch(
+          createUser(
+            formData.username,
+            formData.name,
+            formData.email,
+            formData.password
+          )
+        );
+
+        dispatch(alertCreate(id, "REGISTRATION SUCCESSFUL"));
+      } catch (actionError) {
+        dispatch(alertCreate(id, actionError));
+      }
     }
   };
 
