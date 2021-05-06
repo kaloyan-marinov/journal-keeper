@@ -466,7 +466,7 @@ if (process.env.NODE_ENV !== "test") {
         `Establishing a connection (named "${connection.name}") to the DB - successful.`
       );
 
-      const PORT: number = 3000;
+      const PORT: number = 5000;
       const server = app.listen(PORT, () => {
         console.log(`Server listening on port ${PORT}...`);
       });
