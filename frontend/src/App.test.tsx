@@ -1,4 +1,4 @@
-import { render, fireEvent, waitFor } from "@testing-library/react";
+import { render, fireEvent } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 
 import {
@@ -15,6 +15,14 @@ import { store } from "./App";
 import { alertCreate, alertRemove } from "./App";
 
 import { createStore } from "redux";
+
+import { rest } from "msw";
+import { setupServer } from "msw/node";
+
+import configureMockStore, { MockStoreEnhanced } from "redux-mock-store";
+import thunkMiddleware from "redux-thunk";
+import { initialState } from "./App";
+import { createUser } from "./App";
 
 describe("action creators", () => {
   test("createUserPending", () => {
@@ -299,6 +307,121 @@ describe("reducers", () => {
     }
   );
 });
+
+/* Describe what requests should be mocked. */
+const requestHandlersToMock = [
+  rest.post("/api/users", (req, res, ctx) => {
+    return res(
+      ctx.status(201),
+      ctx.json({
+        id: 17,
+        username: "mocked-request-jd",
+      })
+    );
+  }),
+];
+
+/* Create an MSW "request-interception layer". */
+const quasiServer = setupServer(...requestHandlersToMock);
+
+const createStoreMock = configureMockStore([thunkMiddleware]);
+
+describe(
+  "dispatching of async thunk-actions," +
+    " with each test case focusing on the action-related logic only" +
+    " (and thus completely disregarding the reducer-related logic) ",
+  () => {
+    let initSt;
+    let storeMock: MockStoreEnhanced<unknown, {}>;
+
+    beforeAll(() => {
+      // Establish the created request-interception layer
+      // (= Enable API mocking).
+      quasiServer.listen();
+    });
+
+    beforeEach(() => {
+      initSt = initialState;
+      storeMock = createStoreMock(initialState);
+    });
+
+    afterEach(() => {
+      // Remove any request handlers that may have been added at runtime
+      // (by individual tests after the initial `setupServer` call).
+      quasiServer.resetHandlers();
+    });
+
+    afterAll(() => {
+      // Prevent the established request-interception layer
+      // from affecting irrelevant tests
+      // by tearing down that layer
+      // (= by stopping request interception)
+      // (= disabling API mocking).
+      quasiServer.close();
+    });
+
+    test(
+      "createUser(username, ...)" +
+        " + the HTTP request issued by that thunk-action is mocked to fail",
+      async () => {
+        // Prepend a request handler to the request-interception layer.
+        quasiServer.use(
+          rest.post("/api/users", (req, res, ctx) => {
+            return res(
+              ctx.status(400),
+              ctx.json({
+                error: "[mocked-response] Failed to create a new User resource",
+              })
+            );
+          })
+        );
+
+        const createUserPromise = storeMock.dispatch(
+          createUser(
+            "mocked-request-username",
+            "mocked-request-name",
+            "mocked-request-email@protonmail.com",
+            "mocked-request-password"
+          )
+        );
+
+        await expect(createUserPromise).rejects.toEqual(
+          "[mocked-response] Failed to create a new User resource"
+        );
+        expect(storeMock.getActions()).toEqual([
+          {
+            type: "auth/createUser/pending",
+          },
+          {
+            type: "auth/createUser/rejected",
+            error: "[mocked-response] Failed to create a new User resource",
+          },
+        ]);
+      }
+    );
+
+    test(
+      "createUser(username, ...)" +
+        " + the HTTP request issued by that thunk-action is mocked to succeed",
+      async () => {
+        const createUserPromise = storeMock.dispatch(
+          createUser(
+            "mocked-request-username",
+            "mocked-request-name",
+            "mocked-request-email@protonmail.com",
+            "mocked-request-password"
+          )
+        );
+
+        await expect(createUserPromise).resolves.toEqual(undefined);
+        expect(storeMock.getActions()).toEqual([
+          { type: "auth/createUser/pending" },
+          { type: "auth/createUser/fulfilled" },
+        ]);
+      }
+    );
+  }
+);
 
 describe("<App>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
