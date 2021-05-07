@@ -723,6 +723,49 @@ describe(
         });
       }
     );
+
+    test(
+      "the user fills out the form and submits it," +
+        " and the backend is _mocked_ to respond that" +
+        " the form submission was accepted as valid and processed",
+      async () => {
+        // Arrange.
+        const enhancer = applyMiddleware(thunkMiddleware);
+        const realStore = createStore(rootReducer, enhancer);
+
+        const { getByPlaceholderText, getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Alerts />
+            <SignUp />
+          </Provider>
+        );
+
+        // Act.
+        const usernameInput = getByPlaceholderText("Choose a username...");
+        const nameInput = getByPlaceholderText("Enter your name...");
+        const emailInput = getByPlaceholderText("Enter your email address...");
+        const passwordInput = getByPlaceholderText("Choose a password...");
+        const repeatPasswordInput = getByPlaceholderText(
+          "Repeat the chosen password..."
+        );
+
+        fireEvent.change(usernameInput, { target: { value: "[f-e] jd" } });
+        fireEvent.change(nameInput, { target: { value: "[f-e] John Doe" } });
+        fireEvent.change(emailInput, {
+          target: { value: "[f-e] john.doe@protonmail.com" },
+        });
+        fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
+        fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 123" } });
+
+        const button = getByRole("button");
+        fireEvent.click(button);
+
+        // Assert.
+        await waitFor(() => {
+          getByText("REGISTRATION SUCCESSFUL");
+        });
+      }
+    );
   }
 );
 
