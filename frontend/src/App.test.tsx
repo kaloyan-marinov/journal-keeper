@@ -26,6 +26,12 @@ import { createUser } from "./App";
 
 import { applyMiddleware } from "redux";
 
+import {
+  issueJWSTokenPending,
+  issueJWSTokenRejected,
+  issueJWSTokenFulfilled,
+} from "./App";
+
 describe("action creators", () => {
   test("createUserPending", () => {
     const action = createUserPending();
@@ -74,6 +80,34 @@ describe("action creators", () => {
       },
     });
   });
+
+  test("issueJWSTokenPending", () => {
+    const action = issueJWSTokenPending();
+
+    expect(action).toEqual({
+      type: "auth/issueJWSToken/pending",
+    });
+  });
+
+  test("issueJWSTokenRejected", () => {
+    const action = issueJWSTokenRejected("auth-issueJWSToken-rejected");
+
+    expect(action).toEqual({
+      type: "auth/issueJWSToken/rejected",
+      error: "auth-issueJWSToken-rejected",
+    });
+  });
+
+  test("issueJWSTokenFulfilled", () => {
+    const action = issueJWSTokenFulfilled("a-jws-token-issued-by-the-backend");
+
+    expect(action).toEqual({
+      type: "auth/issueJWSToken/fulfilled",
+      payload: {
+        token: "a-jws-token-issued-by-the-backend",
+      },
+    });
+  });
 });
 
 describe("reducers", () => {
@@ -82,16 +116,6 @@ describe("reducers", () => {
       " update state.auth.requestStatus" +
       " to 'loading'",
     () => {
-      const initialState = {
-        alerts: {
-          entities: {},
-          ids: [],
-        },
-        auth: {
-          requestStatus: "idle",
-          requestError: null,
-        },
-      };
       const action = {
         type: "auth/createUser/pending",
       };
@@ -106,6 +130,7 @@ describe("reducers", () => {
         auth: {
           requestStatus: "loading",
           requestError: null,
+          token: null,
         },
       });
     }
@@ -115,16 +140,6 @@ describe("reducers", () => {
     "auth/createUser/rejected should update" +
       " both state.auth.requestStatus and state.auth.requestError",
     () => {
-      const initialState = {
-        alerts: {
-          entities: {},
-          ids: [],
-        },
-        auth: {
-          requestStatus: "pending",
-          requestError: null,
-        },
-      };
       const action = {
         type: "auth/createUser/rejected",
         error: "auth-createUser-rejected",
@@ -140,6 +155,7 @@ describe("reducers", () => {
         auth: {
           requestStatus: "failed",
           requestError: "auth-createUser-rejected",
+          token: null,
         },
       });
     }
@@ -150,12 +166,10 @@ describe("reducers", () => {
       " update state.auth.requestStatus to 'succeeded'" +
       " and clear state.auth.requestError",
     () => {
-      const initialState = {
-        alerts: {
-          entities: {},
-          ids: [],
-        },
+      const initState = {
+        ...initialState,
         auth: {
+          ...initialState.auth,
           requestStatus: "pending",
           requestError: "auth-createUser-rejected",
         },
@@ -164,7 +178,7 @@ describe("reducers", () => {
         type: "auth/createUser/fulfilled",
       };
 
-      const newState = rootReducer(initialState, action);
+      const newState = rootReducer(initState, action);
 
       expect(newState).toEqual({
         alerts: {
@@ -174,6 +188,7 @@ describe("reducers", () => {
         auth: {
           requestStatus: "succeeded",
           requestError: null,
+          token: null,
         },
       });
     }
@@ -281,10 +296,97 @@ describe("reducers", () => {
   );
 
   test(
+    "auth/issueJWSToken/pending should" +
+      " update state.auth.requestStatus" +
+      " to 'loading'",
+    () => {
+      const action = {
+        type: "auth/issueJWSToken/pending",
+      };
+
+      const newState = rootReducer(initialState, action);
+
+      expect(newState).toEqual({
+        alerts: {
+          entities: {},
+          ids: [],
+        },
+        auth: {
+          requestStatus: "loading",
+          requestError: null,
+          token: null,
+        },
+      });
+    }
+  );
+
+  test(
+    "auth/issueJWSToken/rejected should update" +
+      " both state.auth.requestStatus and state.auth.requestError",
+    () => {
+      const action = {
+        type: "auth/issueJWSToken/rejected",
+        error: "auth-issueJWSToken-rejected",
+      };
+
+      const newState = rootReducer(initialState, action);
+
+      expect(newState).toEqual({
+        alerts: {
+          entities: {},
+          ids: [],
+        },
+        auth: {
+          requestStatus: "failed",
+          requestError: "auth-issueJWSToken-rejected",
+          token: null,
+        },
+      });
+    }
+  );
+
+  test(
+    "auth/issueJWSToken/fulfilled should" +
+      " update state.auth.requestStatus to 'succeeded'," +
+      " clear state.auth.requestError," +
+      " and set state.auth.token",
+    () => {
+      const initState = {
+        ...initialState,
+        auth: {
+          ...initialState.auth,
+          requestStatus: "pending",
+          requestError: "auth-issueJWSToken-rejected",
+        },
+      };
+      const action = {
+        type: "auth/issueJWSToken/fulfilled",
+        payload: {
+          token: "a-jws-token-issued-by-the-backend",
+        },
+      };
+
+      const newState = rootReducer(initState, action);
+
+      expect(newState).toEqual({
+        alerts: {
+          entities: {},
+          ids: [],
+        },
+        auth: {
+          requestStatus: "succeeded",
+          requestError: null,
+          token: "a-jws-token-issued-by-the-backend",
+        },
+      });
+    }
+  );
+
+  test(
     "an action, which the rootReducer doesn't specifically handle," +
       " should not modify the state",
     () => {
-      const initialState = {
+      const initState = {
         alerts: {
           ids: ["id-17"],
           entities: {
@@ -297,15 +399,16 @@ describe("reducers", () => {
         auth: {
           requestStatus: "original-status",
           requestError: "original-error",
+          token: null,
         },
       };
       const action = {
         type: "an action, which the rootReducer doesn't specifically handle",
       };
 
-      const newState = rootReducer(initialState, action);
+      const newState = rootReducer(initState, action);
 
-      expect(newState).toEqual(initialState);
+      expect(newState).toEqual(initState);
     }
   );
 });

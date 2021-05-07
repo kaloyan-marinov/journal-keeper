@@ -30,12 +30,15 @@ interface IStateAlerts {
   };
 }
 
+interface IStateAuth {
+  requestStatus: RequestStatus;
+  requestError: string | null;
+  token: string | null;
+}
+
 interface IState {
   alerts: IStateAlerts;
-  auth: {
-    requestStatus: RequestStatus;
-    requestError: string | null;
-  };
+  auth: IStateAuth;
 }
 
 export const initialState: IState = {
@@ -46,6 +49,7 @@ export const initialState: IState = {
   auth: {
     requestStatus: RequestStatus.IDLE,
     requestError: null,
+    token: null,
   },
 };
 
@@ -158,6 +162,52 @@ export const alertRemove = (id: string): IAlertRemoveAction => ({
 
 type AlertAction = IAlertCreateAction | IAlertRemoveAction;
 
+/* "auth/issueJWSToken/" action creators */
+enum IssueJWSTokenActionTypes {
+  PENDING = "auth/issueJWSToken/pending",
+  REJECTED = "auth/issueJWSToken/rejected",
+  FULFILLED = "auth/issueJWSToken/fulfilled",
+}
+
+interface IIssueJWSTokenPendingAction {
+  type: typeof IssueJWSTokenActionTypes.PENDING;
+}
+
+interface IIssueJWSTokenRejectedAction {
+  type: typeof IssueJWSTokenActionTypes.REJECTED;
+  error: string;
+}
+
+interface IIssueJWSTokenFulfilledAction {
+  type: typeof IssueJWSTokenActionTypes.FULFILLED;
+  payload: {
+    token: string;
+  };
+}
+
+export const issueJWSTokenPending = (): IIssueJWSTokenPendingAction => ({
+  type: IssueJWSTokenActionTypes.PENDING,
+});
+
+export const issueJWSTokenRejected = (error: string): IIssueJWSTokenRejectedAction => ({
+  type: IssueJWSTokenActionTypes.REJECTED,
+  error,
+});
+
+export const issueJWSTokenFulfilled = (
+  token: string
+): IIssueJWSTokenFulfilledAction => ({
+  type: IssueJWSTokenActionTypes.FULFILLED,
+  payload: {
+    token,
+  },
+});
+
+type IssueJWSTokenAction =
+  | IIssueJWSTokenPendingAction
+  | IIssueJWSTokenRejectedAction
+  | IIssueJWSTokenFulfilledAction;
+
 /*
 Define a root reducer function,
 which serves to instantiate a single Redux store.
@@ -167,8 +217,8 @@ global state.)
 */
 export const rootReducer = (
   state: IState = initialState,
-  action: CreateUserAction | AlertAction
-) => {
+  action: CreateUserAction | AlertAction | IssueJWSTokenAction
+): IState => {
   switch (action.type) {
     case CreateUserActionTypes.PENDING:
       return {
@@ -230,6 +280,33 @@ export const rootReducer = (
         alerts: {
           ids: remainingIds,
           entities: remainingEntities,
+        },
+      };
+    case IssueJWSTokenActionTypes.PENDING:
+      return {
+        ...state,
+        auth: {
+          ...state.auth,
+          requestStatus: RequestStatus.LOADING,
+        },
+      };
+    case IssueJWSTokenActionTypes.REJECTED:
+      return {
+        ...state,
+        auth: {
+          ...state.auth,
+          requestStatus: RequestStatus.FAILED,
+          requestError: action.error,
+        },
+      };
+    case IssueJWSTokenActionTypes.FULFILLED:
+      return {
+        ...state,
+        auth: {
+          ...state.auth,
+          requestStatus: RequestStatus.SUCCEEDED,
+          requestError: null,
+          token: action.payload.token,
         },
       };
     default:
