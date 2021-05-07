@@ -1,4 +1,4 @@
-import { render, fireEvent } from "@testing-library/react";
+import { render, fireEvent, waitFor } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 
 import {
@@ -23,6 +23,8 @@ import configureMockStore, { MockStoreEnhanced } from "redux-mock-store";
 import thunkMiddleware from "redux-thunk";
 import { initialState } from "./App";
 import { createUser } from "./App";
+
+import { applyMiddleware } from "redux";
 
 describe("action creators", () => {
   test("createUserPending", () => {
@@ -493,9 +495,12 @@ describe("<Alerts>", () => {
           _and_ that uncaught error will cause the encompassing test-case to fail.
       */
 
-      // expect(getByText("some non-existent alert text")).toThrow(); // This won't work.
-
-      expect(() => getByText("some non-existent alert text")).toThrow(); // This works.
+      /*
+      // This won't work:
+      expect(getByText("some non-existent alert text")).toThrowError();
+      */
+      // This works:
+      expect(() => getByText("some non-existent alert text")).toThrowError();
     }
   );
 
@@ -535,7 +540,7 @@ describe("<Alerts>", () => {
       expect(() => {
         // Use a regex to match a substring:
         getByText(/Alert Message #0/);
-      }).toThrow();
+      }).toThrowError();
       // Again, use a regex to match a substring:
       getByText(/Alert Message #1/);
     }
@@ -592,35 +597,134 @@ describe("<SignUp>", () => {
   });
 });
 
-describe("<Alerts> + <SignUp>", () => {
-  test("the user fills out the form in an invalid way and submits it", () => {
-    const { getByPlaceholderText, getByRole, getByText } = render(
-      <Provider store={store}>
-        <Alerts />
-        <SignUp />
-      </Provider>
-    );
+describe(
+  "<Alerts> + <SignUp>" +
+    " (without the user interaction triggering any network communication)",
+  () => {
+    test("the user fills out the form in an invalid way and submits it", () => {
+      const { getByPlaceholderText, getByRole, getByText } = render(
+        <Provider store={store}>
+          <Alerts />
+          <SignUp />
+        </Provider>
+      );
 
-    const usernameInput = getByPlaceholderText("Choose a username...");
-    const nameInput = getByPlaceholderText("Enter your name...");
-    const emailInput = getByPlaceholderText("Enter your email address...");
-    const passwordInput = getByPlaceholderText("Choose a password...");
-    const repeatPasswordInput = getByPlaceholderText("Repeat the chosen password...");
+      const usernameInput = getByPlaceholderText("Choose a username...");
+      const nameInput = getByPlaceholderText("Enter your name...");
+      const emailInput = getByPlaceholderText("Enter your email address...");
+      const passwordInput = getByPlaceholderText("Choose a password...");
+      const repeatPasswordInput = getByPlaceholderText("Repeat the chosen password...");
 
-    fireEvent.change(usernameInput, { target: { value: "[f-e] jd" } });
-    fireEvent.change(nameInput, { target: { value: "[f-e] John Doe" } });
-    fireEvent.change(emailInput, {
-      target: { value: "[f-e] john.doe@protonmail.com" },
+      fireEvent.change(usernameInput, { target: { value: "[f-e] jd" } });
+      fireEvent.change(nameInput, { target: { value: "[f-e] John Doe" } });
+      fireEvent.change(emailInput, {
+        target: { value: "[f-e] john.doe@protonmail.com" },
+      });
+      fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
+      fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 456" } });
+
+      const button = getByRole("button");
+      fireEvent.click(button);
+
+      getByText(/THE PROVIDED PASSWORDS DON'T MATCH/);
     });
-    fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
-    fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 456" } });
+  }
+);
 
-    const button = getByRole("button");
-    fireEvent.click(button);
+describe(
+  "<Alerts> + <SignUp>" +
+    " (with the user interaction triggering network communication)",
+  () => {
+    beforeAll(() => {
+      // Enable API mocking.
+      quasiServer.listen();
+    });
 
-    getByText(/THE PROVIDED PASSWORDS DON'T MATCH/);
-  });
-});
+    beforeEach(() => {
+      quasiServer.resetHandlers();
+    });
+
+    afterAll(() => {
+      // Disable API mocking.
+      quasiServer.close();
+    });
+
+    test(
+      "the user fills out the form and submits it," +
+        " but the backend is _mocked_ to respond that" +
+        " the form was filled out in an invalid way",
+      async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.post("/api/users", (req, res, ctx) => {
+            return res(
+              ctx.status(400),
+              ctx.json({
+                error: "[mocked-response] Failed to create a new User resource",
+              })
+            );
+          })
+        );
+
+        const enhancer = applyMiddleware(thunkMiddleware);
+        const realStore = createStore(rootReducer, enhancer);
+
+        const { getByPlaceholderText, getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Alerts />
+            <SignUp />
+          </Provider>
+        );
+
+        // Act.
+        const usernameInput = getByPlaceholderText("Choose a username...");
+        const nameInput = getByPlaceholderText("Enter your name...");
+        const emailInput = getByPlaceholderText("Enter your email address...");
+        const passwordInput = getByPlaceholderText("Choose a password...");
+        const repeatPasswordInput = getByPlaceholderText(
+          "Repeat the chosen password..."
+        );
+
+        fireEvent.change(usernameInput, { target: { value: "[f-e] jd" } });
+        fireEvent.change(nameInput, { target: { value: "[f-e] John Doe" } });
+        fireEvent.change(emailInput, {
+          target: { value: "[f-e] john.doe@protonmail.com" },
+        });
+        fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
+        fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 123" } });
+
+        const button = getByRole("button");
+        fireEvent.click(button);
+
+        // Assert.
+        /*
+        // This throws, causing the test to FAIL:
+        getByText("This text is not in the DOM so ...");
+        
+        // This causes the test to PASS:
+        expect(() => getByText("This text is not in the DOM so ...")).toThrowError();
+        */
+
+        /*
+        // This causes the test to PASS: 
+        getByText("Create an account for me");
+
+        // This causes the test to FAIL:
+        expect(() => getByText("Create an account for me")).toThrowError();
+        */
+
+        /*
+        // This throws, causing the test to FAIL:
+        getByText("[mocked-response] Failed to create a new User resource");
+        */
+        // This causes the test to PASS:
+        await waitFor(() => {
+          getByText("[mocked-response] Failed to create a new User resource");
+        });
+      }
+    );
+  }
+);
 
 describe("<SignIn>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
