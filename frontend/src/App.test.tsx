@@ -31,6 +31,7 @@ import {
   issueJWSTokenRejected,
   issueJWSTokenFulfilled,
 } from "./App";
+import { issueJWSToken } from "./App";
 
 describe("action creators", () => {
   test("createUserPending", () => {
@@ -424,6 +425,14 @@ const requestHandlersToMock = [
       })
     );
   }),
+  rest.post("/api/tokens", (req, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json({
+        token: "mocked-json-web-signature-token",
+      })
+    );
+  }),
 ];
 
 /* Create an MSW "request-interception layer". */
@@ -522,6 +531,64 @@ describe(
         expect(storeMock.getActions()).toEqual([
           { type: "auth/createUser/pending" },
           { type: "auth/createUser/fulfilled" },
+        ]);
+      }
+    );
+
+    test(
+      "issueJWSToken(email, password)" +
+        " + the HTTP request issued by that thunk-action is mocked to fail",
+      async () => {
+        // Prepend a request handler to the request-interception layer.
+        quasiServer.use(
+          rest.post("/api/tokens", (req, res, ctx) => {
+            return res(
+              ctx.status(401),
+              ctx.json({
+                error: "[mocked-response] Failed to issue a JWS token",
+              })
+            );
+          })
+        );
+
+        const issueJWSTokenPromise = storeMock.dispatch(
+          issueJWSToken("mocked-request-email", "mocked-request-password")
+        );
+
+        await expect(issueJWSTokenPromise).rejects.toEqual(
+          "[mocked-response] Failed to issue a JWS token"
+        );
+        expect(storeMock.getActions()).toEqual([
+          {
+            type: "auth/issueJWSToken/pending",
+          },
+          {
+            type: "auth/issueJWSToken/rejected",
+            error: "[mocked-response] Failed to issue a JWS token",
+          },
+        ]);
+      }
+    );
+
+    test(
+      "issueJWSToken(email, password)" +
+        " + the HTTP request issued by that thunk-action is mocked to succeed",
+      async () => {
+        const issueJWSTokenPromise = storeMock.dispatch(
+          issueJWSToken("mocked-request-email", "mocked-request-password")
+        );
+
+        await expect(issueJWSTokenPromise).resolves.toEqual(undefined);
+        expect(storeMock.getActions()).toEqual([
+          {
+            type: "auth/issueJWSToken/pending",
+          },
+          {
+            type: "auth/issueJWSToken/fulfilled",
+            payload: {
+              token: "mocked-json-web-signature-token",
+            },
+          },
         ]);
       }
     );
@@ -907,6 +974,106 @@ describe("<SignIn>", () => {
     getByDisplayValue("[f-e] 123");
   });
 });
+
+describe(
+  "<Alerts> + <SignIn>" +
+    " (with the user interaction triggering network communication)",
+  () => {
+    beforeAll(() => {
+      // Enable API mocking.
+      quasiServer.listen();
+    });
+
+    beforeEach(() => {
+      quasiServer.resetHandlers();
+    });
+
+    afterAll(() => {
+      // Disable API mocking.
+      quasiServer.close();
+    });
+
+    test(
+      "the user fills out the form and submits it," +
+        " but the backend is _mocked_ to respond that" +
+        " the form was filled out in an invalid way",
+      async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.post("/api/tokens", (req, res, ctx) => {
+            return res(
+              ctx.status(401),
+              ctx.json({
+                error:
+                  "[mocked response] Authenticaiton failed" +
+                  " - incorrect email and/or password",
+              })
+            );
+          })
+        );
+
+        const enhancer = applyMiddleware(thunkMiddleware);
+        const realStore = createStore(rootReducer, enhancer);
+
+        const { getByPlaceholderText, getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Alerts /> <SignIn />
+          </Provider>
+        );
+
+        // Act.
+        const emailInput = getByPlaceholderText("Enter your email...");
+        const passwordInput = getByPlaceholderText("Enter your password...");
+
+        fireEvent.change(emailInput, { target: { value: "[f-e] jd" } });
+        fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
+
+        const button = getByRole("button");
+        fireEvent.click(button);
+
+        // Assert.
+        await waitFor(() => {
+          getByText(
+            "[mocked response] Authenticaiton failed - incorrect email and/or password"
+          );
+        });
+      }
+    );
+
+    test(
+      "the user fills out the form and submits it," +
+        " and the backend is _mocked_ to respond that" +
+        " the form submission was accepted as valid and processed",
+      async () => {
+        // Arrange.
+        const enhancer = applyMiddleware(thunkMiddleware);
+        const realStore = createStore(rootReducer, enhancer);
+
+        const { getByPlaceholderText, getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Alerts />
+            <SignIn />
+          </Provider>
+        );
+
+        // Act.
+        const emailInput = getByPlaceholderText("Enter your email...");
+        const passwordInput = getByPlaceholderText("Enter your password...");
+
+        fireEvent.change(emailInput, { target: { value: "[f-e] jd" } });
+        fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
+
+        const button = getByRole("button");
+        fireEvent.click(button);
+
+        // Assert.
+        await waitFor(() => {
+          getByText("SIGN-IN SUCCESSFUL");
+        });
+      }
+    );
+  }
+);
 
 describe("<MyMonthlyJournal>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
