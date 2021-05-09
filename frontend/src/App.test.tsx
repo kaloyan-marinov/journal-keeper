@@ -874,7 +874,11 @@ describe(
 
 describe("<SignIn>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
-    const { getByText, getAllByRole, getByPlaceholderText } = render(<SignIn />);
+    const { getByText, getAllByRole, getByPlaceholderText } = render(
+      <Provider store={store}>
+        <SignIn />
+      </Provider>
+    );
 
     getByText("Log in to your account!");
 
@@ -887,7 +891,11 @@ describe("<SignIn>", () => {
   });
 
   test("the user fills out the form (without submitting it)", () => {
-    const { getByPlaceholderText, getByDisplayValue } = render(<SignIn />);
+    const { getByPlaceholderText, getByDisplayValue } = render(
+      <Provider store={store}>
+        <SignIn />
+      </Provider>
+    );
 
     const emailInput = getByPlaceholderText("Enter your email...");
     const passwordInput = getByPlaceholderText("Enter your password...");

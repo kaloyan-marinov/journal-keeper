@@ -41,6 +41,8 @@ interface IState {
   auth: IStateAuth;
 }
 
+const JOURNAL_APP_TOKEN = "token-4-journal-app";
+
 export const initialState: IState = {
   alerts: {
     ids: [],
@@ -49,7 +51,7 @@ export const initialState: IState = {
   auth: {
     requestStatus: RequestStatus.IDLE,
     requestError: null,
-    token: null,
+    token: localStorage.getItem(JOURNAL_APP_TOKEN),
   },
 };
 
@@ -207,6 +209,36 @@ type IssueJWSTokenAction =
   | IIssueJWSTokenPendingAction
   | IIssueJWSTokenRejectedAction
   | IIssueJWSTokenFulfilledAction;
+
+/* "auth/issueJWSToken" thunk-action creator */
+export const issueJWSToken = (email: string, password: string) => async (
+  dispatch: Dispatch<IssueJWSTokenAction>
+) => {
+  const config = {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    auth: {
+      username: email,
+      password,
+    },
+  };
+
+  const body = {};
+
+  dispatch(issueJWSTokenPending());
+  try {
+    const response = await axios.post("/api/tokens", body, config);
+    localStorage.setItem(JOURNAL_APP_TOKEN, response.data.token);
+    dispatch(issueJWSTokenFulfilled(response.data.token));
+    return Promise.resolve();
+  } catch (err) {
+    const responseBody = err.response.data;
+    const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
+    dispatch(issueJWSTokenRejected(responseBodyError));
+    return Promise.reject(responseBodyError);
+  }
+};
 
 /*
 Define a root reducer function,
@@ -435,8 +467,8 @@ export const SignUp = () => {
         );
 
         dispatch(alertCreate(id, "REGISTRATION SUCCESSFUL"));
-      } catch (actionError) {
-        dispatch(alertCreate(id, actionError));
+      } catch (thunkActionError) {
+        dispatch(alertCreate(id, thunkActionError));
       }
     }
   };
@@ -505,6 +537,8 @@ export const SignIn = () => {
     `${new Date().toISOString()} - ${__filename} - React is rendering <SignIn>`
   );
 
+  const dispatch = useDispatch();
+
   const [formData, setFormData] = React.useState({
     email: "",
     password: "",
@@ -516,11 +550,26 @@ export const SignIn = () => {
     });
   };
 
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const id: string = uuidv4();
+    try {
+      await dispatch(issueJWSToken(formData.email, formData.password));
+      await dispatch(alertCreate(id, "SIGN-IN SUCCESSFUL"));
+    } catch (thunkActionError) {
+      dispatch(alertCreate(id, thunkActionError));
+    }
+  };
+
   return (
     <React.Fragment>
       {"<SignIn>"}
       <div>Log in to your account!</div>
-      <form name="sign-in-form">
+      <form
+        name="sign-in-form"
+        onSubmit={(e: React.FormEvent<HTMLFormElement>) => onSubmit(e)}
+      >
         <div>
           <input
             type="email"
