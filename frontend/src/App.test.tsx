@@ -199,7 +199,7 @@ describe("reducers", () => {
     "alerts/create should add an alert to" +
       " both state.alerts.ids and state.alerts.entities",
     () => {
-      const initialState = {
+      const initState = {
         alerts: {
           ids: ["id-17"],
           entities: {
@@ -222,7 +222,7 @@ describe("reducers", () => {
         },
       };
 
-      const newState = rootReducer(initialState, action);
+      const newState = rootReducer(initState, action);
 
       expect(newState).toEqual({
         alerts: {
@@ -250,7 +250,7 @@ describe("reducers", () => {
     "alerts/remove should remove an alert from" +
       " both state.alerts.ids and state.alerts.entities",
     () => {
-      const initialState = {
+      const initState = {
         alerts: {
           ids: ["id-17", "id-34"],
           entities: {
@@ -276,7 +276,7 @@ describe("reducers", () => {
         },
       };
 
-      const newState = rootReducer(initialState, action);
+      const newState = rootReducer(initState, action);
 
       expect(newState).toEqual({
         alerts: {
@@ -678,7 +678,7 @@ describe("<Alerts>", () => {
     "the user clicks on the 'X' button," +
       " which is associated with a particular alert message",
     () => {
-      const initialStateWithAlerts = {
+      const initState = {
         alerts: {
           ids: ["a-id-0", "a-id-1"],
           entities: {
@@ -697,7 +697,7 @@ describe("<Alerts>", () => {
           requestError: "n/a",
         },
       };
-      const storeWithAlerts = createStore(rootReducer, initialStateWithAlerts);
+      const storeWithAlerts = createStore(rootReducer, initState);
       const { getAllByRole, getByText } = render(
         <Provider store={storeWithAlerts}>
           <Alerts />
