@@ -126,86 +126,6 @@ describe("reducers", () => {
   });
 
   test(
-    "auth/createUser/pending should" +
-      " update state.auth.requestStatus to 'loading'" +
-      " and clear state.auth.requestError",
-    () => {
-      initState.auth.requestStatus = "failed";
-      initState.auth.requestError =
-        "The previous attempt to create a User resource didn't succeed";
-      const action = {
-        type: "auth/createUser/pending",
-      };
-
-      const newState = rootReducer(initState, action);
-
-      expect(newState).toEqual({
-        alerts: {
-          entities: {},
-          ids: [],
-        },
-        auth: {
-          requestStatus: "loading",
-          requestError: null,
-          token: null,
-        },
-      });
-    }
-  );
-
-  test(
-    "auth/createUser/rejected should update" +
-      " both state.auth.requestStatus and state.auth.requestError",
-    () => {
-      initState.auth.requestStatus = "pending";
-      const action = {
-        type: "auth/createUser/rejected",
-        error: "auth-createUser-rejected",
-      };
-
-      const newState = rootReducer(initState, action);
-
-      expect(newState).toEqual({
-        alerts: {
-          entities: {},
-          ids: [],
-        },
-        auth: {
-          requestStatus: "failed",
-          requestError: "auth-createUser-rejected",
-          token: null,
-        },
-      });
-    }
-  );
-
-  test(
-    "auth/createUser/fulfilled should" +
-      " update state.auth.requestStatus to 'succeeded'" +
-      " and clear state.auth.requestError",
-    () => {
-      initState.auth.requestStatus = "pending";
-      const action = {
-        type: "auth/createUser/fulfilled",
-      };
-
-      const newState = rootReducer(initState, action);
-
-      expect(newState).toEqual({
-        alerts: {
-          entities: {},
-          ids: [],
-        },
-        auth: {
-          requestStatus: "succeeded",
-          requestError: null,
-          token: null,
-        },
-      });
-    }
-  );
-
-  test(
     "alerts/create should add an alert to" +
       " both state.alerts.ids and state.alerts.entities",
     () => {
@@ -287,6 +207,86 @@ describe("reducers", () => {
         },
         auth: {
           requestStatus: "idle",
+          requestError: null,
+          token: null,
+        },
+      });
+    }
+  );
+
+  test(
+    "auth/createUser/pending should" +
+      " update state.auth.requestStatus to 'loading'" +
+      " and clear state.auth.requestError",
+    () => {
+      initState.auth.requestStatus = "failed";
+      initState.auth.requestError =
+        "The previous attempt to create a User resource didn't succeed";
+      const action = {
+        type: "auth/createUser/pending",
+      };
+
+      const newState = rootReducer(initState, action);
+
+      expect(newState).toEqual({
+        alerts: {
+          entities: {},
+          ids: [],
+        },
+        auth: {
+          requestStatus: "loading",
+          requestError: null,
+          token: null,
+        },
+      });
+    }
+  );
+
+  test(
+    "auth/createUser/rejected should update" +
+      " both state.auth.requestStatus and state.auth.requestError",
+    () => {
+      initState.auth.requestStatus = "pending";
+      const action = {
+        type: "auth/createUser/rejected",
+        error: "auth-createUser-rejected",
+      };
+
+      const newState = rootReducer(initState, action);
+
+      expect(newState).toEqual({
+        alerts: {
+          entities: {},
+          ids: [],
+        },
+        auth: {
+          requestStatus: "failed",
+          requestError: "auth-createUser-rejected",
+          token: null,
+        },
+      });
+    }
+  );
+
+  test(
+    "auth/createUser/fulfilled should" +
+      " update state.auth.requestStatus to 'succeeded'" +
+      " and clear state.auth.requestError",
+    () => {
+      initState.auth.requestStatus = "pending";
+      const action = {
+        type: "auth/createUser/fulfilled",
+      };
+
+      const newState = rootReducer(initState, action);
+
+      expect(newState).toEqual({
+        alerts: {
+          entities: {},
+          ids: [],
+        },
+        auth: {
+          requestStatus: "succeeded",
           requestError: null,
           token: null,
         },
