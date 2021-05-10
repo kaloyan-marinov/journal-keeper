@@ -12,7 +12,7 @@ import App, { Alerts, SignUp, SignIn, MyMonthlyJournal } from "./App";
 import { Provider } from "react-redux";
 import { store } from "./App";
 
-import { alertCreate, alertRemove } from "./App";
+import { alertsCreate, alertsRemove } from "./App";
 
 import { createStore } from "redux";
 
@@ -59,8 +59,8 @@ describe("action creators", () => {
     });
   });
 
-  test("alertCreate", () => {
-    const action = alertCreate("id-17", "the-undertaken-action-is-illegitimate");
+  test("alertsCreate", () => {
+    const action = alertsCreate("id-17", "the-undertaken-action-is-illegitimate");
 
     expect(action).toEqual({
       type: "alerts/create",
@@ -71,8 +71,8 @@ describe("action creators", () => {
     });
   });
 
-  test("alertRemove", () => {
-    const action = alertRemove("id-17");
+  test("alertsRemove", () => {
+    const action = alertsRemove("id-17");
 
     expect(action).toEqual({
       type: "alerts/remove",

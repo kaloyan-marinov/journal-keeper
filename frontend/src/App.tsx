@@ -56,42 +56,42 @@ export const initialState: IState = {
 };
 
 /* "auth/createUser/" action creators */
-enum CreateUserActionTypes {
+enum ActionTypesCreateUser {
   PENDING = "auth/createUser/pending",
   REJECTED = "auth/createUser/rejected",
   FULFILLED = "auth/createUser/fulfilled",
 }
 
-interface ICreateUserPendingAction {
-  type: typeof CreateUserActionTypes.PENDING;
+interface IActionCreateUserPending {
+  type: typeof ActionTypesCreateUser.PENDING;
 }
 
-interface ICreateUserRejectedAction {
-  type: typeof CreateUserActionTypes.REJECTED;
+interface IActionCreateUserRejected {
+  type: typeof ActionTypesCreateUser.REJECTED;
   error: string;
 }
 
-interface ICreateUserFulfilledAction {
-  type: typeof CreateUserActionTypes.FULFILLED;
+interface IActionCreateUserFulfilled {
+  type: typeof ActionTypesCreateUser.FULFILLED;
 }
 
-export const createUserPending = (): ICreateUserPendingAction => ({
-  type: CreateUserActionTypes.PENDING,
+export const createUserPending = (): IActionCreateUserPending => ({
+  type: ActionTypesCreateUser.PENDING,
 });
 
-export const createUserRejected = (error: string): ICreateUserRejectedAction => ({
-  type: CreateUserActionTypes.REJECTED,
+export const createUserRejected = (error: string): IActionCreateUserRejected => ({
+  type: ActionTypesCreateUser.REJECTED,
   error,
 });
 
-export const createUserFulfilled = (): ICreateUserFulfilledAction => ({
-  type: CreateUserActionTypes.FULFILLED,
+export const createUserFulfilled = (): IActionCreateUserFulfilled => ({
+  type: ActionTypesCreateUser.FULFILLED,
 });
 
-type CreateUserAction =
-  | ICreateUserPendingAction
-  | ICreateUserRejectedAction
-  | ICreateUserFulfilledAction;
+type ActionCreateUser =
+  | IActionCreateUserPending
+  | IActionCreateUserRejected
+  | IActionCreateUserFulfilled;
 
 /* "auth/createUser" thunk-action creator */
 export const createUser = (
@@ -99,7 +99,7 @@ export const createUser = (
   name: string,
   email: string,
   password: string
-) => async (dispatch: Dispatch<CreateUserAction>) => {
+) => async (dispatch: Dispatch<ActionCreateUser>) => {
   const config = {
     headers: {
       "Content-Type": "application/json",
@@ -127,92 +127,92 @@ export const createUser = (
 };
 
 /* "alerts/" action creators */
-enum AlertActionTypes {
+enum ActionTypesAlerts {
   CREATE = "alerts/create",
   REMOVE = "alerts/remove",
 }
 
-interface IAlertCreateAction {
-  type: typeof AlertActionTypes.CREATE;
+interface IActionAlertsCreate {
+  type: typeof ActionTypesAlerts.CREATE;
   payload: {
     id: string;
     message: string;
   };
 }
 
-interface IAlertRemoveAction {
-  type: typeof AlertActionTypes.REMOVE;
+interface IActionAlertsRemove {
+  type: typeof ActionTypesAlerts.REMOVE;
   payload: {
     id: string;
   };
 }
 
-export const alertCreate = (id: string, message: string): IAlertCreateAction => ({
-  type: AlertActionTypes.CREATE,
+export const alertsCreate = (id: string, message: string): IActionAlertsCreate => ({
+  type: ActionTypesAlerts.CREATE,
   payload: {
     id,
     message,
   },
 });
 
-export const alertRemove = (id: string): IAlertRemoveAction => ({
-  type: AlertActionTypes.REMOVE,
+export const alertsRemove = (id: string): IActionAlertsRemove => ({
+  type: ActionTypesAlerts.REMOVE,
   payload: {
     id,
   },
 });
 
-type AlertAction = IAlertCreateAction | IAlertRemoveAction;
+type ActionAlerts = IActionAlertsCreate | IActionAlertsRemove;
 
 /* "auth/issueJWSToken/" action creators */
-enum IssueJWSTokenActionTypes {
+enum ActionTypesIssueJWSToken {
   PENDING = "auth/issueJWSToken/pending",
   REJECTED = "auth/issueJWSToken/rejected",
   FULFILLED = "auth/issueJWSToken/fulfilled",
 }
 
-interface IIssueJWSTokenPendingAction {
-  type: typeof IssueJWSTokenActionTypes.PENDING;
+interface IActionIssueJWSTokenPending {
+  type: typeof ActionTypesIssueJWSToken.PENDING;
 }
 
-interface IIssueJWSTokenRejectedAction {
-  type: typeof IssueJWSTokenActionTypes.REJECTED;
+interface IActionIssueJWSTokenRejected {
+  type: typeof ActionTypesIssueJWSToken.REJECTED;
   error: string;
 }
 
-interface IIssueJWSTokenFulfilledAction {
-  type: typeof IssueJWSTokenActionTypes.FULFILLED;
+interface IActionIssueJWSTokenFulfilled {
+  type: typeof ActionTypesIssueJWSToken.FULFILLED;
   payload: {
     token: string;
   };
 }
 
-export const issueJWSTokenPending = (): IIssueJWSTokenPendingAction => ({
-  type: IssueJWSTokenActionTypes.PENDING,
+export const issueJWSTokenPending = (): IActionIssueJWSTokenPending => ({
+  type: ActionTypesIssueJWSToken.PENDING,
 });
 
-export const issueJWSTokenRejected = (error: string): IIssueJWSTokenRejectedAction => ({
-  type: IssueJWSTokenActionTypes.REJECTED,
+export const issueJWSTokenRejected = (error: string): IActionIssueJWSTokenRejected => ({
+  type: ActionTypesIssueJWSToken.REJECTED,
   error,
 });
 
 export const issueJWSTokenFulfilled = (
   token: string
-): IIssueJWSTokenFulfilledAction => ({
-  type: IssueJWSTokenActionTypes.FULFILLED,
+): IActionIssueJWSTokenFulfilled => ({
+  type: ActionTypesIssueJWSToken.FULFILLED,
   payload: {
     token,
   },
 });
 
-type IssueJWSTokenAction =
-  | IIssueJWSTokenPendingAction
-  | IIssueJWSTokenRejectedAction
-  | IIssueJWSTokenFulfilledAction;
+type ActionIssueJWSToken =
+  | IActionIssueJWSTokenPending
+  | IActionIssueJWSTokenRejected
+  | IActionIssueJWSTokenFulfilled;
 
 /* "auth/issueJWSToken" thunk-action creator */
 export const issueJWSToken = (email: string, password: string) => async (
-  dispatch: Dispatch<IssueJWSTokenAction>
+  dispatch: Dispatch<ActionIssueJWSToken>
 ) => {
   const config = {
     headers: {
@@ -249,10 +249,10 @@ global state.)
 */
 export const rootReducer = (
   state: IState = initialState,
-  action: CreateUserAction | AlertAction | IssueJWSTokenAction
+  action: ActionCreateUser | ActionAlerts | ActionIssueJWSToken
 ): IState => {
   switch (action.type) {
-    case CreateUserActionTypes.PENDING:
+    case ActionTypesCreateUser.PENDING:
       return {
         ...state,
         auth: {
@@ -260,7 +260,7 @@ export const rootReducer = (
           requestStatus: RequestStatus.LOADING,
         },
       };
-    case CreateUserActionTypes.REJECTED:
+    case ActionTypesCreateUser.REJECTED:
       return {
         ...state,
         auth: {
@@ -269,7 +269,7 @@ export const rootReducer = (
           requestError: action.error,
         },
       };
-    case CreateUserActionTypes.FULFILLED:
+    case ActionTypesCreateUser.FULFILLED:
       return {
         ...state,
         auth: {
@@ -278,7 +278,7 @@ export const rootReducer = (
           requestError: null,
         },
       };
-    case AlertActionTypes.CREATE:
+    case ActionTypesAlerts.CREATE:
       const id: string = action.payload.id;
       const message: string = action.payload.message;
 
@@ -297,7 +297,7 @@ export const rootReducer = (
           entities: newEntities,
         },
       };
-    case AlertActionTypes.REMOVE:
+    case ActionTypesAlerts.REMOVE:
       const idOfDeletedAlert: string = action.payload.id;
 
       const remainingIds: string[] = state.alerts.ids.filter(
@@ -314,7 +314,7 @@ export const rootReducer = (
           entities: remainingEntities,
         },
       };
-    case IssueJWSTokenActionTypes.PENDING:
+    case ActionTypesIssueJWSToken.PENDING:
       return {
         ...state,
         auth: {
@@ -322,7 +322,7 @@ export const rootReducer = (
           requestStatus: RequestStatus.LOADING,
         },
       };
-    case IssueJWSTokenActionTypes.REJECTED:
+    case ActionTypesIssueJWSToken.REJECTED:
       return {
         ...state,
         auth: {
@@ -331,7 +331,7 @@ export const rootReducer = (
           requestError: action.error,
         },
       };
-    case IssueJWSTokenActionTypes.FULFILLED:
+    case ActionTypesIssueJWSToken.FULFILLED:
       return {
         ...state,
         auth: {
@@ -396,7 +396,7 @@ export const Alerts = () => {
   const alerts: IStateAlerts = useSelector((state: IState) => state.alerts);
 
   const onClick = (id: string, e: React.MouseEvent<HTMLButtonElement>) => {
-    dispatch(alertRemove(id));
+    dispatch(alertsRemove(id));
   };
 
   return (
@@ -427,7 +427,7 @@ export const SignUp = () => {
   );
 
   const dispatch: Dispatch<
-    IAlertCreateAction | ICreateUserPendingAction | any
+    IActionAlertsCreate | IActionCreateUserPending | any
   > = useDispatch();
 
   const [formData, setFormData] = React.useState({
@@ -450,7 +450,7 @@ export const SignUp = () => {
     const id: string = uuidv4();
     if (formData.password !== formData.repeatPassword) {
       const message: string = "THE PROVIDED PASSWORDS DON'T MATCH!";
-      dispatch(alertCreate(id, message));
+      dispatch(alertsCreate(id, message));
     } else {
       // Note to self:
       // doing anything beyond simple `console.log` calls in this `else` clause
@@ -466,9 +466,9 @@ export const SignUp = () => {
           )
         );
 
-        dispatch(alertCreate(id, "REGISTRATION SUCCESSFUL"));
+        dispatch(alertsCreate(id, "REGISTRATION SUCCESSFUL"));
       } catch (thunkActionError) {
-        dispatch(alertCreate(id, thunkActionError));
+        dispatch(alertsCreate(id, thunkActionError));
       }
     }
   };
@@ -556,13 +556,13 @@ export const SignIn = () => {
     const id: string = uuidv4();
     if (formData.email === "" || formData.password === "") {
       const message: string = "YOU MUST FILL OUT ALL FORM FIELDS";
-      dispatch(alertCreate(id, message));
+      dispatch(alertsCreate(id, message));
     } else {
       try {
         await dispatch(issueJWSToken(formData.email, formData.password));
-        await dispatch(alertCreate(id, "SIGN-IN SUCCESSFUL"));
+        await dispatch(alertsCreate(id, "SIGN-IN SUCCESSFUL"));
       } catch (thunkActionError) {
-        dispatch(alertCreate(id, thunkActionError));
+        dispatch(alertsCreate(id, thunkActionError));
       }
     }
   };
