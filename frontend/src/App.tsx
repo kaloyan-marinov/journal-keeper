@@ -12,14 +12,10 @@ import axios from "axios";
 
 import { combineReducers } from "redux";
 
-/* Specify an initial value for the Redux state. */
-enum RequestStatus {
-  IDLE = "idle",
-  LOADING = "loading",
-  FAILED = "failed",
-  SUCCEEDED = "succeeded",
-}
-
+/*
+Specify all slices of the Redux state,
+along with an initial value for each slice.
+*/
 interface IAlert {
   id: string;
   message: string;
@@ -32,21 +28,23 @@ interface IStateAlerts {
   };
 }
 
+export const initialStateAlerts: IStateAlerts = {
+  ids: [],
+  entities: {},
+};
+
+enum RequestStatus {
+  IDLE = "idle",
+  LOADING = "loading",
+  FAILED = "failed",
+  SUCCEEDED = "succeeded",
+}
+
 interface IStateAuth {
   requestStatus: RequestStatus;
   requestError: string | null;
   token: string | null;
 }
-
-interface IState {
-  alerts: IStateAlerts;
-  auth: IStateAuth;
-}
-
-export const initialStateAlerts: IStateAlerts = {
-  ids: [],
-  entities: {},
-};
 
 const JOURNAL_APP_TOKEN = "token-4-journal-app";
 
@@ -56,10 +54,53 @@ export const initialStateAuth: IStateAuth = {
   token: localStorage.getItem(JOURNAL_APP_TOKEN),
 };
 
+interface IState {
+  alerts: IStateAlerts;
+  auth: IStateAuth;
+}
+
 export const initialState: IState = {
   alerts: initialStateAlerts,
   auth: initialStateAuth,
 };
+
+/* alertsSlice - "alerts/" action creators */
+enum ActionTypesAlerts {
+  CREATE = "alerts/create",
+  REMOVE = "alerts/remove",
+}
+
+interface IActionAlertsCreate {
+  type: typeof ActionTypesAlerts.CREATE;
+  payload: {
+    id: string;
+    message: string;
+  };
+}
+
+interface IActionAlertsRemove {
+  type: typeof ActionTypesAlerts.REMOVE;
+  payload: {
+    id: string;
+  };
+}
+
+export const alertsCreate = (id: string, message: string): IActionAlertsCreate => ({
+  type: ActionTypesAlerts.CREATE,
+  payload: {
+    id,
+    message,
+  },
+});
+
+export const alertsRemove = (id: string): IActionAlertsRemove => ({
+  type: ActionTypesAlerts.REMOVE,
+  payload: {
+    id,
+  },
+});
+
+type ActionAlerts = IActionAlertsCreate | IActionAlertsRemove;
 
 /* authSlice - "auth/createUser/" action creators */
 enum ActionTypesCreateUser {
@@ -131,44 +172,6 @@ export const createUser = (
     return Promise.reject(responseBodyError);
   }
 };
-
-/* alertsSlice - "alerts/" action creators */
-enum ActionTypesAlerts {
-  CREATE = "alerts/create",
-  REMOVE = "alerts/remove",
-}
-
-interface IActionAlertsCreate {
-  type: typeof ActionTypesAlerts.CREATE;
-  payload: {
-    id: string;
-    message: string;
-  };
-}
-
-interface IActionAlertsRemove {
-  type: typeof ActionTypesAlerts.REMOVE;
-  payload: {
-    id: string;
-  };
-}
-
-export const alertsCreate = (id: string, message: string): IActionAlertsCreate => ({
-  type: ActionTypesAlerts.CREATE,
-  payload: {
-    id,
-    message,
-  },
-});
-
-export const alertsRemove = (id: string): IActionAlertsRemove => ({
-  type: ActionTypesAlerts.REMOVE,
-  payload: {
-    id,
-  },
-});
-
-type ActionAlerts = IActionAlertsCreate | IActionAlertsRemove;
 
 /* authSlice - "auth/issueJWSToken/" action creators */
 enum ActionTypesIssueJWSToken {
@@ -246,14 +249,7 @@ export const issueJWSToken = (email: string, password: string) => async (
   }
 };
 
-/*
-TBD
-Define a root reducer function,
-which serves to instantiate a single Redux store.
-
-(In turn, that store will be tasked with keeping track of the React application's
-global state.)
-*/
+/* alertsSlice - reducer */
 export const alertsReducer = (
   stateAlerts: IStateAlerts = initialStateAlerts,
   action: ActionAlerts
@@ -296,6 +292,7 @@ export const alertsReducer = (
   }
 };
 
+/* authSlice - reducer */
 export const authReducer = (
   stateAuth: IStateAuth = initialStateAuth,
   action: ActionCreateUser | ActionIssueJWSToken
@@ -349,6 +346,13 @@ export const authReducer = (
   }
 };
 
+/*
+Define a root reducer function,
+which serves to instantiate a single Redux store.
+
+(In turn, that store will be responsible for keeping track of the React application's
+global state.)
+*/
 export const rootReducer = combineReducers({
   alerts: alertsReducer,
   auth: authReducer,
@@ -361,7 +365,7 @@ const composedEnhancer = composeWithDevTools(
 );
 export const store = createStore(rootReducer, composedEnhancer);
 
-/* Create React components. */
+/* React components. */
 const App = () => {
   console.log(`${new Date().toISOString()} - ${__filename} - React is rendering <App>`);
 
