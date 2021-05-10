@@ -10,6 +10,8 @@ import { applyMiddleware } from "redux";
 import thunkMiddleware from "redux-thunk";
 import axios from "axios";
 
+import { combineReducers } from "redux";
+
 /* Specify an initial value for the Redux state. */
 enum RequestStatus {
   IDLE = "idle",
@@ -41,21 +43,25 @@ interface IState {
   auth: IStateAuth;
 }
 
-const JOURNAL_APP_TOKEN = "token-4-journal-app";
-
-export const initialState: IState = {
-  alerts: {
-    ids: [],
-    entities: {},
-  },
-  auth: {
-    requestStatus: RequestStatus.IDLE,
-    requestError: null,
-    token: localStorage.getItem(JOURNAL_APP_TOKEN),
-  },
+export const initialStateAlerts: IStateAlerts = {
+  ids: [],
+  entities: {},
 };
 
-/* "auth/createUser/" action creators */
+const JOURNAL_APP_TOKEN = "token-4-journal-app";
+
+export const initialStateAuth: IStateAuth = {
+  requestStatus: RequestStatus.IDLE,
+  requestError: null,
+  token: localStorage.getItem(JOURNAL_APP_TOKEN),
+};
+
+export const initialState: IState = {
+  alerts: initialStateAlerts,
+  auth: initialStateAuth,
+};
+
+/* authSlice - "auth/createUser/" action creators */
 enum ActionTypesCreateUser {
   PENDING = "auth/createUser/pending",
   REJECTED = "auth/createUser/rejected",
@@ -93,7 +99,7 @@ type ActionCreateUser =
   | IActionCreateUserRejected
   | IActionCreateUserFulfilled;
 
-/* "auth/createUser" thunk-action creator */
+/* authSlice - "auth/createUser" thunk-action creator */
 export const createUser = (
   username: string,
   name: string,
@@ -126,7 +132,7 @@ export const createUser = (
   }
 };
 
-/* "alerts/" action creators */
+/* alertsSlice - "alerts/" action creators */
 enum ActionTypesAlerts {
   CREATE = "alerts/create",
   REMOVE = "alerts/remove",
@@ -164,7 +170,7 @@ export const alertsRemove = (id: string): IActionAlertsRemove => ({
 
 type ActionAlerts = IActionAlertsCreate | IActionAlertsRemove;
 
-/* "auth/issueJWSToken/" action creators */
+/* authSlice - "auth/issueJWSToken/" action creators */
 enum ActionTypesIssueJWSToken {
   PENDING = "auth/issueJWSToken/pending",
   REJECTED = "auth/issueJWSToken/rejected",
@@ -210,7 +216,7 @@ type ActionIssueJWSToken =
   | IActionIssueJWSTokenRejected
   | IActionIssueJWSTokenFulfilled;
 
-/* "auth/issueJWSToken" thunk-action creator */
+/* authSlice - "auth/issueJWSToken" thunk-action creator */
 export const issueJWSToken = (email: string, password: string) => async (
   dispatch: Dispatch<ActionIssueJWSToken>
 ) => {
@@ -241,112 +247,112 @@ export const issueJWSToken = (email: string, password: string) => async (
 };
 
 /*
+TBD
 Define a root reducer function,
 which serves to instantiate a single Redux store.
 
 (In turn, that store will be tasked with keeping track of the React application's
 global state.)
 */
-export const rootReducer = (
-  state: IState = initialState,
-  action: ActionCreateUser | ActionAlerts | ActionIssueJWSToken
-): IState => {
+export const alertsReducer = (
+  stateAlerts: IStateAlerts = initialStateAlerts,
+  action: ActionAlerts
+): IStateAlerts => {
   switch (action.type) {
-    case ActionTypesCreateUser.PENDING:
-      return {
-        ...state,
-        auth: {
-          ...state.auth,
-          requestStatus: RequestStatus.LOADING,
-          requestError: null,
-        },
-      };
-    case ActionTypesCreateUser.REJECTED:
-      return {
-        ...state,
-        auth: {
-          ...state.auth,
-          requestStatus: RequestStatus.FAILED,
-          requestError: action.error,
-        },
-      };
-    case ActionTypesCreateUser.FULFILLED:
-      return {
-        ...state,
-        auth: {
-          ...state.auth,
-          requestStatus: RequestStatus.SUCCEEDED,
-          requestError: null,
-        },
-      };
     case ActionTypesAlerts.CREATE:
       const id: string = action.payload.id;
       const message: string = action.payload.message;
 
-      const newIds: string[] = [id, ...state.alerts.ids];
+      const newIds: string[] = [id, ...stateAlerts.ids];
 
-      const newEntities = { ...state.alerts.entities };
+      const newEntities = { ...stateAlerts.entities };
       newEntities[id] = {
         id,
         message,
       };
 
       return {
-        ...state,
-        alerts: {
-          ids: newIds,
-          entities: newEntities,
-        },
+        ids: newIds,
+        entities: newEntities,
       };
+
     case ActionTypesAlerts.REMOVE:
       const idOfDeletedAlert: string = action.payload.id;
 
-      const remainingIds: string[] = state.alerts.ids.filter(
+      const remainingIds: string[] = stateAlerts.ids.filter(
         (id) => id !== idOfDeletedAlert
       );
 
-      const remainingEntities = { ...state.alerts.entities };
+      const remainingEntities = { ...stateAlerts.entities };
       delete remainingEntities[idOfDeletedAlert];
 
       return {
-        ...state,
-        alerts: {
-          ids: remainingIds,
-          entities: remainingEntities,
-        },
+        ids: remainingIds,
+        entities: remainingEntities,
       };
-    case ActionTypesIssueJWSToken.PENDING:
-      return {
-        ...state,
-        auth: {
-          ...state.auth,
-          requestStatus: RequestStatus.LOADING,
-          requestError: null,
-        },
-      };
-    case ActionTypesIssueJWSToken.REJECTED:
-      return {
-        ...state,
-        auth: {
-          ...state.auth,
-          requestStatus: RequestStatus.FAILED,
-          requestError: action.error,
-        },
-      };
-    case ActionTypesIssueJWSToken.FULFILLED:
-      return {
-        ...state,
-        auth: {
-          ...state.auth,
-          requestStatus: RequestStatus.SUCCEEDED,
-          requestError: null,
-          token: action.payload.token,
-        },
-      };
+
     default:
-      return state;
+      return stateAlerts;
   }
 };
+
+export const authReducer = (
+  stateAuth: IStateAuth = initialStateAuth,
+  action: ActionCreateUser | ActionIssueJWSToken
+): IStateAuth => {
+  switch (action.type) {
+    case ActionTypesCreateUser.PENDING:
+      return {
+        ...stateAuth,
+        requestStatus: RequestStatus.LOADING,
+        requestError: null,
+      };
+
+    case ActionTypesCreateUser.REJECTED:
+      return {
+        ...stateAuth,
+        requestStatus: RequestStatus.FAILED,
+        requestError: action.error,
+      };
+
+    case ActionTypesCreateUser.FULFILLED:
+      return {
+        ...stateAuth,
+        requestStatus: RequestStatus.SUCCEEDED,
+        requestError: null,
+      };
+
+    case ActionTypesIssueJWSToken.PENDING:
+      return {
+        ...stateAuth,
+        requestStatus: RequestStatus.LOADING,
+        requestError: null,
+      };
+
+    case ActionTypesIssueJWSToken.REJECTED:
+      return {
+        ...stateAuth,
+        requestStatus: RequestStatus.FAILED,
+        requestError: action.error,
+      };
+
+    case ActionTypesIssueJWSToken.FULFILLED:
+      return {
+        ...stateAuth,
+        requestStatus: RequestStatus.SUCCEEDED,
+        requestError: null,
+        token: action.payload.token,
+      };
+
+    default:
+      return stateAuth;
+  }
+};
+
+export const rootReducer = combineReducers({
+  alerts: alertsReducer,
+  auth: authReducer,
+});
 
 const composedEnhancer = composeWithDevTools(
   /* Add all middleware functions, which you actually want to use, here: */
