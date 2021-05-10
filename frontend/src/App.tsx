@@ -258,6 +258,7 @@ export const rootReducer = (
         auth: {
           ...state.auth,
           requestStatus: RequestStatus.LOADING,
+          requestError: null,
         },
       };
     case ActionTypesCreateUser.REJECTED:
@@ -320,6 +321,7 @@ export const rootReducer = (
         auth: {
           ...state.auth,
           requestStatus: RequestStatus.LOADING,
+          requestError: null,
         },
       };
     case ActionTypesIssueJWSToken.REJECTED:

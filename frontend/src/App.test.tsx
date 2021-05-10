@@ -114,14 +114,22 @@ describe("action creators", () => {
 describe("reducers", () => {
   test(
     "auth/createUser/pending should" +
-      " update state.auth.requestStatus" +
-      " to 'loading'",
+      " update state.auth.requestStatus to 'loading'" +
+      " and clear state.auth.requestError",
     () => {
+      const initState = {
+        ...initialState,
+        auth: {
+          ...initialState.auth,
+          requestStatus: "failed",
+          requestError: "The previous attempt to create a User resource didn't succeed",
+        },
+      };
       const action = {
         type: "auth/createUser/pending",
       };
 
-      const newState = rootReducer(initialState, action);
+      const newState = rootReducer(initState, action);
 
       expect(newState).toEqual({
         alerts: {
@@ -298,14 +306,22 @@ describe("reducers", () => {
 
   test(
     "auth/issueJWSToken/pending should" +
-      " update state.auth.requestStatus" +
-      " to 'loading'",
+      " update state.auth.requestStatus to 'loading'" +
+      " and clear state.auth.requestError",
     () => {
+      const initState = {
+        ...initialState,
+        auth: {
+          ...initialState.auth,
+          requestStatus: "failed",
+          requestError: "The previous attempt to issue a JWS token didn't succeed",
+        },
+      };
       const action = {
         type: "auth/issueJWSToken/pending",
       };
 
-      const newState = rootReducer(initialState, action);
+      const newState = rootReducer(initState, action);
 
       expect(newState).toEqual({
         alerts: {
