@@ -554,11 +554,16 @@ export const SignIn = () => {
     e.preventDefault();
 
     const id: string = uuidv4();
-    try {
-      await dispatch(issueJWSToken(formData.email, formData.password));
-      await dispatch(alertCreate(id, "SIGN-IN SUCCESSFUL"));
-    } catch (thunkActionError) {
-      dispatch(alertCreate(id, thunkActionError));
+    if (formData.email === "" || formData.password === "") {
+      const message: string = "YOU MUST FILL OUT ALL FORM FIELDS";
+      dispatch(alertCreate(id, message));
+    } else {
+      try {
+        await dispatch(issueJWSToken(formData.email, formData.password));
+        await dispatch(alertCreate(id, "SIGN-IN SUCCESSFUL"));
+      } catch (thunkActionError) {
+        dispatch(alertCreate(id, thunkActionError));
+      }
     }
   };
 

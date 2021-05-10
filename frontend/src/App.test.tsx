@@ -772,13 +772,18 @@ describe(
     " (without the user interaction triggering any network communication)",
   () => {
     test("the user fills out the form in an invalid way and submits it", () => {
+      // Arrange.
+      const enhancer = applyMiddleware(thunkMiddleware);
+      const realStore = createStore(rootReducer, enhancer);
+
       const { getByPlaceholderText, getByRole, getByText } = render(
-        <Provider store={store}>
+        <Provider store={realStore}>
           <Alerts />
           <SignUp />
         </Provider>
       );
 
+      // Act.
       const usernameInput = getByPlaceholderText("Choose a username...");
       const nameInput = getByPlaceholderText("Enter your name...");
       const emailInput = getByPlaceholderText("Enter your email address...");
@@ -796,6 +801,7 @@ describe(
       const button = getByRole("button");
       fireEvent.click(button);
 
+      // Assert.
       getByText(/THE PROVIDED PASSWORDS DON'T MATCH/);
     });
   }
@@ -974,6 +980,38 @@ describe("<SignIn>", () => {
     getByDisplayValue("[f-e] 123");
   });
 });
+
+describe(
+  "<Alerts> + <SignIn>" +
+    " (without the user interaction triggering any network communication)",
+  () => {
+    test("the user fills out the form in an invalid way and submits it", () => {
+      // Arrange.
+      const enhancer = applyMiddleware(thunkMiddleware);
+      const realStore = createStore(rootReducer, enhancer);
+
+      const { getByPlaceholderText, getByRole, getByText } = render(
+        <Provider store={realStore}>
+          <Alerts />
+          <SignIn />
+        </Provider>
+      );
+
+      // Act.
+      const emailInput = getByPlaceholderText("Enter your email...");
+      const passwordInput = getByPlaceholderText("Enter your password...");
+
+      fireEvent.change(emailInput, { target: { value: "" } });
+      fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
+
+      const button = getByRole("button");
+      fireEvent.click(button);
+
+      // Assert.
+      getByText("YOU MUST FILL OUT ALL FORM FIELDS");
+    });
+  }
+);
 
 describe(
   "<Alerts> + <SignIn>" +
