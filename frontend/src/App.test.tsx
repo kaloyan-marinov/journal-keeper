@@ -21,7 +21,7 @@ import { setupServer } from "msw/node";
 
 import configureMockStore, { MockStoreEnhanced } from "redux-mock-store";
 import thunkMiddleware from "redux-thunk";
-import { initialState } from "./App";
+import { initialStateAlerts, initialStateAuth, IState } from "./App";
 import { createUser } from "./App";
 
 import { applyMiddleware } from "redux";
@@ -112,19 +112,27 @@ describe("action creators", () => {
 });
 
 describe("reducers", () => {
+  let initState: IState;
+
+  beforeEach(() => {
+    initState = {
+      alerts: {
+        ...initialStateAlerts,
+      },
+      auth: {
+        ...initialStateAuth,
+      },
+    };
+  });
+
   test(
     "auth/createUser/pending should" +
       " update state.auth.requestStatus to 'loading'" +
       " and clear state.auth.requestError",
     () => {
-      const initState = {
-        ...initialState,
-        auth: {
-          ...initialState.auth,
-          requestStatus: "failed",
-          requestError: "The previous attempt to create a User resource didn't succeed",
-        },
-      };
+      initState.auth.requestStatus = "failed";
+      initState.auth.requestError =
+        "The previous attempt to create a User resource didn't succeed";
       const action = {
         type: "auth/createUser/pending",
       };
@@ -149,12 +157,13 @@ describe("reducers", () => {
     "auth/createUser/rejected should update" +
       " both state.auth.requestStatus and state.auth.requestError",
     () => {
+      initState.auth.requestStatus = "pending";
       const action = {
         type: "auth/createUser/rejected",
         error: "auth-createUser-rejected",
       };
 
-      const newState = rootReducer(initialState, action);
+      const newState = rootReducer(initState, action);
 
       expect(newState).toEqual({
         alerts: {
@@ -175,14 +184,7 @@ describe("reducers", () => {
       " update state.auth.requestStatus to 'succeeded'" +
       " and clear state.auth.requestError",
     () => {
-      const initState = {
-        ...initialState,
-        auth: {
-          ...initialState.auth,
-          requestStatus: "pending",
-          requestError: "auth-createUser-rejected",
-        },
-      };
+      initState.auth.requestStatus = "pending";
       const action = {
         type: "auth/createUser/fulfilled",
       };
@@ -207,19 +209,11 @@ describe("reducers", () => {
     "alerts/create should add an alert to" +
       " both state.alerts.ids and state.alerts.entities",
     () => {
-      const initState = {
-        alerts: {
-          ids: ["id-17"],
-          entities: {
-            "id-17": {
-              id: "id-17",
-              message: "the-undertaken-action-is-illegitimate",
-            },
-          },
-        },
-        auth: {
-          requestStatus: "idle",
-          requestError: null,
+      initState.alerts.ids = ["id-17"];
+      initState.alerts.entities = {
+        "id-17": {
+          id: "id-17",
+          message: "the-undertaken-action-is-illegitimate",
         },
       };
       const action = {
@@ -249,6 +243,7 @@ describe("reducers", () => {
         auth: {
           requestStatus: "idle",
           requestError: null,
+          token: null,
         },
       });
     }
@@ -258,23 +253,17 @@ describe("reducers", () => {
     "alerts/remove should remove an alert from" +
       " both state.alerts.ids and state.alerts.entities",
     () => {
-      const initState = {
-        alerts: {
-          ids: ["id-17", "id-34"],
-          entities: {
-            "id-17": {
-              id: "id-17",
-              message: "the-undertaken-action-is-illegitimate",
-            },
-            "id-34": {
-              id: "id-34",
-              message: "once-again-the-undertaken-action-is-illegitimate",
-            },
+      initState.alerts = {
+        ids: ["id-17", "id-34"],
+        entities: {
+          "id-17": {
+            id: "id-17",
+            message: "the-undertaken-action-is-illegitimate",
           },
-        },
-        auth: {
-          requestStatus: "idle",
-          requestError: null,
+          "id-34": {
+            id: "id-34",
+            message: "once-again-the-undertaken-action-is-illegitimate",
+          },
         },
       };
       const action = {
@@ -299,6 +288,7 @@ describe("reducers", () => {
         auth: {
           requestStatus: "idle",
           requestError: null,
+          token: null,
         },
       });
     }
@@ -309,14 +299,9 @@ describe("reducers", () => {
       " update state.auth.requestStatus to 'loading'" +
       " and clear state.auth.requestError",
     () => {
-      const initState = {
-        ...initialState,
-        auth: {
-          ...initialState.auth,
-          requestStatus: "failed",
-          requestError: "The previous attempt to issue a JWS token didn't succeed",
-        },
-      };
+      initState.auth.requestStatus = "failed";
+      initState.auth.requestError =
+        "The previous attempt to issue a JWS token didn't succeed";
       const action = {
         type: "auth/issueJWSToken/pending",
       };
@@ -341,12 +326,13 @@ describe("reducers", () => {
     "auth/issueJWSToken/rejected should update" +
       " both state.auth.requestStatus and state.auth.requestError",
     () => {
+      initState.auth.requestStatus = "pending";
       const action = {
         type: "auth/issueJWSToken/rejected",
         error: "auth-issueJWSToken-rejected",
       };
 
-      const newState = rootReducer(initialState, action);
+      const newState = rootReducer(initState, action);
 
       expect(newState).toEqual({
         alerts: {
@@ -368,14 +354,7 @@ describe("reducers", () => {
       " clear state.auth.requestError," +
       " and set state.auth.token",
     () => {
-      const initState = {
-        ...initialState,
-        auth: {
-          ...initialState.auth,
-          requestStatus: "pending",
-          requestError: "auth-issueJWSToken-rejected",
-        },
-      };
+      initState.auth.requestStatus = "pending";
       const action = {
         type: "auth/issueJWSToken/fulfilled",
         payload: {
@@ -461,7 +440,7 @@ describe(
     " with each test case focusing on the action-related logic only" +
     " (and thus completely disregarding the reducer-related logic) ",
   () => {
-    let initSt;
+    let initSt: IState;
     let storeMock: MockStoreEnhanced<unknown, {}>;
 
     beforeAll(() => {
@@ -471,8 +450,15 @@ describe(
     });
 
     beforeEach(() => {
-      initSt = initialState;
-      storeMock = createStoreMock(initialState);
+      initSt = {
+        alerts: {
+          ...initialStateAlerts,
+        },
+        auth: {
+          ...initialStateAuth,
+        },
+      };
+      storeMock = createStoreMock(initSt);
     });
 
     afterEach(() => {

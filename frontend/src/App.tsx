@@ -54,15 +54,10 @@ export const initialStateAuth: IStateAuth = {
   token: localStorage.getItem(JOURNAL_APP_TOKEN),
 };
 
-interface IState {
+export interface IState {
   alerts: IStateAlerts;
   auth: IStateAuth;
 }
-
-export const initialState: IState = {
-  alerts: initialStateAlerts,
-  auth: initialStateAuth,
-};
 
 /* alertsSlice - "alerts/" action creators */
 enum ActionTypesAlerts {
