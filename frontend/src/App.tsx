@@ -56,9 +56,36 @@ export const initialStateAuth: IStateAuth = {
   token: localStorage.getItem(JOURNAL_APP_TOKEN),
 };
 
+interface IEntry {
+  id: number;
+  timestampInUTC: string;
+  utcZoneOfTimestamp: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: number;
+}
+
+interface IStateEntries {
+  requestStatus: RequestStatus;
+  requestError: string | null;
+  ids: string[];
+  entities: {
+    [entryId: string]: IEntry;
+  };
+}
+
+export const initialStateEntries: IStateEntries = {
+  requestStatus: RequestStatus.IDLE,
+  requestError: null,
+  ids: [],
+  entities: {},
+};
+
 export interface IState {
   alerts: IStateAlerts;
   auth: IStateAuth;
+  entries: IStateEntries;
 }
 
 /* alertsSlice - "alerts/" action creators */
@@ -269,6 +296,50 @@ export const issueJWSToken = (
     }
   };
 };
+
+/* entriesSlice - "entries/fetchEntries/" action creators */
+enum ActionTypesFetchEntries {
+  PENDING = "entries/fetchEntries/pending",
+  REJECTED = "entries/fetchEntries/rejected",
+  FULFILLED = "entries/fetchEntries/fulfilled",
+}
+
+interface IFetchEntriesPending {
+  type: typeof ActionTypesFetchEntries.PENDING;
+}
+
+interface IFetchEntriesRejected {
+  type: typeof ActionTypesFetchEntries.REJECTED;
+  error: string;
+}
+
+interface IFetchEntriesFulfilled {
+  type: typeof ActionTypesFetchEntries.FULFILLED;
+  payload: {
+    entries: IEntry[];
+  };
+}
+
+export const fetchEntriesPending = (): IFetchEntriesPending => ({
+  type: ActionTypesFetchEntries.PENDING,
+});
+
+export const fetchEntriesRejected = (error: string): IFetchEntriesRejected => ({
+  type: ActionTypesFetchEntries.REJECTED,
+  error,
+});
+
+export const fetchEntriesFulfilled = (entries: IEntry[]): IFetchEntriesFulfilled => ({
+  type: ActionTypesFetchEntries.FULFILLED,
+  payload: {
+    entries,
+  },
+});
+
+type ActionFetchEntries =
+  | IFetchEntriesPending
+  | IFetchEntriesRejected
+  | IFetchEntriesFulfilled;
 
 /* alertsSlice - reducer */
 export const alertsReducer = (
@@ -641,16 +712,6 @@ export const SignIn = () => {
   );
 };
 
-interface IEntry {
-  id: number;
-  timestampInUTC: string;
-  utcZoneOfTimestamp: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  userId: number;
-}
-
 export const MyMonthlyJournal = () => {
   console.log(
     `${new Date().toISOString()} - ${__filename}` +
@@ -662,7 +723,7 @@ export const MyMonthlyJournal = () => {
       id: 1,
       timestampInUTC: "2020-12-01T15:17:00.000Z",
       utcZoneOfTimestamp: "+02:00",
-      content: "Then it dawned on me: there is no finish line!",
+      content: "[hard-coded] Then it dawned on me: there is no finish line!",
       createdAt: "2021-04-29T05:10:56.000Z",
       updatedAt: "2021-04-29T05:10:56.000Z",
       userId: 1,
@@ -671,7 +732,7 @@ export const MyMonthlyJournal = () => {
       id: 2,
       timestampInUTC: "2019-08-20T13:17:00.000Z",
       utcZoneOfTimestamp: "+01:00",
-      content: "Mallorca has beautiful sunny beaches!",
+      content: "[hard-coded] Mallorca has beautiful sunny beaches!",
       createdAt: "2021-04-29T05:11:01.000Z",
       updatedAt: "2021-04-29T05:11:01.000Z",
       userId: 2,

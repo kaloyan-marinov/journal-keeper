@@ -33,6 +33,12 @@ import {
 } from "./App";
 import { issueJWSToken } from "./App";
 
+import {
+  fetchEntriesPending,
+  fetchEntriesRejected,
+  fetchEntriesFulfilled,
+} from "./App";
+
 describe("action creators", () => {
   test("createUserPending", () => {
     const action = createUserPending();
@@ -106,6 +112,55 @@ describe("action creators", () => {
       type: "auth/issueJWSToken/fulfilled",
       payload: {
         token: "a-jws-token-issued-by-the-backend",
+      },
+    });
+  });
+
+  test("fetchEntriesPending", () => {
+    const action = fetchEntriesPending();
+
+    expect(action).toEqual({
+      type: "entries/fetchEntries/pending",
+    });
+  });
+
+  test("fetchEntriesRejected", () => {
+    const action = fetchEntriesRejected("entries-fetchEntries-rejected");
+
+    expect(action).toEqual({
+      type: "entries/fetchEntries/rejected",
+      error: "entries-fetchEntries-rejected",
+    });
+  });
+
+  test("fetchEntriesFulfilled", () => {
+    const entries = [
+      {
+        id: 1,
+        timestampInUTC: "2020-12-01T15:17:00.000Z",
+        utcZoneOfTimestamp: "+02:00",
+        content: "[hard-coded] Then it dawned on me: there is no finish line!",
+        createdAt: "2021-04-29T05:10:56.000Z",
+        updatedAt: "2021-04-29T05:10:56.000Z",
+        userId: 1,
+      },
+      {
+        id: 2,
+        timestampInUTC: "2019-08-20T13:17:00.000Z",
+        utcZoneOfTimestamp: "+01:00",
+        content: "[hard-coded] Mallorca has beautiful sunny beaches!",
+        createdAt: "2021-04-29T05:11:01.000Z",
+        updatedAt: "2021-04-29T05:11:01.000Z",
+        userId: 2,
+      },
+    ];
+
+    const action = fetchEntriesFulfilled(entries);
+
+    expect(action).toEqual({
+      type: "entries/fetchEntries/fulfilled",
+      payload: {
+        entries,
       },
     });
   });
@@ -1174,8 +1229,8 @@ describe("<MyMonthlyJournal>", () => {
     getByText("Review the entries in MyMonthlyJournal!");
     getByText("Create a new entry");
 
-    getByText("Then it dawned on me: there is no finish line!");
-    getByText("Mallorca has beautiful sunny beaches!");
+    getByText("[hard-coded] Then it dawned on me: there is no finish line!");
+    getByText("[hard-coded] Mallorca has beautiful sunny beaches!");
 
     const editLinks = getAllByText("Edit");
     expect(editLinks.length).toEqual(2);
