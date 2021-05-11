@@ -143,37 +143,44 @@ export const createUser = (
   name: string,
   email: string,
   password: string
-): ThunkAction<void, IState, unknown, ActionCreateUser> => async (
-  dispatch: Dispatch<ActionCreateUser>
-) => {
+): ThunkAction<void, IState, unknown, ActionCreateUser> => {
   /*
-  TODO: find out whether the type annotation of `dispatch` in the function signature
-        above (and in analogous cases) is OK, or if it had better be removed completely
+  Create a thunk-action.
+  When dispatched, it issues an HTTP request
+  to the backend's endpoint for creating a new User resource.
   */
-  const config = {
-    headers: {
-      "Content-Type": "application/json",
-    },
+
+  return async (dispatch: Dispatch<ActionCreateUser>) => {
+    /*
+    TODO: find out whether the type annotation of `dispatch` in the function signature
+          above (and in analogous cases) is OK, or if it had better be removed
+          completely
+    */
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    const body = JSON.stringify({
+      username,
+      name,
+      email,
+      password,
+    });
+
+    dispatch(createUserPending());
+    try {
+      const response = await axios.post("/api/users", body, config);
+      dispatch(createUserFulfilled());
+      return Promise.resolve();
+    } catch (err) {
+      const responseBody = err.response.data;
+      const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
+      dispatch(createUserRejected(responseBodyError));
+      return Promise.reject(responseBodyError);
+    }
   };
-
-  const body = JSON.stringify({
-    username,
-    name,
-    email,
-    password,
-  });
-
-  dispatch(createUserPending());
-  try {
-    const response = await axios.post("/api/users", body, config);
-    dispatch(createUserFulfilled());
-    return Promise.resolve();
-  } catch (err) {
-    const responseBody = err.response.data;
-    const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
-    dispatch(createUserRejected(responseBodyError));
-    return Promise.reject(responseBodyError);
-  }
 };
 
 /* authSlice - "auth/issueJWSToken/" action creators */
@@ -226,33 +233,41 @@ type ActionIssueJWSToken =
 export const issueJWSToken = (
   email: string,
   password: string
-): ThunkAction<void, IState, unknown, ActionIssueJWSToken> => async (
-  dispatch: Dispatch<ActionIssueJWSToken>
-) => {
-  const config = {
-    headers: {
-      "Content-Type": "application/json",
-    },
-    auth: {
-      username: email,
-      password,
-    },
+): ThunkAction<void, IState, unknown, ActionIssueJWSToken> => {
+  /*
+  Create a thunk-action.
+  When dispatched, it issues an HTTP request
+  to the backend's endpoint for issuing a JSON Web Signature token
+  (via which the client can subsequently authenticate itself to the backend
+  application).
+  */
+
+  return async (dispatch: Dispatch<ActionIssueJWSToken>) => {
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      auth: {
+        username: email,
+        password,
+      },
+    };
+
+    const body = {};
+
+    dispatch(issueJWSTokenPending());
+    try {
+      const response = await axios.post("/api/tokens", body, config);
+      localStorage.setItem(JOURNAL_APP_TOKEN, response.data.token);
+      dispatch(issueJWSTokenFulfilled(response.data.token));
+      return Promise.resolve();
+    } catch (err) {
+      const responseBody = err.response.data;
+      const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
+      dispatch(issueJWSTokenRejected(responseBodyError));
+      return Promise.reject(responseBodyError);
+    }
   };
-
-  const body = {};
-
-  dispatch(issueJWSTokenPending());
-  try {
-    const response = await axios.post("/api/tokens", body, config);
-    localStorage.setItem(JOURNAL_APP_TOKEN, response.data.token);
-    dispatch(issueJWSTokenFulfilled(response.data.token));
-    return Promise.resolve();
-  } catch (err) {
-    const responseBody = err.response.data;
-    const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
-    dispatch(issueJWSTokenRejected(responseBodyError));
-    return Promise.reject(responseBodyError);
-  }
 };
 
 /* alertsSlice - reducer */
