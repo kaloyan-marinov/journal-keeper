@@ -12,6 +12,8 @@ import axios from "axios";
 
 import { combineReducers } from "redux";
 
+import { ThunkAction, ThunkDispatch } from "redux-thunk";
+
 /*
 Specify all slices of the Redux state,
 along with an initial value for each slice.
@@ -141,7 +143,13 @@ export const createUser = (
   name: string,
   email: string,
   password: string
-) => async (dispatch: Dispatch<ActionCreateUser>) => {
+): ThunkAction<void, IState, unknown, ActionCreateUser> => async (
+  dispatch: Dispatch<ActionCreateUser>
+) => {
+  /*
+  TODO: find out whether the type annotation of `dispatch` in the function signature
+        above (and in analogous cases) is OK, or if it had better be removed completely
+  */
   const config = {
     headers: {
       "Content-Type": "application/json",
@@ -215,7 +223,10 @@ type ActionIssueJWSToken =
   | IActionIssueJWSTokenFulfilled;
 
 /* authSlice - "auth/issueJWSToken" thunk-action creator */
-export const issueJWSToken = (email: string, password: string) => async (
+export const issueJWSToken = (
+  email: string,
+  password: string
+): ThunkAction<void, IState, unknown, ActionIssueJWSToken> => async (
   dispatch: Dispatch<ActionIssueJWSToken>
 ) => {
   const config = {
@@ -433,9 +444,7 @@ export const SignUp = () => {
     `${new Date().toISOString()} - ${__filename} - React is rendering <SignUp>`
   );
 
-  const dispatch: Dispatch<
-    IActionAlertsCreate | IActionCreateUserPending | any
-  > = useDispatch();
+  const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
 
   const [formData, setFormData] = React.useState({
     username: "",
@@ -544,7 +553,7 @@ export const SignIn = () => {
     `${new Date().toISOString()} - ${__filename} - React is rendering <SignIn>`
   );
 
-  const dispatch = useDispatch();
+  const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
 
   const [formData, setFormData] = React.useState({
     email: "",
