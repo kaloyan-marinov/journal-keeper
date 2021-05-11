@@ -735,7 +735,7 @@ export const MyMonthlyJournal = () => {
       content: "[hard-coded] Mallorca has beautiful sunny beaches!",
       createdAt: "2021-04-29T05:11:01.000Z",
       updatedAt: "2021-04-29T05:11:01.000Z",
-      userId: 2,
+      userId: 1,
     },
   };
 

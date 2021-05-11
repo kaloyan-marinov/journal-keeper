@@ -139,7 +139,8 @@ describe("action creators", () => {
         id: 1,
         timestampInUTC: "2020-12-01T15:17:00.000Z",
         utcZoneOfTimestamp: "+02:00",
-        content: "[hard-coded] Then it dawned on me: there is no finish line!",
+        content:
+          "[hard-coded-into-test] Then it dawned on me: there is no finish line!",
         createdAt: "2021-04-29T05:10:56.000Z",
         updatedAt: "2021-04-29T05:10:56.000Z",
         userId: 1,
@@ -148,10 +149,10 @@ describe("action creators", () => {
         id: 2,
         timestampInUTC: "2019-08-20T13:17:00.000Z",
         utcZoneOfTimestamp: "+01:00",
-        content: "[hard-coded] Mallorca has beautiful sunny beaches!",
+        content: "[hard-coded-into-test] Mallorca has beautiful sunny beaches!",
         createdAt: "2021-04-29T05:11:01.000Z",
         updatedAt: "2021-04-29T05:11:01.000Z",
-        userId: 2,
+        userId: 1,
       },
     ];
 
