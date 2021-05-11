@@ -438,6 +438,17 @@ export const authReducer = (
   }
 };
 
+/* entriesSlice - reducer */
+export const entriesReducer = (
+  stateEntries: IStateEntries = initialStateEntries,
+  action: ActionFetchEntries
+): IStateEntries => {
+  switch (action.type) {
+    default:
+      return stateEntries;
+  }
+};
+
 /*
 Define a root reducer function,
 which serves to instantiate a single Redux store.
@@ -448,6 +459,7 @@ global state.)
 export const rootReducer = combineReducers({
   alerts: alertsReducer,
   auth: authReducer,
+  entries: entriesReducer,
 });
 
 const composedEnhancer = composeWithDevTools(

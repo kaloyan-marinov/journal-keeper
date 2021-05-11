@@ -21,7 +21,12 @@ import { setupServer } from "msw/node";
 
 import configureMockStore, { MockStoreEnhanced } from "redux-mock-store";
 import thunkMiddleware from "redux-thunk";
-import { initialStateAlerts, initialStateAuth, IState } from "./App";
+import {
+  initialStateAlerts,
+  initialStateAuth,
+  IState,
+  initialStateEntries,
+} from "./App";
 import { createUser } from "./App";
 
 import { applyMiddleware } from "redux";
@@ -178,6 +183,9 @@ describe("reducers", () => {
       auth: {
         ...initialStateAuth,
       },
+      entries: {
+        ...initialStateEntries,
+      },
     };
   });
 
@@ -220,6 +228,12 @@ describe("reducers", () => {
           requestStatus: "idle",
           requestError: null,
           token: null,
+        },
+        entries: {
+          requestStatus: "idle",
+          requestError: null,
+          ids: [],
+          entities: {},
         },
       });
     }
@@ -266,6 +280,12 @@ describe("reducers", () => {
           requestError: null,
           token: null,
         },
+        entries: {
+          requestStatus: "idle",
+          requestError: null,
+          ids: [],
+          entities: {},
+        },
       });
     }
   );
@@ -294,6 +314,12 @@ describe("reducers", () => {
           requestError: null,
           token: null,
         },
+        entries: {
+          requestStatus: "idle",
+          requestError: null,
+          ids: [],
+          entities: {},
+        },
       });
     }
   );
@@ -320,6 +346,12 @@ describe("reducers", () => {
           requestError: "auth-createUser-rejected",
           token: null,
         },
+        entries: {
+          requestStatus: "idle",
+          requestError: null,
+          ids: [],
+          entities: {},
+        },
       });
     }
   );
@@ -345,6 +377,12 @@ describe("reducers", () => {
           requestStatus: "succeeded",
           requestError: null,
           token: null,
+        },
+        entries: {
+          requestStatus: "idle",
+          requestError: null,
+          ids: [],
+          entities: {},
         },
       });
     }
@@ -374,6 +412,12 @@ describe("reducers", () => {
           requestError: null,
           token: null,
         },
+        entries: {
+          requestStatus: "idle",
+          requestError: null,
+          ids: [],
+          entities: {},
+        },
       });
     }
   );
@@ -399,6 +443,12 @@ describe("reducers", () => {
           requestStatus: "failed",
           requestError: "auth-issueJWSToken-rejected",
           token: null,
+        },
+        entries: {
+          requestStatus: "idle",
+          requestError: null,
+          ids: [],
+          entities: {},
         },
       });
     }
@@ -430,6 +480,12 @@ describe("reducers", () => {
           requestError: null,
           token: "a-jws-token-issued-by-the-backend",
         },
+        entries: {
+          requestStatus: "idle",
+          requestError: null,
+          ids: [],
+          entities: {},
+        },
       });
     }
   );
@@ -452,6 +508,9 @@ describe("reducers", () => {
           requestStatus: "original-status",
           requestError: "original-error",
           token: null,
+        },
+        entries: {
+          ...initialStateEntries,
         },
       };
       const action = {
@@ -753,6 +812,9 @@ describe("<Alerts>", () => {
         auth: {
           requestStatus: "n/a",
           requestError: "n/a",
+        },
+        entries: {
+          ...initialStateEntries,
         },
       };
       const storeWithAlerts = createStore(rootReducer, initState);
