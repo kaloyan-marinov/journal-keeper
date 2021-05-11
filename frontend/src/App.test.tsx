@@ -26,6 +26,7 @@ import {
   initialStateAuth,
   IState,
   initialStateEntries,
+  IStateEntries,
 } from "./App";
 import { createUser } from "./App";
 
@@ -42,6 +43,7 @@ import {
   fetchEntriesPending,
   fetchEntriesRejected,
   fetchEntriesFulfilled,
+  entriesReducer,
 } from "./App";
 
 describe("action creators", () => {
@@ -522,6 +524,131 @@ describe("reducers", () => {
       expect(newState).toEqual(initState);
     }
   );
+
+  describe("entriesReducer", () => {
+    let initStateEntries: IStateEntries;
+
+    beforeEach(() => {
+      initStateEntries = { ...initialStateEntries };
+    });
+
+    test("entries/fetchEntries/pending", () => {
+      const action = {
+        type: "entries/fetchEntries/pending",
+      };
+
+      const newStateEntries = entriesReducer(initStateEntries, action);
+
+      expect(newStateEntries).toEqual({
+        requestStatus: "loading",
+        requestError: null,
+        ids: [],
+        entities: {},
+      });
+    });
+
+    test("entries/fetchEntries/rejected", () => {
+      const action = {
+        type: "entries/fetchEntries/rejected",
+        error: "entries-fetchEntries-rejected",
+      };
+
+      const newStateEntries = entriesReducer(initStateEntries, action);
+
+      expect(newStateEntries).toEqual({
+        requestStatus: "failed",
+        requestError: "entries-fetchEntries-rejected",
+        ids: [],
+        entities: {},
+      });
+    });
+
+    test("entries/fetchEntries/fulfilled", () => {
+      const action = {
+        type: "entries/fetchEntries/fulfilled",
+        payload: {
+          entries: [
+            {
+              id: 1,
+              timestampInUTC: "2020-12-01T15:17:00.000Z",
+              utcZoneOfTimestamp: "+02:00",
+              content: "[hard-coded] Then it dawned on me: there is no finish line!",
+              createdAt: "2021-04-29T05:10:56.000Z",
+              updatedAt: "2021-04-29T05:10:56.000Z",
+              userId: 1,
+            },
+            {
+              id: 2,
+              timestampInUTC: "2019-08-20T13:17:00.000Z",
+              utcZoneOfTimestamp: "+01:00",
+              content: "[hard-coded] Mallorca has beautiful sunny beaches!",
+              createdAt: "2021-04-29T05:11:01.000Z",
+              updatedAt: "2021-04-29T05:11:01.000Z",
+              userId: 1,
+            },
+          ],
+        },
+      };
+
+      const newStateEntries = entriesReducer(initStateEntries, action);
+
+      expect(newStateEntries).toEqual({
+        requestStatus: "succeeded",
+        requestError: null,
+        ids: [1, 2],
+        entities: {
+          1: {
+            id: 1,
+            timestampInUTC: "2020-12-01T15:17:00.000Z",
+            utcZoneOfTimestamp: "+02:00",
+            content: "[hard-coded] Then it dawned on me: there is no finish line!",
+            createdAt: "2021-04-29T05:10:56.000Z",
+            updatedAt: "2021-04-29T05:10:56.000Z",
+            userId: 1,
+          },
+          2: {
+            id: 2,
+            timestampInUTC: "2019-08-20T13:17:00.000Z",
+            utcZoneOfTimestamp: "+01:00",
+            content: "[hard-coded] Mallorca has beautiful sunny beaches!",
+            createdAt: "2021-04-29T05:11:01.000Z",
+            updatedAt: "2021-04-29T05:11:01.000Z",
+            userId: 1,
+          },
+        },
+      });
+    });
+
+    test(
+      "an action, which this reducer doesn't specifically handle," +
+        " should not modify (the corresponding slice of) the state",
+      () => {
+        const initStEntries = {
+          requestStatus: "fulfilled",
+          requestError: null,
+          ids: [17],
+          entities: {
+            17: {
+              id: 17,
+              timestampInUTC: "2020-12-01T15:17:00.000Z",
+              utcZoneOfTimestamp: "+02:00",
+              content: "[hard-coded] Then it dawned on me: there is no finish line!",
+              createdAt: "2021-04-29T05:10:56.000Z",
+              updatedAt: "2021-04-29T05:10:56.000Z",
+              userId: 1,
+            },
+          },
+        };
+        const action = {
+          type: "an action, which this reducer doesn't specifically handle",
+        };
+
+        const newStEntries = entriesReducer(initStEntries, action);
+
+        expect(newStEntries).toEqual(initStEntries);
+      }
+    );
+  });
 });
 
 /* Describe what requests should be mocked. */

@@ -66,10 +66,10 @@ interface IEntry {
   userId: number;
 }
 
-interface IStateEntries {
+export interface IStateEntries {
   requestStatus: RequestStatus;
   requestError: string | null;
-  ids: string[];
+  ids: number[];
   entities: {
     [entryId: string]: IEntry;
   };
@@ -427,7 +427,6 @@ export const authReducer = (
 
     case ActionTypesIssueJWSToken.FULFILLED:
       return {
-        ...stateAuth,
         requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
         token: action.payload.token,
@@ -444,6 +443,40 @@ export const entriesReducer = (
   action: ActionFetchEntries
 ): IStateEntries => {
   switch (action.type) {
+    case ActionTypesFetchEntries.PENDING:
+      return {
+        ...stateEntries,
+        requestStatus: RequestStatus.LOADING,
+        requestError: null,
+      };
+
+    case ActionTypesFetchEntries.REJECTED:
+      return {
+        ...stateEntries,
+        requestStatus: RequestStatus.FAILED,
+        requestError: action.error,
+      };
+
+    case ActionTypesFetchEntries.FULFILLED: {
+      const entries: IEntry[] = action.payload.entries;
+
+      const ids: number[] = entries.map((e: IEntry) => e.id);
+      const entities: { [key: string]: IEntry } = entries.reduce(
+        (entriesObj: { [key: string]: IEntry }, entry: IEntry) => {
+          entriesObj[entry.id] = entry;
+          return entriesObj;
+        },
+        {}
+      );
+
+      return {
+        requestStatus: RequestStatus.SUCCEEDED,
+        requestError: null,
+        ids,
+        entities,
+      };
+    }
+
     default:
       return stateEntries;
   }
