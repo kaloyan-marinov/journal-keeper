@@ -773,39 +773,83 @@ describe(
   "<Alerts> + <SignUp>" +
     " (without the user interaction triggering any network communication)",
   () => {
-    test("the user fills out the form in an invalid way and submits it", () => {
-      // Arrange.
-      const enhancer = applyMiddleware(thunkMiddleware);
-      const realStore = createStore(rootReducer, enhancer);
+    test(
+      "the user fills out the form in an invalid way" +
+        " (by failing to fill out all required fields) and submits it",
+      () => {
+        // Arrange.
+        const enhancer = applyMiddleware(thunkMiddleware);
+        const realStore = createStore(rootReducer, enhancer);
 
-      const { getByPlaceholderText, getByRole, getByText } = render(
-        <Provider store={realStore}>
-          <Alerts />
-          <SignUp />
-        </Provider>
-      );
+        const { getByPlaceholderText, getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Alerts />
+            <SignUp />
+          </Provider>
+        );
 
-      // Act.
-      const usernameInput = getByPlaceholderText("Choose a username...");
-      const nameInput = getByPlaceholderText("Enter your name...");
-      const emailInput = getByPlaceholderText("Enter your email address...");
-      const passwordInput = getByPlaceholderText("Choose a password...");
-      const repeatPasswordInput = getByPlaceholderText("Repeat the chosen password...");
+        // Act.
+        const usernameInput = getByPlaceholderText("Choose a username...");
+        const nameInput = getByPlaceholderText("Enter your name...");
+        const emailInput = getByPlaceholderText("Enter your email address...");
+        const repeatPasswordInput = getByPlaceholderText(
+          "Repeat the chosen password..."
+        );
 
-      fireEvent.change(usernameInput, { target: { value: "[f-e] jd" } });
-      fireEvent.change(nameInput, { target: { value: "[f-e] John Doe" } });
-      fireEvent.change(emailInput, {
-        target: { value: "[f-e] john.doe@protonmail.com" },
-      });
-      fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
-      fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 456" } });
+        fireEvent.change(usernameInput, { target: { value: "[f-e] jd" } });
+        fireEvent.change(nameInput, { target: { value: "[f-e] John Doe" } });
+        fireEvent.change(emailInput, {
+          target: { value: "[f-e] john.doe@protonmail.com" },
+        });
+        fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 123" } });
 
-      const button = getByRole("button");
-      fireEvent.click(button);
+        const button = getByRole("button");
+        fireEvent.click(button);
 
-      // Assert.
-      getByText(/THE PROVIDED PASSWORDS DON'T MATCH/);
-    });
+        // Assert.
+        getByText("YOU MUST FILL OUT ALL FORM FIELDS");
+      }
+    );
+
+    test(
+      "the user fills out the form in an invalid way" +
+        " (by providing different texts in the 2 password fields) and submits it",
+      () => {
+        // Arrange.
+        const enhancer = applyMiddleware(thunkMiddleware);
+        const realStore = createStore(rootReducer, enhancer);
+
+        const { getByPlaceholderText, getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Alerts />
+            <SignUp />
+          </Provider>
+        );
+
+        // Act.
+        const usernameInput = getByPlaceholderText("Choose a username...");
+        const nameInput = getByPlaceholderText("Enter your name...");
+        const emailInput = getByPlaceholderText("Enter your email address...");
+        const passwordInput = getByPlaceholderText("Choose a password...");
+        const repeatPasswordInput = getByPlaceholderText(
+          "Repeat the chosen password..."
+        );
+
+        fireEvent.change(usernameInput, { target: { value: "[f-e] jd" } });
+        fireEvent.change(nameInput, { target: { value: "[f-e] John Doe" } });
+        fireEvent.change(emailInput, {
+          target: { value: "[f-e] john.doe@protonmail.com" },
+        });
+        fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
+        fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 456" } });
+
+        const button = getByRole("button");
+        fireEvent.click(button);
+
+        // Assert.
+        getByText(/THE PROVIDED PASSWORDS DON'T MATCH/);
+      }
+    );
   }
 );
 
@@ -987,31 +1031,35 @@ describe(
   "<Alerts> + <SignIn>" +
     " (without the user interaction triggering any network communication)",
   () => {
-    test("the user fills out the form in an invalid way and submits it", () => {
-      // Arrange.
-      const enhancer = applyMiddleware(thunkMiddleware);
-      const realStore = createStore(rootReducer, enhancer);
+    test(
+      "the user fills out the form in an invalid way" +
+        " (by failing to fill out all required fields) and submits it",
+      () => {
+        // Arrange.
+        const enhancer = applyMiddleware(thunkMiddleware);
+        const realStore = createStore(rootReducer, enhancer);
 
-      const { getByPlaceholderText, getByRole, getByText } = render(
-        <Provider store={realStore}>
-          <Alerts />
-          <SignIn />
-        </Provider>
-      );
+        const { getByPlaceholderText, getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Alerts />
+            <SignIn />
+          </Provider>
+        );
 
-      // Act.
-      const emailInput = getByPlaceholderText("Enter your email...");
-      const passwordInput = getByPlaceholderText("Enter your password...");
+        // Act.
+        const emailInput = getByPlaceholderText("Enter your email...");
+        const passwordInput = getByPlaceholderText("Enter your password...");
 
-      fireEvent.change(emailInput, { target: { value: "" } });
-      fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
+        fireEvent.change(emailInput, { target: { value: "" } });
+        fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
 
-      const button = getByRole("button");
-      fireEvent.click(button);
+        const button = getByRole("button");
+        fireEvent.click(button);
 
-      // Assert.
-      getByText("YOU MUST FILL OUT ALL FORM FIELDS");
-    });
+        // Assert.
+        getByText("YOU MUST FILL OUT ALL FORM FIELDS");
+      }
+    );
   }
 );
 

@@ -479,7 +479,16 @@ export const SignUp = () => {
     e.preventDefault();
 
     const id: string = uuidv4();
-    if (formData.password !== formData.repeatPassword) {
+    if (
+      formData.username === "" ||
+      formData.name === "" ||
+      formData.email === "" ||
+      formData.password === "" ||
+      formData.repeatPassword === ""
+    ) {
+      const message: string = "YOU MUST FILL OUT ALL FORM FIELDS";
+      dispatch(alertsCreate(id, message));
+    } else if (formData.password !== formData.repeatPassword) {
       const message: string = "THE PROVIDED PASSWORDS DON'T MATCH!";
       dispatch(alertsCreate(id, message));
     } else {
