@@ -78,8 +78,28 @@ export interface IStateEntries {
 export const initialStateEntries: IStateEntries = {
   requestStatus: RequestStatus.IDLE,
   requestError: null,
-  ids: [],
-  entities: {},
+  ids: [2, 1],
+  entities: {
+    1: {
+      id: 1,
+      timestampInUTC: "2020-12-01T15:17:00.000Z",
+      utcZoneOfTimestamp: "+02:00",
+      content:
+        "[hard-coded-into-Redux-state] Then it dawned on me: there is no finish line!",
+      createdAt: "2021-04-29T05:10:56.000Z",
+      updatedAt: "2021-04-29T05:10:56.000Z",
+      userId: 1,
+    },
+    2: {
+      id: 2,
+      timestampInUTC: "2019-08-20T13:17:00.000Z",
+      utcZoneOfTimestamp: "+01:00",
+      content: "[hard-coded-into-Redux-state] Mallorca has beautiful sunny beaches!",
+      createdAt: "2021-04-29T05:11:01.000Z",
+      updatedAt: "2021-04-29T05:11:01.000Z",
+      userId: 1,
+    },
+  },
 };
 
 export interface IState {
@@ -763,28 +783,11 @@ export const MyMonthlyJournal = () => {
       ` - React is rendering <MyMonthlyJournal>`
   );
 
-  const entriesEntities: { [key: string]: IEntry } = {
-    1: {
-      id: 1,
-      timestampInUTC: "2020-12-01T15:17:00.000Z",
-      utcZoneOfTimestamp: "+02:00",
-      content: "[hard-coded] Then it dawned on me: there is no finish line!",
-      createdAt: "2021-04-29T05:10:56.000Z",
-      updatedAt: "2021-04-29T05:10:56.000Z",
-      userId: 1,
-    },
-    2: {
-      id: 2,
-      timestampInUTC: "2019-08-20T13:17:00.000Z",
-      utcZoneOfTimestamp: "+01:00",
-      content: "[hard-coded] Mallorca has beautiful sunny beaches!",
-      createdAt: "2021-04-29T05:11:01.000Z",
-      updatedAt: "2021-04-29T05:11:01.000Z",
-      userId: 1,
-    },
-  };
+  const entriesSlice = useSelector((state: IState) => state.entries);
 
-  const entriesIds: number[] = [2, 1];
+  const entriesEntities: { [key: string]: IEntry } = entriesSlice.entities;
+
+  const entriesIds: number[] = entriesSlice.ids;
 
   const entries = entriesIds.map((entryId: number) => {
     const e: IEntry = entriesEntities[entryId];
