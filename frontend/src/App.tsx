@@ -78,28 +78,8 @@ export interface IStateEntries {
 export const initialStateEntries: IStateEntries = {
   requestStatus: RequestStatus.IDLE,
   requestError: null,
-  ids: [2, 1],
-  entities: {
-    1: {
-      id: 1,
-      timestampInUTC: "2020-12-01T15:17:00.000Z",
-      utcZoneOfTimestamp: "+02:00",
-      content:
-        "[hard-coded-into-Redux-state] Then it dawned on me: there is no finish line!",
-      createdAt: "2021-04-29T05:10:56.000Z",
-      updatedAt: "2021-04-29T05:10:56.000Z",
-      userId: 1,
-    },
-    2: {
-      id: 2,
-      timestampInUTC: "2019-08-20T13:17:00.000Z",
-      utcZoneOfTimestamp: "+01:00",
-      content: "[hard-coded-into-Redux-state] Mallorca has beautiful sunny beaches!",
-      createdAt: "2021-04-29T05:11:01.000Z",
-      updatedAt: "2021-04-29T05:11:01.000Z",
-      userId: 1,
-    },
-  },
+  ids: [],
+  entities: {},
 };
 
 export interface IState {
@@ -360,6 +340,44 @@ type ActionFetchEntries =
   | IFetchEntriesPending
   | IFetchEntriesRejected
   | IFetchEntriesFulfilled;
+
+/* entriesSlice - "entries/fetchEntries" thunk-action creator */
+export const fetchEntries = (): ThunkAction<
+  void,
+  IState,
+  unknown,
+  ActionFetchEntries
+> => {
+  /*
+  Create a thunk-action.
+  When dispatched, it issues an HTTP request
+  to the backend's endpoint for fetching all Entry resources,
+  which are associated with a specific User.
+  That User is uniquely specified by a JSON Web Signature token
+  (which was earlier saved in the User's web browser by the frontend).
+  */
+
+  return async (dispatch: Dispatch<ActionFetchEntries>) => {
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem(JOURNAL_APP_TOKEN),
+      },
+    };
+
+    dispatch(fetchEntriesPending());
+    try {
+      const response = await axios.get("/api/entries", config);
+      dispatch(fetchEntriesFulfilled(response.data.entries));
+      return Promise.resolve();
+    } catch (err) {
+      const responseBody = err.response.data;
+      const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
+      dispatch(fetchEntriesRejected(responseBodyError));
+      return Promise.reject(responseBodyError);
+    }
+  };
+};
 
 /* alertsSlice - reducer */
 export const alertsReducer = (
@@ -783,11 +801,44 @@ export const MyMonthlyJournal = () => {
       ` - React is rendering <MyMonthlyJournal>`
   );
 
-  const entriesSlice = useSelector((state: IState) => state.entries);
+  const dispatch = useDispatch();
 
-  const entriesEntities: { [key: string]: IEntry } = entriesSlice.entities;
+  React.useEffect(() => {
+    console.log(
+      `${new Date().toISOString()}` +
+        ` - ${__filename}` +
+        ` - React is running <MyMonthlyJournal>'s useEffect hook`
+    );
 
-  const entriesIds: number[] = entriesSlice.ids;
+    const effectFn = async () => {
+      try {
+        await dispatch(fetchEntries());
+        // console.log(" p =");
+        // console.log(p);
+        // console.log(typeof p);
+      } catch (err) {
+        const id = uuidv4();
+        dispatch(alertsCreate(id, err));
+      }
+
+      // p.then((r) => console.log(r)).catch((e) => console.log(e));
+    };
+
+    effectFn();
+  }, [dispatch]);
+
+  // const entriesRequestError = useSelector(
+  //   (state: IState) => state.entries.requestError
+  // );
+  const entriesEntities: { [key: string]: IEntry } = useSelector(
+    (state: IState) => state.entries.entities
+  );
+  const entriesIds: number[] = useSelector((state: IState) => state.entries.ids);
+
+  // if (entriesRequestError !== null) {
+  //   const id: string = uuidv4();
+  //   dispatch(alertsCreate(id, entriesRequestError));
+  // }
 
   const entries = entriesIds.map((entryId: number) => {
     const e: IEntry = entriesEntities[entryId];
@@ -801,6 +852,10 @@ export const MyMonthlyJournal = () => {
       </div>
     );
   });
+
+  // console.log(entriesRequestError);
+  console.log(entriesEntities);
+  console.log(entriesIds);
 
   return (
     <React.Fragment>
