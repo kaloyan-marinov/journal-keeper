@@ -813,32 +813,19 @@ export const MyMonthlyJournal = () => {
     const effectFn = async () => {
       try {
         await dispatch(fetchEntries());
-        // console.log(" p =");
-        // console.log(p);
-        // console.log(typeof p);
       } catch (err) {
         const id = uuidv4();
         dispatch(alertsCreate(id, err));
       }
-
-      // p.then((r) => console.log(r)).catch((e) => console.log(e));
     };
 
     effectFn();
   }, [dispatch]);
 
-  // const entriesRequestError = useSelector(
-  //   (state: IState) => state.entries.requestError
-  // );
   const entriesEntities: { [key: string]: IEntry } = useSelector(
     (state: IState) => state.entries.entities
   );
   const entriesIds: number[] = useSelector((state: IState) => state.entries.ids);
-
-  // if (entriesRequestError !== null) {
-  //   const id: string = uuidv4();
-  //   dispatch(alertsCreate(id, entriesRequestError));
-  // }
 
   const entries = entriesIds.map((entryId: number) => {
     const e: IEntry = entriesEntities[entryId];
@@ -852,10 +839,6 @@ export const MyMonthlyJournal = () => {
       </div>
     );
   });
-
-  // console.log(entriesRequestError);
-  console.log(entriesEntities);
-  console.log(entriesIds);
 
   return (
     <React.Fragment>

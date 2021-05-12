@@ -670,6 +670,33 @@ const requestHandlersToMock = [
       })
     );
   }),
+  rest.get("/api/entries", (req, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json({
+        entries: [
+          {
+            id: 1,
+            timestampInUTC: "2020-12-01T15:17:00.000Z",
+            utcZoneOfTimestamp: "+02:00",
+            content: "mocked-content-of-entry-1",
+            createdAt: "2021-04-29T05:10:56.000Z",
+            updatedAt: "2021-04-29T05:10:56.000Z",
+            userId: 1,
+          },
+          {
+            id: 2,
+            timestampInUTC: "2019-08-20T13:17:00.000Z",
+            utcZoneOfTimestamp: "+01:00",
+            content: "mocked-content-of-entry-2",
+            createdAt: "2021-04-29T05:11:01.000Z",
+            updatedAt: "2021-04-29T05:11:01.000Z",
+            userId: 1,
+          },
+        ],
+      })
+    );
+  }),
 ];
 
 /* Create an MSW "request-interception layer". */
@@ -1409,20 +1436,41 @@ describe(
 );
 
 describe("<MyMonthlyJournal>", () => {
-  test("initial render (i.e. before/without any user interaction)", () => {
-    const { getByText, getAllByText } = render(
-      <BrowserRouter>
-        <MyMonthlyJournal />
-      </BrowserRouter>
-    );
-
-    getByText("Review the entries in MyMonthlyJournal!");
-    getByText("Create a new entry");
-
-    getByText("[hard-coded] Then it dawned on me: there is no finish line!");
-    getByText("[hard-coded] Mallorca has beautiful sunny beaches!");
-
-    const editLinks = getAllByText("Edit");
-    expect(editLinks.length).toEqual(2);
+  beforeAll(() => {
+    // Enable API mocking.
+    quasiServer.listen();
   });
+
+  afterAll(() => {
+    // Disable API mocking.
+    quasiServer.close();
+  });
+
+  test(
+    "initial render" +
+      " (with _mocking_ of the network communication triggered by its effect f-n)",
+    async () => {
+      const enhancer = applyMiddleware(thunkMiddleware);
+      const realStore = createStore(rootReducer, enhancer);
+
+      const { getByText, getAllByText } = render(
+        <Provider store={realStore}>
+          <BrowserRouter>
+            <MyMonthlyJournal />
+          </BrowserRouter>
+        </Provider>
+      );
+
+      getByText("Review the entries in MyMonthlyJournal!");
+      getByText("Create a new entry");
+
+      await waitFor(() => {
+        getByText("mocked-content-of-entry-1");
+        getByText("mocked-content-of-entry-2");
+      });
+
+      const editLinks = getAllByText("Edit");
+      expect(editLinks.length).toEqual(2);
+    }
+  );
 });
