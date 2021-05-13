@@ -927,8 +927,8 @@ export const CreateEntry = () => {
             type="text"
             placeholder="YYYY-MM-DD HH:MM"
             name="localTime"
-            id="localTime-id"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
+            id="localTime-id"
           />
         </div>
         <div>
@@ -939,10 +939,10 @@ export const CreateEntry = () => {
         <div>
           <select
             name="timezone"
-            id="timezone-id"
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleChange(e)}
+            id="timezone-id"
           >
-            <option value="" selected></option>
+            <option value="" />
             {timezoneOptions}
           </select>
           UTC
@@ -953,8 +953,8 @@ export const CreateEntry = () => {
         <div>
           <textarea
             name="content"
-            id="content-id"
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange(e)}
+            id="content-id"
           />
         </div>
         <div>
