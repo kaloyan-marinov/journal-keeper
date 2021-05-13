@@ -567,6 +567,9 @@ const App = () => {
           <Route exact path="/my-monthly-journal">
             <MyMonthlyJournal />
           </Route>
+          <Route exact path="/create-entry">
+            <CreateEntry />
+          </Route>
         </Switch>
       </BrowserRouter>
     </React.Fragment>
@@ -844,8 +847,52 @@ export const MyMonthlyJournal = () => {
     <React.Fragment>
       {"<MyMonthlyJournal>"}
       <div>Review the entries in MyMonthlyJournal!</div>
-      <Link to="#">Create a new entry</Link>
+      <Link to="/create-entry">Create a new entry</Link>
       {entries}
+    </React.Fragment>
+  );
+};
+
+export const CreateEntry = () => {
+  return (
+    <React.Fragment>
+      {"<CreateEntry>"}
+      <h3>You are about to create a new Entry!</h3>
+      <form name="create-entry-form">
+        <div>
+          <label htmlFor="time-id">Specify your current local time:</label>
+        </div>
+        <div>
+          <input
+            type="time"
+            placeholder="YYYY-MM-DD HH:MM"
+            name="time-name"
+            id="time-id"
+          />
+        </div>
+        <div>
+          <label htmlFor="timezone-id">
+            Specify the time zone that you are currently in:
+          </label>
+        </div>
+        <div>
+          <select name="timezone-name" id="timezone-id">
+            <option value="" selected></option>
+            <option value="+01:00">+01:00</option>
+            <option value="+02:00">+02:00</option>
+          </select>
+          UTC
+        </div>
+        <div>
+          <label htmlFor="content-id">Type up the content of your new Entry:</label>
+        </div>
+        <div>
+          <textarea name="content-name" id="content-id" />
+        </div>
+        <div>
+          <input type="submit" value="Create entry" />
+        </div>
+      </form>
     </React.Fragment>
   );
 };
