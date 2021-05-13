@@ -1675,3 +1675,44 @@ describe("<CreateEntry>", () => {
     );
   });
 });
+
+describe(
+  "<Alerts> + <CreateEntry>" +
+    " (without the user interaction triggering any network communication)",
+  () => {
+    test(
+      "the user fills out the form in an invalid way" +
+        " (by failing to fill out all required fields) and submits it",
+      () => {
+        // Arrange.
+        const enhancer = applyMiddleware(thunkMiddleware);
+        const realStore = createStore(rootReducer, enhancer);
+
+        const { getAllByRole, getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Alerts />
+            <CreateEntry />
+          </Provider>
+        );
+
+        // Act.
+        const [localTimeInput, contentTextArea] = getAllByRole("textbox");
+
+        fireEvent.change(localTimeInput, { target: { value: "2021-05-13 00:18" } });
+        fireEvent.change(contentTextArea, {
+          target: {
+            value:
+              "'The genius can do many things. But he does only one thing at a time.'" +
+              " - Matthew McConaughey",
+          },
+        });
+
+        const button = getByRole("button");
+        fireEvent.click(button);
+
+        // Assert.
+        getByText("YOU MUST FILL OUT ALL FORM FIELDS");
+      }
+    );
+  }
+);
