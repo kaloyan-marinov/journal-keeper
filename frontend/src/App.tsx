@@ -379,6 +379,92 @@ export const fetchEntries = (): ThunkAction<
   };
 };
 
+/* entriesSlice - "entries/createEntry/" action creators */
+enum ActionTypesCreateEntry {
+  PENDING = "entries/createEntry/pending",
+  REJECTED = "entries/createEntry/rejected",
+  FULFILLED = "entries/createEntry/fulfilled",
+}
+
+interface ICreateEntryPending {
+  type: typeof ActionTypesCreateEntry.PENDING;
+}
+
+interface ICreateEntryRejected {
+  type: typeof ActionTypesCreateEntry.REJECTED;
+  error: string;
+}
+
+interface ICreateEntryFulfilled {
+  type: typeof ActionTypesCreateEntry.FULFILLED;
+  payload: {
+    entry: IEntry;
+  };
+}
+
+export const createEntryPending = (): ICreateEntryPending => ({
+  type: ActionTypesCreateEntry.PENDING,
+});
+
+export const createEntryRejected = (error: string): ICreateEntryRejected => ({
+  type: ActionTypesCreateEntry.REJECTED,
+  error,
+});
+
+export const createEntryFulfilled = (entry: IEntry): ICreateEntryFulfilled => ({
+  type: ActionTypesCreateEntry.FULFILLED,
+  payload: {
+    entry,
+  },
+});
+
+type ActionCreateEntry =
+  | ICreateEntryPending
+  | ICreateEntryRejected
+  | ICreateEntryFulfilled;
+
+/* entriesSlice - "entries/createEntry" thunk-action creator */
+export const createEntry = (
+  localTime: string,
+  timezone: string,
+  content: string
+): ThunkAction<void, IState, unknown, ActionCreateEntry> => {
+  /*
+  Create a thunk-action.
+  When dispatched, it issues an HTTP request
+  to the backend's endpoint for creating a new Entry resource,
+  which is associated with a specific User.
+  That User is uniquely specified by a JSON Web Signature token
+  (which was earlier saved in the User's web browser by the frontend).
+  */
+
+  return async (dispatch) => {
+    const body = JSON.stringify({
+      localTime,
+      timezone,
+      content,
+    });
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem(JOURNAL_APP_TOKEN),
+      },
+    };
+
+    dispatch(createEntryPending());
+    try {
+      const response = await axios.post("/api/entries", body, config);
+      dispatch(createEntryFulfilled(response.data));
+      return Promise.resolve();
+    } catch (err) {
+      const responseBody = err.response.data;
+      const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
+      dispatch(createEntryRejected(responseBodyError));
+      return Promise.reject(responseBodyError);
+    }
+  };
+};
+
 /* alertsSlice - reducer */
 export const alertsReducer = (
   stateAlerts: IStateAlerts = initialStateAlerts,
@@ -864,7 +950,7 @@ export const CreateEntry = () => {
     content: "",
   });
 
-  const dispatch: Dispatch = useDispatch();
+  const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
 
   /*
   Create a list of the UTC time offsets
@@ -890,7 +976,7 @@ export const CreateEntry = () => {
     </option>
   ));
 
-  const handleChange = (
+  const handleChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     setFormData({
@@ -899,7 +985,7 @@ export const CreateEntry = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const id: string = uuidv4();
@@ -911,7 +997,15 @@ export const CreateEntry = () => {
       const message: string = "YOU MUST FILL OUT ALL FORM FIELDS";
       dispatch(alertsCreate(id, message));
     } else {
-      console.log(formData);
+      try {
+        await dispatch(
+          createEntry(formData.localTime, formData.timezone, formData.content)
+        );
+
+        dispatch(alertsCreate(id, "ENTRY CREATION SUCCESSFUL"));
+      } catch (thunkActionError) {
+        dispatch(alertsCreate(id, thunkActionError));
+      }
     }
   };
 
