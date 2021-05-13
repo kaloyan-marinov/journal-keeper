@@ -854,6 +854,42 @@ export const MyMonthlyJournal = () => {
 };
 
 export const CreateEntry = () => {
+  /*
+  Create a list of the UTC time offsets
+  "from the westernmost (−12:00) to the easternmost (+14:00)"
+  (as per https://en.wikipedia.org/wiki/List_of_UTC_time_offsets ).
+  */
+  const start = -12;
+  const end = 14;
+
+  // const timezoneOptions = Array.from({ length: end - start + 1 }).map(
+  //   (_, ind) => ind + start
+  // );
+  // console.log(timezoneOptions);
+
+  // const temps = timezoneOptions.map((t) => t.toString().padStart(2, "0"));
+  // console.log(temps);
+
+  const nonnegativeOffsetsFromUtc = Array.from({ length: end + 1 }).map((_, ind) => {
+    return "+" + ind.toString().padStart(2, "0") + ":00";
+  });
+  console.log(nonnegativeOffsetsFromUtc);
+
+  const negativeOffsetsFromUtc = Array.from({ length: -start }).map((_, ind) => {
+    return "-" + (ind + 1).toString().padStart(2, "0") + ":00";
+  });
+  console.log(negativeOffsetsFromUtc);
+
+  const offsetsFromUtc = negativeOffsetsFromUtc
+    .reverse()
+    .concat(nonnegativeOffsetsFromUtc);
+
+  const timezoneOptions = offsetsFromUtc.map((offset, ind) => (
+    <option key={ind} value={offset}>
+      {offset}
+    </option>
+  ));
+
   return (
     <React.Fragment>
       {"<CreateEntry>"}
@@ -878,8 +914,7 @@ export const CreateEntry = () => {
         <div>
           <select name="timezone-name" id="timezone-id">
             <option value="" selected></option>
-            <option value="+01:00">+01:00</option>
-            <option value="+02:00">+02:00</option>
+            {timezoneOptions}
           </select>
           UTC
         </div>
