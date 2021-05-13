@@ -45,6 +45,7 @@ import {
   fetchEntriesFulfilled,
   entriesReducer,
 } from "./App";
+import { fetchEntries } from "./App";
 
 describe("action creators", () => {
   test("createUserPending", () => {
@@ -652,6 +653,29 @@ describe("reducers", () => {
 });
 
 /* Describe what requests should be mocked. */
+const mockedBodyOfResponseToFetchEntries = {
+  entries: [
+    {
+      id: 1,
+      timestampInUTC: "2020-12-01T15:17:00.000Z",
+      utcZoneOfTimestamp: "+02:00",
+      content: "mocked-content-of-entry-1",
+      createdAt: "2021-04-29T05:10:56.000Z",
+      updatedAt: "2021-04-29T05:10:56.000Z",
+      userId: 1,
+    },
+    {
+      id: 2,
+      timestampInUTC: "2019-08-20T13:17:00.000Z",
+      utcZoneOfTimestamp: "+01:00",
+      content: "mocked-content-of-entry-2",
+      createdAt: "2021-04-29T05:11:01.000Z",
+      updatedAt: "2021-04-29T05:11:01.000Z",
+      userId: 1,
+    },
+  ],
+};
+
 const requestHandlersToMock = [
   rest.post("/api/users", (req, res, ctx) => {
     return res(
@@ -671,31 +695,7 @@ const requestHandlersToMock = [
     );
   }),
   rest.get("/api/entries", (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({
-        entries: [
-          {
-            id: 1,
-            timestampInUTC: "2020-12-01T15:17:00.000Z",
-            utcZoneOfTimestamp: "+02:00",
-            content: "mocked-content-of-entry-1",
-            createdAt: "2021-04-29T05:10:56.000Z",
-            updatedAt: "2021-04-29T05:10:56.000Z",
-            userId: 1,
-          },
-          {
-            id: 2,
-            timestampInUTC: "2019-08-20T13:17:00.000Z",
-            utcZoneOfTimestamp: "+01:00",
-            content: "mocked-content-of-entry-2",
-            createdAt: "2021-04-29T05:11:01.000Z",
-            updatedAt: "2021-04-29T05:11:01.000Z",
-            userId: 1,
-          },
-        ],
-      })
-    );
+    return res(ctx.status(200), ctx.json(mockedBodyOfResponseToFetchEntries));
   }),
 ];
 
@@ -726,6 +726,9 @@ describe(
         auth: {
           ...initialStateAuth,
         },
+        entries: {
+          ...initialStateEntries,
+        },
       };
       storeMock = createStoreMock(initSt);
     });
@@ -749,7 +752,8 @@ describe(
       "createUser(username, ...)" +
         " + the HTTP request issued by that thunk-action is mocked to fail",
       async () => {
-        // Prepend a request handler to the request-interception layer.
+        // Arrange.
+        // (Prepend a request handler to the request-interception layer.)
         quasiServer.use(
           rest.post("/api/users", (req, res, ctx) => {
             return res(
@@ -761,6 +765,7 @@ describe(
           })
         );
 
+        // Act.
         const createUserPromise = storeMock.dispatch(
           createUser(
             "mocked-request-username",
@@ -770,6 +775,7 @@ describe(
           )
         );
 
+        // Assert.
         await expect(createUserPromise).rejects.toEqual(
           "[mocked-response] Failed to create a new User resource"
         );
@@ -810,7 +816,7 @@ describe(
       "issueJWSToken(email, password)" +
         " + the HTTP request issued by that thunk-action is mocked to fail",
       async () => {
-        // Prepend a request handler to the request-interception layer.
+        // Arrange.
         quasiServer.use(
           rest.post("/api/tokens", (req, res, ctx) => {
             return res(
@@ -822,10 +828,12 @@ describe(
           })
         );
 
+        // Act.
         const issueJWSTokenPromise = storeMock.dispatch(
           issueJWSToken("mocked-request-email", "mocked-request-password")
         );
 
+        // Assert.
         await expect(issueJWSTokenPromise).rejects.toEqual(
           "[mocked-response] Failed to issue a JWS token"
         );
@@ -859,6 +867,60 @@ describe(
             payload: {
               token: "mocked-json-web-signature-token",
             },
+          },
+        ]);
+      }
+    );
+
+    test(
+      "fetchEntries()" +
+        " + the HTTP request issued by that thunk-action is mocked to fail",
+      async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.get("/api/entries", (req, res, ctx) => {
+            return res(
+              ctx.status(401),
+              ctx.json({
+                error: "[mocked-response] Failed to authenticate you as an HTTP client",
+              })
+            );
+          })
+        );
+
+        // Act.
+        const fetchEntriesPromise = storeMock.dispatch(fetchEntries());
+
+        // Assert.
+        await expect(fetchEntriesPromise).rejects.toEqual(
+          "[mocked-response] Failed to authenticate you as an HTTP client"
+        );
+        expect(storeMock.getActions()).toEqual([
+          {
+            type: "entries/fetchEntries/pending",
+          },
+          {
+            type: "entries/fetchEntries/rejected",
+            error: "[mocked-response] Failed to authenticate you as an HTTP client",
+          },
+        ]);
+      }
+    );
+
+    test(
+      "fetchEntries()" +
+        " + the HTTP request issued by that thunk-action is mocked to succeed",
+      async () => {
+        const fetchEntriesPromise = storeMock.dispatch(fetchEntries());
+
+        await expect(fetchEntriesPromise).resolves.toEqual(undefined);
+        expect(storeMock.getActions()).toEqual([
+          {
+            type: "entries/fetchEntries/pending",
+          },
+          {
+            type: "entries/fetchEntries/fulfilled",
+            payload: mockedBodyOfResponseToFetchEntries,
           },
         ]);
       }
@@ -1435,10 +1497,14 @@ describe(
   }
 );
 
-describe("<MyMonthlyJournal>", () => {
+describe("<MyMonthlyJournal> - initial render", () => {
   beforeAll(() => {
     // Enable API mocking.
     quasiServer.listen();
+  });
+
+  beforeEach(() => {
+    quasiServer.resetHandlers();
   });
 
   afterAll(() => {
@@ -1447,8 +1513,47 @@ describe("<MyMonthlyJournal>", () => {
   });
 
   test(
-    "initial render" +
-      " (with _mocking_ of the network communication triggered by its effect f-n)",
+    "(<Alerts> + <MyMonthlyJournal>) a GET request is issued to /api/entries" +
+      " as part of the effect function, but the backend is _mocked_ to reject" +
+      " the client-provided authentication credential as invalid",
+    async () => {
+      // Arrange.
+      quasiServer.use(
+        rest.get("/api/entries", (req, res, ctx) => {
+          return res(
+            ctx.status(401),
+            ctx.json({
+              error: "[mocked-response] Failed to authenticate you as an HTTP client",
+            })
+          );
+        })
+      );
+
+      const enhancer = applyMiddleware(thunkMiddleware);
+      const realStore = createStore(rootReducer, enhancer);
+
+      // Act.
+      const { getByText, getByRole } = render(
+        <Provider store={realStore}>
+          <BrowserRouter>
+            <Alerts />
+            <MyMonthlyJournal />
+          </BrowserRouter>
+        </Provider>
+      );
+
+      // Assert.
+      await waitFor(() => {
+        getByRole("button");
+        getByText("[mocked-response] Failed to authenticate you as an HTTP client");
+      });
+    }
+  );
+
+  test(
+    "a GET request is issued to /api/entries" +
+      " as part of the effect function, and the backend is _mocked_ to accept" +
+      " the client-provided authentication credential as valid",
     async () => {
       const enhancer = applyMiddleware(thunkMiddleware);
       const realStore = createStore(rootReducer, enhancer);
