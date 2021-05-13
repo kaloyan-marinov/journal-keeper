@@ -7,7 +7,7 @@ import {
   createUserFulfilled,
   rootReducer,
 } from "./App";
-import App, { Alerts, SignUp, SignIn, MyMonthlyJournal } from "./App";
+import App, { Alerts, SignUp, SignIn, MyMonthlyJournal, CreateEntry } from "./App";
 
 import { Provider } from "react-redux";
 import { store } from "./App";
@@ -1578,4 +1578,28 @@ describe("<MyMonthlyJournal> - initial render", () => {
       expect(editLinks.length).toEqual(2);
     }
   );
+});
+
+describe("<CreateEntry>", () => {
+  test("initial render (i.e. before/without any user interaction)", () => {
+    const { getAllByRole, getByText, getByPlaceholderText } = render(
+      <Provider store={store}>
+        <CreateEntry />
+      </Provider>
+    );
+
+    const textboxes = getAllByRole("textbox");
+    expect(textboxes.length).toEqual(2);
+
+    getByText("You are about to create a new Entry!");
+
+    getByText("Specify your current local time:");
+    getByPlaceholderText("YYYY-MM-DD HH:MM");
+
+    getByText("Specify the time zone that you are currently in:");
+
+    getByText("Type up the content of your new Entry:");
+
+    getByText("Create entry");
+  });
 });
