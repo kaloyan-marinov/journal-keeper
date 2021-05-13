@@ -625,14 +625,14 @@ export const SignUp = () => {
     password: "",
     repeatPassword: "",
   });
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const id: string = uuidv4();
@@ -676,7 +676,7 @@ export const SignUp = () => {
       <div>Create a new account!</div>
       <form
         name="sign-up-form"
-        onSubmit={(e: React.FormEvent<HTMLFormElement>) => onSubmit(e)}
+        onSubmit={(e: React.FormEvent<HTMLFormElement>) => handleSubmit(e)}
       >
         <div>
           <input
@@ -684,7 +684,7 @@ export const SignUp = () => {
             placeholder="Choose a username..."
             name="username"
             value={formData.username}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
           />
         </div>
         <div>
@@ -693,7 +693,7 @@ export const SignUp = () => {
             placeholder="Enter your name..."
             name="name"
             value={formData.name}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
           />
         </div>
         <div>
@@ -702,7 +702,7 @@ export const SignUp = () => {
             placeholder="Enter your email address..."
             name="email"
             value={formData.email}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
           />
         </div>
         <div>
@@ -711,7 +711,7 @@ export const SignUp = () => {
             placeholder="Choose a password..."
             name="password"
             value={formData.password}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
           />
         </div>
         <div>
@@ -720,7 +720,7 @@ export const SignUp = () => {
             placeholder="Repeat the chosen password..."
             name="repeatPassword"
             value={formData.repeatPassword}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
           />
         </div>
         <input type="submit" value="Create an account for me" />
@@ -740,14 +740,14 @@ export const SignIn = () => {
     email: "",
     password: "",
   });
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const id: string = uuidv4();
@@ -770,7 +770,7 @@ export const SignIn = () => {
       <div>Log in to your account!</div>
       <form
         name="sign-in-form"
-        onSubmit={(e: React.FormEvent<HTMLFormElement>) => onSubmit(e)}
+        onSubmit={(e: React.FormEvent<HTMLFormElement>) => handleSubmit(e)}
       >
         <div>
           <input
@@ -778,7 +778,7 @@ export const SignIn = () => {
             placeholder="Enter your email..."
             name="email"
             value={formData.email}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
           />
         </div>
         <div>
@@ -787,7 +787,7 @@ export const SignIn = () => {
             placeholder="Enter your password..."
             name="password"
             value={formData.password}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
           />
         </div>
         <div>
@@ -854,6 +854,12 @@ export const MyMonthlyJournal = () => {
 };
 
 export const CreateEntry = () => {
+  const [formData, setFormData] = React.useState({
+    timezone: "",
+    localTime: "",
+    content: "",
+  });
+
   /*
   Create a list of the UTC time offsets
   "from the westernmost (−12:00) to the easternmost (+14:00)"
@@ -862,24 +868,12 @@ export const CreateEntry = () => {
   const start = -12;
   const end = 14;
 
-  // const timezoneOptions = Array.from({ length: end - start + 1 }).map(
-  //   (_, ind) => ind + start
-  // );
-  // console.log(timezoneOptions);
-
-  // const temps = timezoneOptions.map((t) => t.toString().padStart(2, "0"));
-  // console.log(temps);
-
   const nonnegativeOffsetsFromUtc = Array.from({ length: end + 1 }).map((_, ind) => {
     return "+" + ind.toString().padStart(2, "0") + ":00";
   });
-  console.log(nonnegativeOffsetsFromUtc);
-
   const negativeOffsetsFromUtc = Array.from({ length: -start }).map((_, ind) => {
     return "-" + (ind + 1).toString().padStart(2, "0") + ":00";
   });
-  console.log(negativeOffsetsFromUtc);
-
   const offsetsFromUtc = negativeOffsetsFromUtc
     .reverse()
     .concat(nonnegativeOffsetsFromUtc);
@@ -890,20 +884,39 @@ export const CreateEntry = () => {
     </option>
   ));
 
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    console.log(formData);
+  };
+
   return (
     <React.Fragment>
       {"<CreateEntry>"}
       <h3>You are about to create a new Entry!</h3>
-      <form name="create-entry-form">
+      <form
+        name="create-entry-form"
+        onSubmit={(e: React.FormEvent<HTMLFormElement>) => handleSubmit(e)}
+      >
         <div>
-          <label htmlFor="time-id">Specify your current local time:</label>
+          <label htmlFor="localTime-id">Specify your current local time:</label>
         </div>
         <div>
           <input
             type="time"
             placeholder="YYYY-MM-DD HH:MM"
-            name="time-name"
-            id="time-id"
+            name="localTime"
+            id="localTime-id"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
           />
         </div>
         <div>
@@ -912,7 +925,11 @@ export const CreateEntry = () => {
           </label>
         </div>
         <div>
-          <select name="timezone-name" id="timezone-id">
+          <select
+            name="timezone"
+            id="timezone-id"
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleChange(e)}
+          >
             <option value="" selected></option>
             {timezoneOptions}
           </select>
@@ -922,7 +939,11 @@ export const CreateEntry = () => {
           <label htmlFor="content-id">Type up the content of your new Entry:</label>
         </div>
         <div>
-          <textarea name="content-name" id="content-id" />
+          <textarea
+            name="content"
+            id="content-id"
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange(e)}
+          />
         </div>
         <div>
           <input type="submit" value="Create entry" />
