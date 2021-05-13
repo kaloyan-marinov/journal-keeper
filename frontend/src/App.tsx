@@ -860,6 +860,8 @@ export const CreateEntry = () => {
     content: "",
   });
 
+  const dispatch = useDispatch();
+
   /*
   Create a list of the UTC time offsets
   "from the westernmost (−12:00) to the easternmost (+14:00)"
@@ -896,7 +898,17 @@ export const CreateEntry = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    console.log(formData);
+    const id: string = uuidv4();
+    if (
+      formData.timezone === "" ||
+      formData.localTime === "" ||
+      formData.content === ""
+    ) {
+      const message: string = "YOU MUST FILL OUT ALL FORM FIELDS";
+      dispatch(alertsCreate(id, message));
+    } else {
+      console.log(formData);
+    }
   };
 
   return (
@@ -912,7 +924,7 @@ export const CreateEntry = () => {
         </div>
         <div>
           <input
-            type="time"
+            type="text"
             placeholder="YYYY-MM-DD HH:MM"
             name="localTime"
             id="localTime-id"
