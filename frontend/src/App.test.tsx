@@ -47,6 +47,9 @@ import {
 } from "./App";
 import { fetchEntries } from "./App";
 
+import { createEntryPending, createEntryRejected, createEntryFulfilled } from "./App";
+import { createEntry } from "./App";
+
 describe("action creators", () => {
   test("createUserPending", () => {
     const action = createUserPending();
@@ -170,6 +173,44 @@ describe("action creators", () => {
       type: "entries/fetchEntries/fulfilled",
       payload: {
         entries,
+      },
+    });
+  });
+
+  test("createEntryPending", () => {
+    const action = createEntryPending();
+
+    expect(action).toEqual({
+      type: "entries/createEntry/pending",
+    });
+  });
+
+  test("createEntryRejected", () => {
+    const action = createEntryRejected("entries-createEntry-rejected");
+
+    expect(action).toEqual({
+      type: "entries/createEntry/rejected",
+      error: "entries-createEntry-rejected",
+    });
+  });
+
+  test("createEntryFulfilled", () => {
+    const entry = {
+      id: 1,
+      timestampInUTC: "2020-12-01T15:17:00.000Z",
+      utcZoneOfTimestamp: "+02:00",
+      content: "[hard-coded-into-test] Then it dawned on me: there is no finish line!",
+      createdAt: "2021-04-29T05:10:56.000Z",
+      updatedAt: "2021-04-29T05:10:56.000Z",
+      userId: 1,
+    };
+
+    const action = createEntryFulfilled(entry);
+
+    expect(action).toEqual({
+      type: "entries/createEntry/fulfilled",
+      payload: {
+        entry,
       },
     });
   });
@@ -653,17 +694,19 @@ describe("reducers", () => {
 });
 
 /* Describe what requests should be mocked. */
+const entry1 = {
+  id: 1,
+  timestampInUTC: "2020-12-01T15:17:00.000Z",
+  utcZoneOfTimestamp: "+02:00",
+  content: "mocked-content-of-entry-1",
+  createdAt: "2021-04-29T05:10:56.000Z",
+  updatedAt: "2021-04-29T05:10:56.000Z",
+  userId: 1,
+};
+
 const mockedBodyOfResponseToFetchEntries = {
   entries: [
-    {
-      id: 1,
-      timestampInUTC: "2020-12-01T15:17:00.000Z",
-      utcZoneOfTimestamp: "+02:00",
-      content: "mocked-content-of-entry-1",
-      createdAt: "2021-04-29T05:10:56.000Z",
-      updatedAt: "2021-04-29T05:10:56.000Z",
-      userId: 1,
-    },
+    entry1,
     {
       id: 2,
       timestampInUTC: "2019-08-20T13:17:00.000Z",
@@ -696,6 +739,9 @@ const requestHandlersToMock = [
   }),
   rest.get("/api/entries", (req, res, ctx) => {
     return res(ctx.status(200), ctx.json(mockedBodyOfResponseToFetchEntries));
+  }),
+  rest.post("/api/entries", (req, res, ctx) => {
+    return res(ctx.status(200), ctx.json(entry1));
   }),
 ];
 
@@ -921,6 +967,66 @@ describe(
           {
             type: "entries/fetchEntries/fulfilled",
             payload: mockedBodyOfResponseToFetchEntries,
+          },
+        ]);
+      }
+    );
+
+    test(
+      "createEntry(localTime, ...)" +
+        " + the HTTP request issued by that thunk-action is mocked to fail",
+      async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.post("/api/entries", (req, res, ctx) => {
+            return res(
+              ctx.status(400),
+              ctx.json({
+                error: "[mocked-response] Failed to create a new Entry resource",
+              })
+            );
+          })
+        );
+
+        // Act.
+        const createEntryPromise = storeMock.dispatch(
+          createEntry("bad-localTime", entry1.timezone, entry1.content)
+        );
+
+        // Assert.
+        await expect(createEntryPromise).rejects.toEqual(
+          "[mocked-response] Failed to create a new Entry resource"
+        );
+        expect(storeMock.getActions()).toEqual([
+          {
+            type: "entries/createEntry/pending",
+          },
+          {
+            type: "entries/createEntry/rejected",
+            error: "[mocked-response] Failed to create a new Entry resource",
+          },
+        ]);
+      }
+    );
+
+    test(
+      "createEntry(localTime, ...)" +
+        " + the HTTP request issued by that thunk-action is mocked to succeed",
+      async () => {
+        const createEntryPromise = storeMock.dispatch(
+          createEntry(entry1.localTime, entry1.timezone, entry1.content)
+        );
+
+        await expect(createEntryPromise).resolves.toEqual(undefined);
+        expect(storeMock.getActions()).toEqual([
+          {
+            type: "entries/createEntry/pending",
+          },
+          {
+            type: "entries/createEntry/fulfilled",
+            payload: {
+              entry: entry1,
+            },
           },
         ]);
       }
@@ -1712,6 +1818,109 @@ describe(
 
         // Assert.
         getByText("YOU MUST FILL OUT ALL FORM FIELDS");
+      }
+    );
+  }
+);
+
+describe(
+  "<Alerts> + <CreateEntry>" +
+    " (with the user interaction triggering network communication)",
+  () => {
+    beforeAll(() => {
+      // Enable API mocking.
+      quasiServer.listen();
+    });
+
+    beforeEach(() => {
+      quasiServer.resetHandlers();
+    });
+
+    afterAll(() => {
+      // Disable API mocking.
+      quasiServer.close();
+    });
+
+    test(
+      "the user fills out the form and submits it," +
+        " but the backend is _mocked_ to respond that" +
+        " the form was filled out in an invalid way",
+      async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.post("/api/entries", (req, res, ctx) => {
+            return res(
+              ctx.status(400),
+              ctx.json({
+                error: "[mocked-response] Failed to create a new Entry resource",
+              })
+            );
+          })
+        );
+
+        const enhancer = applyMiddleware(thunkMiddleware);
+        const realStore = createStore(rootReducer, enhancer);
+
+        const { getAllByRole, getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Alerts />
+            <CreateEntry />
+          </Provider>
+        );
+
+        // Act.
+        const [localTimeInput, contentTextArea] = getAllByRole("textbox");
+        const timezoneSelect = getByRole("combobox");
+
+        fireEvent.change(localTimeInput, { target: { value: "2021-05-13 00:18" } });
+        fireEvent.change(timezoneSelect, { target: { value: "-08:00" } });
+        fireEvent.change(contentTextArea, {
+          target: { value: "some insightful content" },
+        });
+
+        const button = getByRole("button");
+        fireEvent.click(button);
+
+        // Assert.
+        await waitFor(() => {
+          getByText("[mocked-response] Failed to create a new Entry resource");
+        });
+      }
+    );
+
+    test(
+      "the user fills out the form and submits it," +
+        " and the backend is _mocked_ to respond that" +
+        " the form submission was accepted as valid and processed",
+      async () => {
+        // Arrange.
+        const enhancer = applyMiddleware(thunkMiddleware);
+        const realStore = createStore(rootReducer, enhancer);
+
+        const { getAllByRole, getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Alerts />
+            <CreateEntry />
+          </Provider>
+        );
+
+        // Act.
+        const [localTimeInput, contentTextArea] = getAllByRole("textbox");
+        const timezoneSelect = getByRole("combobox");
+
+        fireEvent.change(localTimeInput, { target: { value: "2021-05-13 00:18" } });
+        fireEvent.change(timezoneSelect, { target: { value: "-08:00" } });
+        fireEvent.change(contentTextArea, {
+          target: { value: "some insightful content " },
+        });
+
+        const button = getByRole("button");
+        fireEvent.click(button);
+
+        // Assert.
+        await waitFor(() => {
+          getByText("ENTRY CREATION SUCCESSFUL");
+        });
       }
     );
   }
