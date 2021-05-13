@@ -1602,4 +1602,76 @@ describe("<CreateEntry>", () => {
 
     getByText("Create entry");
   });
+
+  test("the user fills out the form (without submitting it)", () => {
+    // Arrange.
+    const { getAllByRole, getByRole, getByDisplayValue, getByText } = render(
+      <Provider store={store}>
+        <CreateEntry />
+      </Provider>
+    );
+
+    // Act.
+    const [localTimeInput, contentTextArea] = getAllByRole("textbox");
+    const timezoneSelect = getByRole("combobox");
+
+    fireEvent.change(localTimeInput, { target: { value: "2021-05-13 00:18" } });
+    fireEvent.change(contentTextArea, {
+      target: {
+        value:
+          "'The genius can do many things. But he does only one thing at a time.'" +
+          " - Matthew McConaughey",
+      },
+    });
+
+    fireEvent.change(timezoneSelect, { target: { value: "-08:00" } });
+
+    // Assert.
+    /*
+    The next statement (implicitly but also effectively) makes an assertion
+    about the "current value" of one <input> tag.
+
+    It is worth emphasizing that
+    the <input> tag in question doesn't need to include a `value` attribute
+    _but_ including it makes the encompasssing test case more friendly/tractable.
+    To wit:
+
+      - on the one hand, if the string within the next statement is changed,
+        the encompassing test case will fail - which is what one would expect to happen
+
+      - on the other hand, if the <input> tag is rid of its `value` attribute
+        and if the string within the next statement is changed,
+        the encompassing test case will fail
+        _but_ its error message will not indicate the actual "display value" of the
+        <input> tag
+    */
+    getByDisplayValue("2021-05-13 00:18");
+    /*
+    Replacing the next statement's "-08:00" with "-07:00" causes this test to crash
+    and prints out an error message.
+
+    TODO: find out whether the error message can be forced to indicate
+          which `<option>` tag is actually `selected`
+    */
+    getByDisplayValue("-08:00");
+    /*
+    The next statement (implicitly but also effectively) makes an assertion
+    about the "text content" of one <textarea> tag.
+
+    It is worth emphasizing that
+    the <textarea> tag in question _needs_ to include a `value` attribute.
+    To wit:
+
+      - on the one hand, if the string within the next statement is changed,
+        the encompassing test case will fail - which is what one would expect to happen
+  
+      - on the other hand, if the <textarea> tag is rid of its `value` attribute
+        and if the string within the next statement remains unchanged,
+        the encompassing test will fail
+    */
+    getByText(
+      "'The genius can do many things. But he does only one thing at a time.'" +
+        " - Matthew McConaughey"
+    );
+  });
 });

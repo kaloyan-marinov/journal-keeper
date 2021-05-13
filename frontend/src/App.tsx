@@ -854,6 +854,10 @@ export const MyMonthlyJournal = () => {
 };
 
 export const CreateEntry = () => {
+  console.log(
+    `${new Date().toISOString()} - ${__filename} - React is rendering <CreateEntry>`
+  );
+
   const [formData, setFormData] = React.useState({
     timezone: "",
     localTime: "",
@@ -927,6 +931,7 @@ export const CreateEntry = () => {
             type="text"
             placeholder="YYYY-MM-DD HH:MM"
             name="localTime"
+            value={formData.localTime}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
             id="localTime-id"
           />
@@ -953,6 +958,7 @@ export const CreateEntry = () => {
         <div>
           <textarea
             name="content"
+            value={formData.content}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange(e)}
             id="content-id"
           />
