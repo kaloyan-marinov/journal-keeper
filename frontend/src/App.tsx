@@ -804,7 +804,7 @@ export const MyMonthlyJournal = () => {
       ` - React is rendering <MyMonthlyJournal>`
   );
 
-  const dispatch = useDispatch();
+  const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
 
   React.useEffect(() => {
     console.log(
@@ -860,7 +860,7 @@ export const CreateEntry = () => {
     content: "",
   });
 
-  const dispatch = useDispatch();
+  const dispatch: Dispatch = useDispatch();
 
   /*
   Create a list of the UTC time offsets
