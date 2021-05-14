@@ -804,9 +804,11 @@ const App = () => {
           <Route exact path="/create-entry">
             <CreateEntry />
           </Route>
-          <Route exact path="/edit-entry">
-            <EditEntry />
-          </Route>
+          <Route
+            exact
+            path="/edit-entry/:id"
+            render={(props) => <EditEntry {...props} />}
+          />
         </Switch>
       </BrowserRouter>
     </React.Fragment>
@@ -1075,7 +1077,7 @@ export const MyMonthlyJournal = () => {
         <hr></hr>
         <h3>{e.timestampInUTC} UTC</h3>
         <p>{e.content}</p>
-        <Link to="/edit-entry">Edit</Link>
+        <Link to={"/edit-entry/" + e.id}>Edit</Link>
       </div>
     );
   });
@@ -1216,10 +1218,16 @@ export const CreateEntry = () => {
   );
 };
 
-export const EditEntry = () => {
+export const EditEntry = (props: any) => {
   console.log(
     `${new Date().toISOString()} - ${__filename} - React is rendering <EditEntry>`
   );
+  console.log(
+    `${new Date().toISOString()}` +
+      ` - ${__filename}` +
+      ` - inspecting the \`props\` passed in to <EditEntry>:`
+  );
+  console.log(props);
 
   return <React.Fragment>{"<EditEntry>"}</React.Fragment>;
 };
