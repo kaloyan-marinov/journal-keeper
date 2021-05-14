@@ -51,6 +51,7 @@ import { createEntryPending, createEntryRejected, createEntryFulfilled } from ".
 import { createEntry } from "./App";
 
 import { editEntryPending, editEntryRejected, editEntryFulfilled } from "./App";
+import { editEntry } from "./App";
 
 describe("action creators", () => {
   test("createUserPending", () => {
@@ -948,6 +949,9 @@ const requestHandlersToMock = [
   rest.post("/api/entries", (req, res, ctx) => {
     return res(ctx.status(200), ctx.json(entry1));
   }),
+  rest.put("/api/entries/17", (req, res, ctx) => {
+    return res(ctx.status(200), ctx.json(entry1));
+  }),
 ];
 
 /* Create an MSW "request-interception layer". */
@@ -1229,6 +1233,70 @@ describe(
           },
           {
             type: "entries/createEntry/fulfilled",
+            payload: {
+              entry: entry1,
+            },
+          },
+        ]);
+      }
+    );
+
+    test(
+      "editEntry(entryId, ...)" +
+        " + the HTTP request issued by that thunk-action is mocked to fail",
+      async () => {
+        // Arrange.
+        const entryId = 17000;
+        quasiServer.use(
+          rest.put(`/api/entries/${entryId}`, (req, res, ctx) => {
+            return res(
+              ctx.status(400),
+              ctx.json({
+                error: "[mocked response] Failed to edit the targeted Entry resource",
+              })
+            );
+          })
+        );
+
+        // Act.
+        const editEntryPromise = storeMock.dispatch(
+          editEntry(entryId, entry1.localTime, entry1.timezone, entry1.content)
+        );
+
+        // Assert.
+        await expect(editEntryPromise).rejects.toEqual(
+          "[mocked response] Failed to edit the targeted Entry resource"
+        );
+
+        expect(storeMock.getActions()).toEqual([
+          {
+            type: "entries/editEntry/pending",
+          },
+          {
+            type: "entries/editEntry/rejected",
+            error: "[mocked response] Failed to edit the targeted Entry resource",
+          },
+        ]);
+      }
+    );
+
+    test(
+      "editEntry(entryId, ...)" +
+        " + the HTTP request issued by that thunk-action is mocked to succeed",
+      async () => {
+        const entryId = 17;
+        const editEntryPromise = storeMock.dispatch(
+          editEntry(entryId, entry1.localTime, entry1.timezone, entry1.content)
+        );
+
+        await expect(editEntryPromise).resolves.toEqual(undefined);
+
+        expect(storeMock.getActions()).toEqual([
+          {
+            type: "entries/editEntry/pending",
+          },
+          {
+            type: "entries/editEntry/fulfilled",
             payload: {
               entry: entry1,
             },

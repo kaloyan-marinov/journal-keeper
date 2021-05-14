@@ -350,11 +350,13 @@ export const fetchEntries = (): ThunkAction<
 > => {
   /*
   Create a thunk-action.
-  When dispatched, it issues an HTTP request
+  When dispatched, it makes the web browser issue an HTTP request
   to the backend's endpoint for fetching all Entry resources,
   which are associated with a specific User.
-  That User is uniquely specified by a JSON Web Signature token
-  (which was earlier saved in the User's web browser by the frontend).
+
+  That User is uniquely specified by a JSON Web Signature token,
+  which is required to have been saved earlier (by the frontend)
+  in the HTTP-request-issuing web browser.
   */
 
   return async (dispatch: Dispatch<ActionFetchEntries>) => {
@@ -431,11 +433,13 @@ export const createEntry = (
 ): ThunkAction<void, IState, unknown, ActionCreateEntry> => {
   /*
   Create a thunk-action.
-  When dispatched, it issues an HTTP request
-  to the backend's endpoint for creating a new Entry resource,
-  which is associated with a specific User.
-  That User is uniquely specified by a JSON Web Signature token
-  (which was earlier saved in the User's web browser by the frontend).
+  When dispatched, it makes the web browser issue an HTTP request
+  to the backend's endpoint for creating a new Entry resource.
+  
+  Like all Entry resources, the new one will be associated with a specific User.
+  That User is uniquely specified by a JSON Web Signature token,
+  which is required to have been saved earlier (by the frontend)
+  in the HTTP-request-issuing web browser.
   */
 
   return async (dispatch) => {
@@ -505,6 +509,51 @@ export const editEntryFulfilled = (entry: IEntry): IEditEntryFulfilled => ({
 });
 
 type ActionEditEntry = IEditEntryPending | IEditEntryRejected | IEditEntryFulfilled;
+
+/* entriesSlice - "entries/editEntry" thunk-action creator */
+export const editEntry = (
+  entryId: number,
+  localTime: string,
+  timezone: string,
+  content: string
+): ThunkAction<void, IState, unknown, ActionEditEntry> => {
+  /*
+  Create a thunk-action.
+  When dispatched, it makes the web browser issue an HTTP request
+  to the backend's endpoint for editing a specific Entry resource.
+
+  Like all Entry resources, the targeted one must be associated with a specific User.
+  That User is uniquely specified by a JSON Web Signature token,
+  which is required to have been saved earlier (by the frontend)
+  in the HTTP-request-issuing web browser.
+  */
+
+  return async (dispatch) => {
+    const body = JSON.stringify({
+      localTime,
+      timezone,
+      content,
+    });
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem(JOURNAL_APP_TOKEN),
+      },
+    };
+
+    dispatch(editEntryPending());
+    try {
+      const response = await axios.put(`/api/entries/${entryId}`, body, config);
+      dispatch(editEntryFulfilled(response.data));
+      return Promise.resolve();
+    } catch (err) {
+      const responseBody = err.response.data;
+      const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
+      dispatch(editEntryRejected(responseBodyError));
+      return Promise.reject(responseBodyError);
+    }
+  };
+};
 
 /* alertsSlice - reducer */
 export const alertsReducer = (
