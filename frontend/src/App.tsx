@@ -504,6 +504,8 @@ export const editEntryFulfilled = (entry: IEntry): IEditEntryFulfilled => ({
   },
 });
 
+type ActionEditEntry = IEditEntryPending | IEditEntryRejected | IEditEntryFulfilled;
+
 /* alertsSlice - reducer */
 export const alertsReducer = (
   stateAlerts: IStateAlerts = initialStateAlerts,
@@ -603,7 +605,7 @@ export const authReducer = (
 /* entriesSlice - reducer */
 export const entriesReducer = (
   stateEntries: IStateEntries = initialStateEntries,
-  action: ActionFetchEntries | ActionCreateEntry
+  action: ActionFetchEntries | ActionCreateEntry | ActionEditEntry
 ): IStateEntries => {
   switch (action.type) {
     case ActionTypesFetchEntries.PENDING:
@@ -666,6 +668,34 @@ export const entriesReducer = (
         requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
         ids: newIds,
+        entities: newEntities,
+      };
+    }
+
+    case ActionTypesEditEntry.PENDING:
+      return {
+        ...stateEntries,
+        requestStatus: RequestStatus.LOADING,
+        requestError: null,
+      };
+
+    case ActionTypesEditEntry.REJECTED:
+      return {
+        ...stateEntries,
+        requestStatus: RequestStatus.FAILED,
+        requestError: action.error,
+      };
+
+    case ActionTypesEditEntry.FULFILLED: {
+      const entry: IEntry = action.payload.entry;
+
+      const newEntities: { [entryId: string]: IEntry } = { ...stateEntries.entities };
+      newEntities[entry.id] = entry;
+
+      return {
+        ...stateEntries,
+        requestStatus: RequestStatus.SUCCEEDED,
+        requestError: null,
         entities: newEntities,
       };
     }
