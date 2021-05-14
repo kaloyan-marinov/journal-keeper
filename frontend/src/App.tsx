@@ -14,6 +14,8 @@ import { combineReducers } from "redux";
 
 import { ThunkAction, ThunkDispatch } from "redux-thunk";
 
+import { RouteComponentProps } from "react-router-dom";
+
 /*
 Specify all slices of the Redux state,
 along with an initial value for each slice.
@@ -1218,7 +1220,11 @@ export const CreateEntry = () => {
   );
 };
 
-export const EditEntry = (props: any) => {
+type EditEntryParams = {
+  id: string;
+};
+
+export const EditEntry = (props: RouteComponentProps<EditEntryParams>) => {
   console.log(
     `${new Date().toISOString()} - ${__filename} - React is rendering <EditEntry>`
   );
