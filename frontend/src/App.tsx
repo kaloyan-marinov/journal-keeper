@@ -465,6 +465,45 @@ export const createEntry = (
   };
 };
 
+/* entriesSlice - "entries/editEntry/" action creators */
+enum ActionTypesEditEntry {
+  PENDING = "entries/editEntry/pending",
+  REJECTED = "entries/editEntry/rejected",
+  FULFILLED = "entries/editEntry/fulfilled",
+}
+
+interface IEditEntryPending {
+  type: typeof ActionTypesEditEntry.PENDING;
+}
+
+interface IEditEntryRejected {
+  type: typeof ActionTypesEditEntry.REJECTED;
+  error: string;
+}
+
+interface IEditEntryFulfilled {
+  type: typeof ActionTypesEditEntry.FULFILLED;
+  payload: {
+    entry: IEntry;
+  };
+}
+
+export const editEntryPending = (): IEditEntryPending => ({
+  type: ActionTypesEditEntry.PENDING,
+});
+
+export const editEntryRejected = (error: string): IEditEntryRejected => ({
+  type: ActionTypesEditEntry.REJECTED,
+  error,
+});
+
+export const editEntryFulfilled = (entry: IEntry): IEditEntryFulfilled => ({
+  type: ActionTypesEditEntry.FULFILLED,
+  payload: {
+    entry,
+  },
+});
+
 /* alertsSlice - reducer */
 export const alertsReducer = (
   stateAlerts: IStateAlerts = initialStateAlerts,

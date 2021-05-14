@@ -50,6 +50,8 @@ import { fetchEntries } from "./App";
 import { createEntryPending, createEntryRejected, createEntryFulfilled } from "./App";
 import { createEntry } from "./App";
 
+import { editEntryPending, editEntryRejected, editEntryFulfilled } from "./App";
+
 describe("action creators", () => {
   test("createUserPending", () => {
     const action = createUserPending();
@@ -209,6 +211,44 @@ describe("action creators", () => {
 
     expect(action).toEqual({
       type: "entries/createEntry/fulfilled",
+      payload: {
+        entry,
+      },
+    });
+  });
+
+  test("editEntryPending", () => {
+    const action = editEntryPending();
+
+    expect(action).toEqual({
+      type: "entries/editEntry/pending",
+    });
+  });
+
+  test("editEntryRejected", () => {
+    const action = editEntryRejected("entries-editEntry-rejected");
+
+    expect(action).toEqual({
+      type: "entries/editEntry/rejected",
+      error: "entries-editEntry-rejected",
+    });
+  });
+
+  test("editEntryFulfilled", () => {
+    const entry = {
+      id: 1,
+      timestampInUTC: "2020-12-01T15:17:00.000Z",
+      utcZoneOfTimestamp: "+02:00",
+      content: "[hard-coded-into-test] Then it dawned on me: there is no finish line!",
+      createdAt: "2021-04-29T05:10:56.000Z",
+      updatedAt: "2021-04-29T05:10:56.000Z",
+      userId: 1,
+    };
+
+    const action = editEntryFulfilled(entry);
+
+    expect(action).toEqual({
+      type: "entries/editEntry/fulfilled",
       payload: {
         entry,
       },
