@@ -804,6 +804,9 @@ const App = () => {
           <Route exact path="/create-entry">
             <CreateEntry />
           </Route>
+          <Route exact path="/edit-entry">
+            <EditEntry />
+          </Route>
         </Switch>
       </BrowserRouter>
     </React.Fragment>
@@ -1072,7 +1075,7 @@ export const MyMonthlyJournal = () => {
         <hr></hr>
         <h3>{e.timestampInUTC} UTC</h3>
         <p>{e.content}</p>
-        <Link to="#">Edit</Link>
+        <Link to="/edit-entry">Edit</Link>
       </div>
     );
   });
@@ -1211,6 +1214,14 @@ export const CreateEntry = () => {
       </form>
     </React.Fragment>
   );
+};
+
+export const EditEntry = () => {
+  console.log(
+    `${new Date().toISOString()} - ${__filename} - React is rendering <EditEntry>`
+  );
+
+  return <React.Fragment>{"<EditEntry>"}</React.Fragment>;
 };
 
 export default App;
