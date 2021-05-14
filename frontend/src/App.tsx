@@ -477,7 +477,7 @@ export const alertsReducer = (
 
       const newIds: string[] = [id, ...stateAlerts.ids];
 
-      const newEntities = { ...stateAlerts.entities };
+      const newEntities: { [alertId: string]: IAlert } = { ...stateAlerts.entities };
       newEntities[id] = {
         id,
         message,
@@ -564,7 +564,7 @@ export const authReducer = (
 /* entriesSlice - reducer */
 export const entriesReducer = (
   stateEntries: IStateEntries = initialStateEntries,
-  action: ActionFetchEntries
+  action: ActionFetchEntries | ActionCreateEntry
 ): IStateEntries => {
   switch (action.type) {
     case ActionTypesFetchEntries.PENDING:
@@ -598,6 +598,36 @@ export const entriesReducer = (
         requestError: null,
         ids,
         entities,
+      };
+    }
+
+    case ActionTypesCreateEntry.PENDING:
+      return {
+        ...stateEntries,
+        requestStatus: RequestStatus.LOADING,
+        requestError: null,
+      };
+
+    case ActionTypesCreateEntry.REJECTED:
+      return {
+        ...stateEntries,
+        requestStatus: RequestStatus.FAILED,
+        requestError: action.error,
+      };
+
+    case ActionTypesCreateEntry.FULFILLED: {
+      const entry: IEntry = action.payload.entry;
+
+      const newIds: number[] = [...stateEntries.ids, entry.id];
+
+      const newEntities: { [entryId: string]: IEntry } = { ...stateEntries.entities };
+      newEntities[entry.id] = entry;
+
+      return {
+        requestStatus: RequestStatus.SUCCEEDED,
+        requestError: null,
+        ids: newIds,
+        entities: newEntities,
       };
     }
 
