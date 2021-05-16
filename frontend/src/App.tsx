@@ -1076,9 +1076,8 @@ export const MyMonthlyJournal = () => {
 
     return (
       <div key={e.id}>
-        <hr></hr>
-        <h3>{e.timestampInUTC} UTC</h3>
-        <p>{e.content}</p>
+        <hr />
+        <SingleEntry timestampInUTC={e.timestampInUTC} content={e.content} />
         <Link to={"/edit-entry/" + e.id}>Edit</Link>
       </div>
     );
@@ -1094,19 +1093,21 @@ export const MyMonthlyJournal = () => {
   );
 };
 
-export const CreateEntry = () => {
-  console.log(
-    `${new Date().toISOString()} - ${__filename} - React is rendering <CreateEntry>`
+type SingleEntryProps = {
+  timestampInUTC: string;
+  content: string;
+};
+
+const SingleEntry = (props: SingleEntryProps) => {
+  return (
+    <React.Fragment>
+      <h3>{props.timestampInUTC} UTC</h3>
+      <p>{props.content}</p>
+    </React.Fragment>
   );
+};
 
-  const [formData, setFormData] = React.useState({
-    timezone: "",
-    localTime: "",
-    content: "",
-  });
-
-  const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
-
+const offsetsFromUtc = () => {
   /*
   Create a list of the UTC time offsets
   "from the westernmost (−12:00) to the easternmost (+14:00)"
@@ -1121,11 +1122,27 @@ export const CreateEntry = () => {
   const negativeOffsetsFromUtc = Array.from({ length: -start }).map((_, ind) => {
     return "-" + (ind + 1).toString().padStart(2, "0") + ":00";
   });
+
   const offsetsFromUtc = negativeOffsetsFromUtc
     .reverse()
     .concat(nonnegativeOffsetsFromUtc);
+  return offsetsFromUtc;
+};
 
-  const timezoneOptions = offsetsFromUtc.map((offset, ind) => (
+export const CreateEntry = () => {
+  console.log(
+    `${new Date().toISOString()} - ${__filename} - React is rendering <CreateEntry>`
+  );
+
+  const [formData, setFormData] = React.useState({
+    timezone: "",
+    localTime: "",
+    content: "",
+  });
+
+  const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
+
+  const timezoneOptions = offsetsFromUtc().map((offset, ind) => (
     <option key={ind} value={offset}>
       {offset}
     </option>
@@ -1167,7 +1184,8 @@ export const CreateEntry = () => {
   return (
     <React.Fragment>
       {"<CreateEntry>"}
-      <h3>You are about to create a new Entry!</h3>
+      <h3>You are about to create a new Entry:</h3>
+      <hr />
       <form
         name="create-entry-form"
         onSubmit={(e: React.FormEvent<HTMLFormElement>) => handleSubmit(e)}
@@ -1212,6 +1230,7 @@ export const CreateEntry = () => {
             id="content-id"
           />
         </div>
+        <hr />
         <div>
           <input type="submit" value="Create entry" />
         </div>
@@ -1235,7 +1254,89 @@ export const EditEntry = (props: RouteComponentProps<EditEntryParams>) => {
   );
   console.log(props);
 
-  return <React.Fragment>{"<EditEntry>"}</React.Fragment>;
+  const entryId: number = parseInt(props.match.params.id);
+  const entry: IEntry = useSelector((state: IState) => state.entries.entities)[entryId];
+
+  const [formData, setFormData] = React.useState({
+    timezone: entry.utcZoneOfTimestamp,
+    localTime: entry.timestampInUTC,
+    content: entry.content,
+  });
+
+  const timezoneOptions = offsetsFromUtc().map((offset, ind) => (
+    <option key={ind} value={offset}>
+      {offset}
+    </option>
+  ));
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  return (
+    <React.Fragment>
+      {"<EditEntry>"}
+      <h3>You are about to edit the following Entry:</h3>
+      <hr />
+      <SingleEntry timestampInUTC={entry.timestampInUTC} content={entry.content} />
+      <hr />
+      <form name="edit-entry-form">
+        <div>
+          <label htmlFor="localTime-id">
+            Edit the local time of the Entry's creation:
+          </label>
+        </div>
+        <div>
+          <input
+            type="text"
+            placeholder="YYYY-MM-DD HH:MM"
+            name="localTime"
+            value={formData.localTime}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
+            id="localTime-id"
+          />
+        </div>
+        <div>
+          <label htmlFor="timezone-id">
+            Edit the time zone, which you were in at the moment when you created the
+            Entry:
+          </label>
+        </div>
+        <div>
+          <select
+            name="timezone"
+            value={formData.timezone}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleChange(e)}
+            id="timezone-id"
+          >
+            <option value="" />
+            {timezoneOptions}
+          </select>
+          UTC
+        </div>
+        <div>
+          <label htmlFor="content-id">Edit the content of the Entry:</label>
+        </div>
+        <div>
+          <textarea
+            name="content"
+            value={formData.content}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange(e)}
+            id="content-id"
+          />
+        </div>
+        <hr />
+        <div>
+          <input type="submit" value="Edit entry" />
+        </div>
+      </form>
+    </React.Fragment>
+  );
 };
 
 export default App;

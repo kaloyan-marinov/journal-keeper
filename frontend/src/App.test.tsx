@@ -1970,7 +1970,7 @@ describe("<CreateEntry>", () => {
     const textboxes = getAllByRole("textbox");
     expect(textboxes.length).toEqual(2);
 
-    getByText("You are about to create a new Entry!");
+    getByText("You are about to create a new Entry:");
 
     getByText("Specify your current local time:");
     getByPlaceholderText("YYYY-MM-DD HH:MM");
