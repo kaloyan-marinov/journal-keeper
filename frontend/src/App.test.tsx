@@ -53,6 +53,10 @@ import { createEntry } from "./App";
 import { editEntryPending, editEntryRejected, editEntryFulfilled } from "./App";
 import { editEntry } from "./App";
 
+import { createMemoryHistory } from "history";
+import { Router, Route } from "react-router-dom";
+import { EditEntry } from "./App";
+
 describe("action creators", () => {
   test("createUserPending", () => {
     const action = createUserPending();
@@ -2194,6 +2198,173 @@ describe(
         await waitFor(() => {
           getByText("ENTRY CREATION SUCCESSFUL");
         });
+      }
+    );
+  }
+);
+
+describe("<EditEntry>", () => {
+  let history;
+  let realStore;
+
+  beforeEach(() => {
+    history = createMemoryHistory();
+    const route = "/edit-entry/17";
+    history.push(route);
+
+    const initState: IState = {
+      alerts: {
+        ...initialStateAlerts,
+      },
+      auth: {
+        ...initialStateAuth,
+      },
+      entries: {
+        requestStatus: "succeeded",
+        requestError: null,
+        ids: [17],
+        entities: {
+          "17": {
+            id: 17,
+            timestampInUTC: "2000-01-01 01:00",
+            utcZoneOfTimestamp: "+02:00",
+            content: "This is an Entry resource that has a typoo.",
+            createdAt: "2000-01-02 01:00",
+            updatedAt: "2000-01-03 01:00",
+            userId: 1,
+          },
+        },
+      },
+    };
+    const enhancer = applyMiddleware(thunkMiddleware);
+    realStore = createStore(rootReducer, initState, enhancer);
+  });
+
+  test("initial render (i.e. before/without any user interaction)", () => {
+    /* Act. */
+    const { getByText, getAllByText, getByDisplayValue } = render(
+      <Provider store={realStore}>
+        <Router history={history}>
+          <Route
+            exact
+            path="/edit-entry/:id"
+            render={(props) => <EditEntry {...props} />}
+          />
+        </Router>
+      </Provider>
+    );
+
+    /* Assert. */
+    getByText("2000-01-01 01:00 (UTC +00:00)");
+
+    const elementsWithTheEntryContent = getAllByText(
+      "This is an Entry resource that has a typoo."
+    );
+    expect(elementsWithTheEntryContent.length).toEqual(2);
+
+    getByDisplayValue("2000-01-01 03:00");
+    getByDisplayValue("+02:00");
+  });
+
+  test("the user fills out the form (without submitting it)", () => {
+    // Arrange.
+    const { getAllByRole, getByRole, getByDisplayValue } = render(
+      <Provider store={realStore}>
+        <Router history={history}>
+          <Route
+            exact
+            path="/edit-entry/:id"
+            render={(props) => <EditEntry {...props} />}
+          />
+        </Router>
+      </Provider>
+    );
+
+    // Act.
+    /*
+    Unlike the corresponding test case for <CreateEntry>,
+    the remainder of this test case
+    acts upon and makes assertions about rendered HTML elements
+    in the same order as they are rendered on the DOM.
+    */
+    const [localTimeInput, contentTextArea] = getAllByRole("textbox");
+    const timezoneSelect = getByRole("combobox");
+
+    fireEvent.change(localTimeInput, { target: { value: "1999-01-01 03:00" } });
+    fireEvent.change(timezoneSelect, { target: { value: "+01:00" } });
+    fireEvent.change(contentTextArea, {
+      target: { value: "This is an Entry resource that used to have a typo." },
+    });
+
+    // Assert.
+    getByDisplayValue("1999-01-01 03:00");
+    getByDisplayValue("+01:00");
+    getByDisplayValue("This is an Entry resource that used to have a typo.");
+  });
+});
+
+describe(
+  "<Alerts> + <EditEntry>" +
+    " (without the user interaction triggering any network communication)",
+  () => {
+    test(
+      "the user fills out the form in an invalid way" +
+        " (by failing to fill out all required fields) and submits it",
+      () => {
+        // Arrange.
+        const history = createMemoryHistory();
+        const route = "/edit-entry/17";
+        history.push(route);
+
+        const initState: IState = {
+          alerts: {
+            ...initialStateAlerts,
+          },
+          auth: {
+            ...initialStateAuth,
+          },
+          entries: {
+            requestStatus: "succeeded",
+            requestError: null,
+            ids: [17],
+            entities: {
+              "17": {
+                id: 17,
+                timestampInUTC: "2000-01-01 01:00",
+                utcZoneOfTimestamp: "+02:00",
+                content: "This is an Entry resource that has a typoo.",
+                createdAt: "2000-01-02 01:00",
+                updatedAt: "2000-01-03 01:00",
+                userId: 1,
+              },
+            },
+          },
+        };
+        const enhancer = applyMiddleware(thunkMiddleware);
+        const realStore = createStore(rootReducer, initState, enhancer);
+
+        const { getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Router history={history}>
+              <Alerts />
+              <Route
+                exact
+                path="/edit-entry/:id"
+                render={(props) => <EditEntry {...props} />}
+              />
+            </Router>
+          </Provider>
+        );
+
+        // Act.
+        const timezoneSelect = getByRole("combobox");
+        fireEvent.change(timezoneSelect, { target: { value: "" } });
+
+        const button = getByRole("button");
+        fireEvent.click(button);
+
+        // Assert.
+        getByText("YOU MUST FILL OUT ALL FORM FIELDS");
       }
     );
   }
