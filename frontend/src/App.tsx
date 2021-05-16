@@ -1260,6 +1260,8 @@ export const EditEntry = (props: RouteComponentProps<EditEntryParams>) => {
   const entryId: number = parseInt(props.match.params.id);
   const entry: IEntry = useSelector((state: IState) => state.entries.entities)[entryId];
 
+  const dispatch = useDispatch();
+
   const [formData, setFormData] = React.useState({
     timezone: entry.utcZoneOfTimestamp,
     localTime: moment
@@ -1277,6 +1279,29 @@ export const EditEntry = (props: RouteComponentProps<EditEntryParams>) => {
     });
   };
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const id: string = uuidv4();
+    if (
+      formData.timezone === "" ||
+      formData.localTime === "" ||
+      formData.content === ""
+    ) {
+      const message: string = "YOU MUST FILL OUT ALL FORM FIELDS";
+      dispatch(alertsCreate(id, message));
+    } else {
+      try {
+        await dispatch(
+          editEntry(entryId, formData.localTime, formData.timezone, formData.content)
+        );
+        dispatch(alertsCreate(id, "ENTRY EDITING SUCCESSFUL"));
+      } catch (thunkActionError) {
+        dispatch(alertsCreate(id, thunkActionError));
+      }
+    }
+  };
+
   const timezoneOptions = offsetsFromUtc().map((offset, ind) => (
     <option key={ind} value={offset}>
       {offset}
@@ -1290,7 +1315,10 @@ export const EditEntry = (props: RouteComponentProps<EditEntryParams>) => {
       <hr />
       <SingleEntry timestampInUTC={entry.timestampInUTC} content={entry.content} />
       <hr />
-      <form name="edit-entry-form">
+      <form
+        name="edit-entry-form"
+        onSubmit={(e: React.FormEvent<HTMLFormElement>) => handleSubmit(e)}
+      >
         <div>
           <label htmlFor="localTime-id">
             Edit the local time of the Entry's creation:
