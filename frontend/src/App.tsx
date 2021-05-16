@@ -16,6 +16,8 @@ import { ThunkAction, ThunkDispatch } from "redux-thunk";
 
 import { RouteComponentProps } from "react-router-dom";
 
+import moment from "moment";
+
 /*
 Specify all slices of the Redux state,
 along with an initial value for each slice.
@@ -1259,7 +1261,10 @@ export const EditEntry = (props: RouteComponentProps<EditEntryParams>) => {
 
   const [formData, setFormData] = React.useState({
     timezone: entry.utcZoneOfTimestamp,
-    localTime: entry.timestampInUTC,
+    localTime: moment
+      .utc(entry.timestampInUTC)
+      .utcOffset(entry.utcZoneOfTimestamp)
+      .format("YYYY-MM-DD HH:mm"),
     content: entry.content,
   });
 
