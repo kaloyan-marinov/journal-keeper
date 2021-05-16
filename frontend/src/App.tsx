@@ -824,9 +824,9 @@ export const Alerts = () => {
     `${new Date().toISOString()} - ${__filename} - React is rendering <Alerts>`
   );
 
-  const dispatch = useDispatch();
-
   const alerts: IStateAlerts = useSelector((state: IState) => state.alerts);
+
+  const dispatch = useDispatch();
 
   const onClick = (id: string, e: React.MouseEvent<HTMLButtonElement>) => {
     dispatch(alertsRemove(id));
@@ -1047,6 +1047,11 @@ export const MyMonthlyJournal = () => {
       ` - React is rendering <MyMonthlyJournal>`
   );
 
+  const entriesEntities: { [key: string]: IEntry } = useSelector(
+    (state: IState) => state.entries.entities
+  );
+  const entriesIds: number[] = useSelector((state: IState) => state.entries.ids);
+
   const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
 
   React.useEffect(() => {
@@ -1067,11 +1072,6 @@ export const MyMonthlyJournal = () => {
 
     effectFn();
   }, [dispatch]);
-
-  const entriesEntities: { [key: string]: IEntry } = useSelector(
-    (state: IState) => state.entries.entities
-  );
-  const entriesIds: number[] = useSelector((state: IState) => state.entries.ids);
 
   const entries = entriesIds.map((entryId: number) => {
     const e: IEntry = entriesEntities[entryId];
@@ -1138,20 +1138,13 @@ export const CreateEntry = () => {
     `${new Date().toISOString()} - ${__filename} - React is rendering <CreateEntry>`
   );
 
+  const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
+
   const [formData, setFormData] = React.useState({
     timezone: "",
     localTime: "",
     content: "",
   });
-
-  const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
-
-  const timezoneOptions = offsetsFromUtc().map((offset, ind) => (
-    <option key={ind} value={offset}>
-      {offset}
-    </option>
-  ));
-
   const handleChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -1184,6 +1177,12 @@ export const CreateEntry = () => {
       }
     }
   };
+
+  const timezoneOptions = offsetsFromUtc().map((offset, ind) => (
+    <option key={ind} value={offset}>
+      {offset}
+    </option>
+  ));
 
   return (
     <React.Fragment>
@@ -1269,13 +1268,6 @@ export const EditEntry = (props: RouteComponentProps<EditEntryParams>) => {
       .format("YYYY-MM-DD HH:mm"),
     content: entry.content,
   });
-
-  const timezoneOptions = offsetsFromUtc().map((offset, ind) => (
-    <option key={ind} value={offset}>
-      {offset}
-    </option>
-  ));
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -1284,6 +1276,12 @@ export const EditEntry = (props: RouteComponentProps<EditEntryParams>) => {
       [e.target.name]: e.target.value,
     });
   };
+
+  const timezoneOptions = offsetsFromUtc().map((offset, ind) => (
+    <option key={ind} value={offset}>
+      {offset}
+    </option>
+  ));
 
   return (
     <React.Fragment>
