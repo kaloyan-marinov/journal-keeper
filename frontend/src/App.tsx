@@ -1103,7 +1103,9 @@ type SingleEntryProps = {
 const SingleEntry = (props: SingleEntryProps) => {
   return (
     <React.Fragment>
-      <h3>{props.timestampInUTC} UTC</h3>
+      <h3>
+        {moment.utc(props.timestampInUTC).format("YYYY-MM-DD HH:mm")} (UTC +00:00)
+      </h3>
       <p>{props.content}</p>
     </React.Fragment>
   );
