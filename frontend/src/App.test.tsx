@@ -2360,4 +2360,91 @@ describe("<EditEntry>", () => {
       );
     }
   );
+
+  describe("+ <Alerts> (with the user interaction triggering network communication)", () => {
+    beforeAll(() => {
+      // Enable API mocking.
+      quasiServer.listen();
+    });
+
+    beforeEach(() => {
+      quasiServer.resetHandlers();
+    });
+
+    afterAll(() => {
+      // Disable API mocking.
+      quasiServer.close();
+    });
+
+    test(
+      "the user fills out the form and submits it," +
+        " but the backend is _mocked_ to respond that" +
+        " the form was filled out in an invalid way",
+      async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.put("/api/entries/1", (req, res, ctx) => {
+            return res(
+              ctx.status(400),
+              ctx.json({
+                error: "[mocked-response] Failed to edit the targeted Entry resource",
+              })
+            );
+          })
+        );
+
+        const { getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Router history={history}>
+              <Alerts />
+              <Route
+                exact
+                path="/edit-entry/:id"
+                render={(props) => <EditEntry {...props} />}
+              />
+            </Router>
+          </Provider>
+        );
+
+        // Act.
+        const button = getByRole("button");
+        fireEvent.click(button);
+
+        // Assert.
+        await waitFor(() => {
+          getByText("[mocked-response] Failed to edit the targeted Entry resource");
+        });
+      }
+    );
+
+    test(
+      "the user fills out the form and submits it," +
+        " and the backend is _mocked_ to respond that" +
+        " the form submission was accepted as valid and processed",
+      async () => {
+        // Arrange.
+        const { getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Router history={history}>
+              <Alerts />
+              <Route
+                exact
+                path="/edit-entry/:id"
+                render={(props) => <EditEntry {...props} />}
+              />
+            </Router>
+          </Provider>
+        );
+
+        // Act.
+        const button = getByRole("button");
+        fireEvent.click(button);
+
+        // Assert.
+        await waitFor(() => {
+          getByText("ENTRY EDITING SUCCESSFUL");
+        });
+      }
+    );
+  });
 });
