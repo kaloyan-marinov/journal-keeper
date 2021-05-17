@@ -929,6 +929,16 @@ const mockedBodyOfResponseToFetchEntries = {
   ],
 };
 
+const mockedBodyOfReponseToEditingEntry1 = {
+  id: 1,
+  timestampInUTC: "2000-01-01 01:00",
+  utcZoneOfTimestamp: "+02:00",
+  content: "mocked-content-of-entry-1-has-been-edited",
+  createdAt: "2000-01-02 01:00",
+  updatedAt: "2000-01-03 01:00",
+  userId: 1,
+};
+
 const requestHandlersToMock = [
   rest.post("/api/users", (req, res, ctx) => {
     return res(
@@ -953,8 +963,8 @@ const requestHandlersToMock = [
   rest.post("/api/entries", (req, res, ctx) => {
     return res(ctx.status(200), ctx.json(entry1));
   }),
-  rest.put("/api/entries/17", (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(entry1));
+  rest.put("/api/entries/1", (req, res, ctx) => {
+    return res(ctx.status(200), ctx.json(mockedBodyOfReponseToEditingEntry1));
   }),
 ];
 
@@ -1250,9 +1260,8 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to fail",
       async () => {
         // Arrange.
-        const entryId = 17000;
         quasiServer.use(
-          rest.put(`/api/entries/${entryId}`, (req, res, ctx) => {
+          rest.put(`/api/entries/1`, (req, res, ctx) => {
             return res(
               ctx.status(400),
               ctx.json({
@@ -1264,7 +1273,12 @@ describe(
 
         // Act.
         const editEntryPromise = storeMock.dispatch(
-          editEntry(entryId, entry1.localTime, entry1.timezone, entry1.content)
+          editEntry(
+            1,
+            mockedBodyOfReponseToEditingEntry1.localTime,
+            mockedBodyOfReponseToEditingEntry1.timezone,
+            mockedBodyOfReponseToEditingEntry1.content
+          )
         );
 
         // Assert.
@@ -1288,9 +1302,13 @@ describe(
       "editEntry(entryId, ...)" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
-        const entryId = 17;
         const editEntryPromise = storeMock.dispatch(
-          editEntry(entryId, entry1.localTime, entry1.timezone, entry1.content)
+          editEntry(
+            1,
+            mockedBodyOfReponseToEditingEntry1.localTime,
+            mockedBodyOfReponseToEditingEntry1.timezone,
+            mockedBodyOfReponseToEditingEntry1.content
+          )
         );
 
         await expect(editEntryPromise).resolves.toEqual(undefined);
@@ -1302,7 +1320,7 @@ describe(
           {
             type: "entries/editEntry/fulfilled",
             payload: {
-              entry: entry1,
+              entry: mockedBodyOfReponseToEditingEntry1,
             },
           },
         ]);
@@ -2209,7 +2227,7 @@ describe("<EditEntry>", () => {
 
   beforeEach(() => {
     history = createMemoryHistory();
-    const route = "/edit-entry/17";
+    const route = "/edit-entry/1";
     history.push(route);
 
     const initState: IState = {
@@ -2222,10 +2240,10 @@ describe("<EditEntry>", () => {
       entries: {
         requestStatus: "succeeded",
         requestError: null,
-        ids: [17],
+        ids: [1],
         entities: {
-          "17": {
-            id: 17,
+          "1": {
+            id: 1,
             timestampInUTC: "2000-01-01 01:00",
             utcZoneOfTimestamp: "+02:00",
             content: "This is an Entry resource that has a typoo.",
@@ -2240,132 +2258,103 @@ describe("<EditEntry>", () => {
     realStore = createStore(rootReducer, initState, enhancer);
   });
 
-  test("initial render (i.e. before/without any user interaction)", () => {
-    /* Act. */
-    const { getByText, getAllByText, getByDisplayValue } = render(
-      <Provider store={realStore}>
-        <Router history={history}>
-          <Route
-            exact
-            path="/edit-entry/:id"
-            render={(props) => <EditEntry {...props} />}
-          />
-        </Router>
-      </Provider>
-    );
+  describe("by itself", () => {
+    test("initial render (i.e. before/without any user interaction)", () => {
+      /* Act. */
+      const { getByText, getAllByText, getByDisplayValue } = render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <Route
+              exact
+              path="/edit-entry/:id"
+              render={(props) => <EditEntry {...props} />}
+            />
+          </Router>
+        </Provider>
+      );
 
-    /* Assert. */
-    getByText("2000-01-01 01:00 (UTC +00:00)");
+      /* Assert. */
+      getByText("2000-01-01 01:00 (UTC +00:00)");
 
-    const elementsWithTheEntryContent = getAllByText(
-      "This is an Entry resource that has a typoo."
-    );
-    expect(elementsWithTheEntryContent.length).toEqual(2);
+      const elementsWithTheEntryContent = getAllByText(
+        "This is an Entry resource that has a typoo."
+      );
+      expect(elementsWithTheEntryContent.length).toEqual(2);
 
-    getByDisplayValue("2000-01-01 03:00");
-    getByDisplayValue("+02:00");
-  });
-
-  test("the user fills out the form (without submitting it)", () => {
-    // Arrange.
-    const { getAllByRole, getByRole, getByDisplayValue } = render(
-      <Provider store={realStore}>
-        <Router history={history}>
-          <Route
-            exact
-            path="/edit-entry/:id"
-            render={(props) => <EditEntry {...props} />}
-          />
-        </Router>
-      </Provider>
-    );
-
-    // Act.
-    /*
-    Unlike the corresponding test case for <CreateEntry>,
-    the remainder of this test case
-    acts upon and makes assertions about rendered HTML elements
-    in the same order as they are rendered on the DOM.
-    */
-    const [localTimeInput, contentTextArea] = getAllByRole("textbox");
-    const timezoneSelect = getByRole("combobox");
-
-    fireEvent.change(localTimeInput, { target: { value: "1999-01-01 03:00" } });
-    fireEvent.change(timezoneSelect, { target: { value: "+01:00" } });
-    fireEvent.change(contentTextArea, {
-      target: { value: "This is an Entry resource that used to have a typo." },
+      getByDisplayValue("2000-01-01 03:00");
+      getByDisplayValue("+02:00");
     });
 
-    // Assert.
-    getByDisplayValue("1999-01-01 03:00");
-    getByDisplayValue("+01:00");
-    getByDisplayValue("This is an Entry resource that used to have a typo.");
+    test("the user fills out the form (without submitting it)", () => {
+      // Arrange.
+      const { getAllByRole, getByRole, getByDisplayValue } = render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <Route
+              exact
+              path="/edit-entry/:id"
+              render={(props) => <EditEntry {...props} />}
+            />
+          </Router>
+        </Provider>
+      );
+
+      // Act.
+      /*
+      Unlike the corresponding test case for <CreateEntry>,
+      the remainder of this test case
+      acts upon and makes assertions about rendered HTML elements
+      in the same order as they are rendered on the DOM.
+      */
+      const [localTimeInput, contentTextArea] = getAllByRole("textbox");
+      const timezoneSelect = getByRole("combobox");
+
+      fireEvent.change(localTimeInput, { target: { value: "1999-01-01 03:00" } });
+      fireEvent.change(timezoneSelect, { target: { value: "+01:00" } });
+      fireEvent.change(contentTextArea, {
+        target: { value: "This is an Entry resource that used to have a typo." },
+      });
+
+      // Assert.
+      getByDisplayValue("1999-01-01 03:00");
+      getByDisplayValue("+01:00");
+      getByDisplayValue("This is an Entry resource that used to have a typo.");
+    });
   });
+
+  describe(
+    "+ <Alerts>" +
+      " (without the user interaction triggering any network communication)",
+    () => {
+      test(
+        "the user fills out the form in an invalid way" +
+          " (by failing to fill out all required fields) and submits it",
+        () => {
+          // Arrange.
+          const { getByRole, getByText } = render(
+            <Provider store={realStore}>
+              <Router history={history}>
+                <Alerts />
+                <Route
+                  exact
+                  path="/edit-entry/:id"
+                  render={(props) => <EditEntry {...props} />}
+                />
+              </Router>
+            </Provider>
+          );
+
+          // Act.
+          const timezoneSelect = getByRole("combobox");
+          fireEvent.change(timezoneSelect, { target: { value: "" } });
+
+          const button = getByRole("button");
+          fireEvent.click(button);
+
+          // Assert.
+          getByText("YOU MUST FILL OUT ALL FORM FIELDS");
+        }
+      );
+    }
+  );
 });
-
-describe(
-  "<Alerts> + <EditEntry>" +
-    " (without the user interaction triggering any network communication)",
-  () => {
-    test(
-      "the user fills out the form in an invalid way" +
-        " (by failing to fill out all required fields) and submits it",
-      () => {
-        // Arrange.
-        const history = createMemoryHistory();
-        const route = "/edit-entry/17";
-        history.push(route);
-
-        const initState: IState = {
-          alerts: {
-            ...initialStateAlerts,
-          },
-          auth: {
-            ...initialStateAuth,
-          },
-          entries: {
-            requestStatus: "succeeded",
-            requestError: null,
-            ids: [17],
-            entities: {
-              "17": {
-                id: 17,
-                timestampInUTC: "2000-01-01 01:00",
-                utcZoneOfTimestamp: "+02:00",
-                content: "This is an Entry resource that has a typoo.",
-                createdAt: "2000-01-02 01:00",
-                updatedAt: "2000-01-03 01:00",
-                userId: 1,
-              },
-            },
-          },
-        };
-        const enhancer = applyMiddleware(thunkMiddleware);
-        const realStore = createStore(rootReducer, initState, enhancer);
-
-        const { getByRole, getByText } = render(
-          <Provider store={realStore}>
-            <Router history={history}>
-              <Alerts />
-              <Route
-                exact
-                path="/edit-entry/:id"
-                render={(props) => <EditEntry {...props} />}
-              />
-            </Router>
-          </Provider>
-        );
-
-        // Act.
-        const timezoneSelect = getByRole("combobox");
-        fireEvent.change(timezoneSelect, { target: { value: "" } });
-
-        const button = getByRole("button");
-        fireEvent.click(button);
-
-        // Assert.
-        getByText("YOU MUST FILL OUT ALL FORM FIELDS");
-      }
-    );
-  }
-);
