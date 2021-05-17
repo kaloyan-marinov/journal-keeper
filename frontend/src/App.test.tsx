@@ -904,7 +904,7 @@ describe("reducers", () => {
 });
 
 /* Describe what requests should be mocked. */
-const entry1 = {
+const entry1Mock = {
   id: 1,
   timestampInUTC: "2020-12-01T15:17:00.000Z",
   utcZoneOfTimestamp: "+02:00",
@@ -914,22 +914,20 @@ const entry1 = {
   userId: 1,
 };
 
-const mockedBodyOfResponseToFetchEntries = {
-  entries: [
-    entry1,
-    {
-      id: 2,
-      timestampInUTC: "2019-08-20T13:17:00.000Z",
-      utcZoneOfTimestamp: "+01:00",
-      content: "mocked-content-of-entry-2",
-      createdAt: "2021-04-29T05:11:01.000Z",
-      updatedAt: "2021-04-29T05:11:01.000Z",
-      userId: 1,
-    },
-  ],
-};
+const entriesMock = [
+  entry1Mock,
+  {
+    id: 2,
+    timestampInUTC: "2019-08-20T13:17:00.000Z",
+    utcZoneOfTimestamp: "+01:00",
+    content: "mocked-content-of-entry-2",
+    createdAt: "2021-04-29T05:11:01.000Z",
+    updatedAt: "2021-04-29T05:11:01.000Z",
+    userId: 1,
+  },
+];
 
-const mockedBodyOfReponseToEditingEntry1 = {
+const entry1EditedMock = {
   id: 1,
   timestampInUTC: "2000-01-01 01:00",
   utcZoneOfTimestamp: "+02:00",
@@ -949,6 +947,7 @@ const requestHandlersToMock = [
       })
     );
   }),
+
   rest.post("/api/tokens", (req, res, ctx) => {
     return res(
       ctx.status(200),
@@ -957,14 +956,22 @@ const requestHandlersToMock = [
       })
     );
   }),
+
   rest.get("/api/entries", (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(mockedBodyOfResponseToFetchEntries));
+    return res(
+      ctx.status(200),
+      ctx.json({
+        entries: entriesMock,
+      })
+    );
   }),
+
   rest.post("/api/entries", (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(entry1));
+    return res(ctx.status(200), ctx.json(entry1Mock));
   }),
+
   rest.put("/api/entries/1", (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(mockedBodyOfReponseToEditingEntry1));
+    return res(ctx.status(200), ctx.json(entry1EditedMock));
   }),
 ];
 
@@ -1189,7 +1196,9 @@ describe(
           },
           {
             type: "entries/fetchEntries/fulfilled",
-            payload: mockedBodyOfResponseToFetchEntries,
+            payload: {
+              entries: entriesMock,
+            },
           },
         ]);
       }
@@ -1213,7 +1222,7 @@ describe(
 
         // Act.
         const createEntryPromise = storeMock.dispatch(
-          createEntry("bad-localTime", entry1.timezone, entry1.content)
+          createEntry("bad-localTime", entry1Mock.timezone, entry1Mock.content)
         );
 
         // Assert.
@@ -1237,7 +1246,7 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         const createEntryPromise = storeMock.dispatch(
-          createEntry(entry1.localTime, entry1.timezone, entry1.content)
+          createEntry(entry1Mock.localTime, entry1Mock.timezone, entry1Mock.content)
         );
 
         await expect(createEntryPromise).resolves.toEqual(undefined);
@@ -1248,7 +1257,7 @@ describe(
           {
             type: "entries/createEntry/fulfilled",
             payload: {
-              entry: entry1,
+              entry: entry1Mock,
             },
           },
         ]);
@@ -1275,9 +1284,9 @@ describe(
         const editEntryPromise = storeMock.dispatch(
           editEntry(
             1,
-            mockedBodyOfReponseToEditingEntry1.localTime,
-            mockedBodyOfReponseToEditingEntry1.timezone,
-            mockedBodyOfReponseToEditingEntry1.content
+            entry1EditedMock.localTime,
+            entry1EditedMock.timezone,
+            entry1EditedMock.content
           )
         );
 
@@ -1305,9 +1314,9 @@ describe(
         const editEntryPromise = storeMock.dispatch(
           editEntry(
             1,
-            mockedBodyOfReponseToEditingEntry1.localTime,
-            mockedBodyOfReponseToEditingEntry1.timezone,
-            mockedBodyOfReponseToEditingEntry1.content
+            entry1EditedMock.localTime,
+            entry1EditedMock.timezone,
+            entry1EditedMock.content
           )
         );
 
@@ -1320,7 +1329,7 @@ describe(
           {
             type: "entries/editEntry/fulfilled",
             payload: {
-              entry: mockedBodyOfReponseToEditingEntry1,
+              entry: entry1EditedMock,
             },
           },
         ]);
@@ -2240,17 +2249,9 @@ describe("<EditEntry>", () => {
       entries: {
         requestStatus: "succeeded",
         requestError: null,
-        ids: [1],
+        ids: [entry1Mock.id],
         entities: {
-          "1": {
-            id: 1,
-            timestampInUTC: "2000-01-01 01:00",
-            utcZoneOfTimestamp: "+02:00",
-            content: "This is an Entry resource that has a typoo.",
-            createdAt: "2000-01-02 01:00",
-            updatedAt: "2000-01-03 01:00",
-            userId: 1,
-          },
+          [entry1Mock.id]: entry1Mock,
         },
       },
     };
@@ -2274,14 +2275,12 @@ describe("<EditEntry>", () => {
       );
 
       /* Assert. */
-      getByText("2000-01-01 01:00 (UTC +00:00)");
+      getByText("2020-12-01 15:17 (UTC +00:00)");
 
-      const elementsWithTheEntryContent = getAllByText(
-        "This is an Entry resource that has a typoo."
-      );
+      const elementsWithTheEntryContent = getAllByText("mocked-content-of-entry-1");
       expect(elementsWithTheEntryContent.length).toEqual(2);
 
-      getByDisplayValue("2000-01-01 03:00");
+      getByDisplayValue("2020-12-01 17:17");
       getByDisplayValue("+02:00");
     });
 
@@ -2312,13 +2311,17 @@ describe("<EditEntry>", () => {
       fireEvent.change(localTimeInput, { target: { value: "1999-01-01 03:00" } });
       fireEvent.change(timezoneSelect, { target: { value: "+01:00" } });
       fireEvent.change(contentTextArea, {
-        target: { value: "This is an Entry resource that used to have a typo." },
+        target: {
+          value: "This is an Entry resource, all of whose details have been edited.",
+        },
       });
 
       // Assert.
       getByDisplayValue("1999-01-01 03:00");
       getByDisplayValue("+01:00");
-      getByDisplayValue("This is an Entry resource that used to have a typo.");
+      getByDisplayValue(
+        "This is an Entry resource, all of whose details have been edited."
+      );
     });
   });
 
