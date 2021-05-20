@@ -801,6 +801,16 @@ export const store = createStore(rootReducer, composedEnhancer);
 const App = () => {
   console.log(`${new Date().toISOString()} - ${__filename} - React is rendering <App>`);
 
+  const dispatch: Dispatch<IActionRemoveJWSToken | IActionAlertsCreate> = useDispatch();
+
+  const handleClickSignOut = () => {
+    localStorage.removeItem(JOURNAL_APP_TOKEN);
+    dispatch(removeJWSToken());
+
+    const id: string = uuidv4();
+    dispatch(alertsCreate(id, "SIGN-OUT SUCCESSFUL"));
+  };
+
   return (
     <React.Fragment>
       {"<App>"}
@@ -808,7 +818,10 @@ const App = () => {
         <div>
           <Link to="/">Home</Link> | <Link to="/sign-up">Sign Up</Link> |{" "}
           <Link to="/sign-in">Sign In</Link> |{" "}
-          <Link to="/my-monthly-journal">MyMonthlyJournal</Link>
+          <Link to="/my-monthly-journal">MyMonthlyJournal</Link> |{" "}
+          <a href="#!" onClick={() => handleClickSignOut()}>
+            Sign Out
+          </a>
         </div>
         <Alerts />
         <Switch>
@@ -845,7 +858,7 @@ export const Alerts = () => {
 
   const dispatch = useDispatch();
 
-  const onClick = (id: string, e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClickX = (id: string, e: React.MouseEvent<HTMLButtonElement>) => {
     dispatch(alertsRemove(id));
   };
 
@@ -859,7 +872,7 @@ export const Alerts = () => {
         alerts.ids.map((id: string) => (
           <div key={id} style={{ color: "red" }}>
             <button
-              onClick={(e: React.MouseEvent<HTMLButtonElement>) => onClick(id, e)}
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleClickX(id, e)}
             >
               X
             </button>
