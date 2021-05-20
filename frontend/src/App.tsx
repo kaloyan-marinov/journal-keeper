@@ -301,6 +301,17 @@ export const issueJWSToken = (
   };
 };
 
+/* authSlice - "auth/removeJWSToken" action creator */
+const ACTION_TYPE_REMOVE_JWS_TOKEN = "auth/removeJWSToken";
+
+interface IActionRemoveJWSToken {
+  type: typeof ACTION_TYPE_REMOVE_JWS_TOKEN;
+}
+
+export const removeJWSToken = (): IActionRemoveJWSToken => ({
+  type: ACTION_TYPE_REMOVE_JWS_TOKEN,
+});
+
 /* entriesSlice - "entries/fetchEntries/" action creators */
 enum ActionTypesFetchEntries {
   PENDING = "entries/fetchEntries/pending",
@@ -607,7 +618,7 @@ export const alertsReducer = (
 /* authSlice - reducer */
 export const authReducer = (
   stateAuth: IStateAuth = initialStateAuth,
-  action: ActionCreateUser | ActionIssueJWSToken
+  action: ActionCreateUser | ActionIssueJWSToken | IActionRemoveJWSToken
 ): IStateAuth => {
   switch (action.type) {
     case ActionTypesCreateUser.PENDING:
@@ -650,6 +661,12 @@ export const authReducer = (
         requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
         token: action.payload.token,
+      };
+
+    case ACTION_TYPE_REMOVE_JWS_TOKEN:
+      return {
+        ...stateAuth,
+        token: null,
       };
 
     default:
@@ -1103,6 +1120,7 @@ type SingleEntryProps = {
 const SingleEntry = (props: SingleEntryProps) => {
   return (
     <React.Fragment>
+      {"<SingleEntry>"}
       <h3>
         {moment.utc(props.timestampInUTC).format("YYYY-MM-DD HH:mm")} (UTC +00:00)
       </h3>

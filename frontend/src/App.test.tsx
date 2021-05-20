@@ -39,6 +39,8 @@ import {
 } from "./App";
 import { issueJWSToken } from "./App";
 
+import { removeJWSToken } from "./App";
+
 import {
   fetchEntriesPending,
   fetchEntriesRejected,
@@ -131,6 +133,14 @@ describe("action creators", () => {
       payload: {
         token: "a-jws-token-issued-by-the-backend",
       },
+    });
+  });
+
+  test("removeJWSToken", () => {
+    const action = removeJWSToken();
+
+    expect(action).toEqual({
+      type: "auth/removeJWSToken",
     });
   });
 
@@ -578,6 +588,33 @@ describe("reducers", () => {
       });
     }
   );
+
+  test("auth/removeJWSToken should clear state.auth.token", () => {
+    initState.auth.token = "a-jws-token-issue-by-the-backend";
+    const action = {
+      type: "auth/removeJWSToken",
+    };
+
+    const newState = rootReducer(initState, action);
+
+    expect(newState).toEqual({
+      alerts: {
+        entities: {},
+        ids: [],
+      },
+      auth: {
+        requestStatus: "idle",
+        requestError: null,
+        token: null,
+      },
+      entries: {
+        requestStatus: "idle",
+        requestError: null,
+        ids: [],
+        entities: {},
+      },
+    });
+  });
 
   test(
     "an action, which the rootReducer doesn't specifically handle," +
