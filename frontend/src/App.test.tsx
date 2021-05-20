@@ -1377,18 +1377,79 @@ describe(
 
 describe("<App>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
+    const enhancer = applyMiddleware(thunkMiddleware);
+    const realStore = createStore(rootReducer, enhancer);
     const { getByText } = render(
-      <Provider store={store}>
+      <Provider store={realStore}>
         <App />
       </Provider>
     );
 
     getByText("Home");
-    getByText("Sign Up");
     getByText("Sign In");
-    getByText("MyMonthlyJournal");
+    getByText("Sign Up");
 
     getByText("Welcome to MyMonthlyJournal!");
+  });
+
+  test("render after the user has signed in", () => {
+    const enhancer = applyMiddleware(thunkMiddleware);
+    const initState = {
+      alerts: {
+        ...initialStateAlerts,
+      },
+      auth: {
+        ...initialStateAuth,
+        token: "a-jws-token-issued-by-the-backend",
+      },
+      entries: {
+        ...initialStateEntries,
+      },
+    };
+    const realStore = createStore(rootReducer, initState, enhancer);
+    const { getByText } = render(
+      <Provider store={realStore}>
+        <App />
+      </Provider>
+    );
+
+    getByText("Home");
+    getByText("MyMonthlyJournal");
+    getByText("Sign Out");
+  });
+
+  test("after the user has signed in, the user clicks on 'Sign Out'", () => {
+    // Arrange.
+    const enhancer = applyMiddleware(thunkMiddleware);
+    const initState = {
+      alerts: {
+        ...initialStateAlerts,
+      },
+      auth: {
+        ...initialStateAuth,
+        token: "a-jws-token-issued-by-the-backend",
+      },
+      entries: {
+        ...initialStateEntries,
+      },
+    };
+    const realStore = createStore(rootReducer, initState, enhancer);
+    const { getByText } = render(
+      <Provider store={realStore}>
+        <App />
+      </Provider>
+    );
+
+    // Act.
+    const signOutAnchor = getByText("Sign Out");
+    fireEvent.click(signOutAnchor);
+
+    // Assert.
+    getByText("Home");
+    getByText("Sign In");
+    getByText("Sign Up");
+
+    getByText("SIGN-OUT SUCCESSFUL");
   });
 });
 
@@ -1473,6 +1534,7 @@ describe("<Alerts>", () => {
           },
         },
         auth: {
+          ...initialStateAuth,
           requestStatus: "n/a",
           requestError: "n/a",
         },
@@ -1886,7 +1948,8 @@ describe(
 
         const { getByPlaceholderText, getByRole, getByText } = render(
           <Provider store={realStore}>
-            <Alerts /> <SignIn />
+            <Alerts />
+            <SignIn />
           </Provider>
         );
 

@@ -801,6 +801,11 @@ export const store = createStore(rootReducer, composedEnhancer);
 const App = () => {
   console.log(`${new Date().toISOString()} - ${__filename} - React is rendering <App>`);
 
+  const authToken: string | null = useSelector((state: IState) => state.auth.token);
+  const authRequestStatus: RequestStatus = useSelector(
+    (state: IState) => state.auth.requestStatus
+  );
+
   const dispatch: Dispatch<IActionRemoveJWSToken | IActionAlertsCreate> = useDispatch();
 
   const handleClickSignOut = () => {
@@ -811,18 +816,31 @@ const App = () => {
     dispatch(alertsCreate(id, "SIGN-OUT SUCCESSFUL"));
   };
 
+  const navigationLinks =
+    authToken === null ? (
+      <React.Fragment>
+        <Link to="/">Home</Link> | <Link to="/sign-in">Sign In</Link> |{" "}
+        <Link to="/sign-up">Sign Up</Link>
+      </React.Fragment>
+    ) : (
+      <React.Fragment>
+        <Link to="/">Home</Link> |{" "}
+        <Link to="/my-monthly-journal">MyMonthlyJournal</Link> |{" "}
+        <a href="#!" onClick={() => handleClickSignOut()}>
+          Sign Out
+        </a>
+      </React.Fragment>
+    );
+
   return (
     <React.Fragment>
       {"<App>"}
       <BrowserRouter>
-        <div>
-          <Link to="/">Home</Link> | <Link to="/sign-up">Sign Up</Link> |{" "}
-          <Link to="/sign-in">Sign In</Link> |{" "}
-          <Link to="/my-monthly-journal">MyMonthlyJournal</Link> |{" "}
-          <a href="#!" onClick={() => handleClickSignOut()}>
-            Sign Out
-          </a>
-        </div>
+        {authRequestStatus === RequestStatus.LOADING ? (
+          <div>Loading...</div>
+        ) : (
+          <div>{navigationLinks}</div>
+        )}
         <Alerts />
         <Switch>
           <Route exact path="/">
