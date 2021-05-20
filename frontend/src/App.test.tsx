@@ -2265,11 +2265,9 @@ describe("<EditEntry>", () => {
       const { getByText, getAllByText, getByDisplayValue } = render(
         <Provider store={realStore}>
           <Router history={history}>
-            <Route
-              exact
-              path="/edit-entry/:id"
-              render={(props) => <EditEntry {...props} />}
-            />
+            <Route exact path="/edit-entry/:id">
+              <EditEntry />
+            </Route>
           </Router>
         </Provider>
       );
@@ -2289,11 +2287,9 @@ describe("<EditEntry>", () => {
       const { getAllByRole, getByRole, getByDisplayValue } = render(
         <Provider store={realStore}>
           <Router history={history}>
-            <Route
-              exact
-              path="/edit-entry/:id"
-              render={(props) => <EditEntry {...props} />}
-            />
+            <Route exact path="/edit-entry/:id">
+              <EditEntry />
+            </Route>
           </Router>
         </Provider>
       );
@@ -2338,11 +2334,9 @@ describe("<EditEntry>", () => {
             <Provider store={realStore}>
               <Router history={history}>
                 <Alerts />
-                <Route
-                  exact
-                  path="/edit-entry/:id"
-                  render={(props) => <EditEntry {...props} />}
-                />
+                <Route exact path="/edit-entry/:id">
+                  <EditEntry />
+                </Route>
               </Router>
             </Provider>
           );
@@ -2397,11 +2391,9 @@ describe("<EditEntry>", () => {
           <Provider store={realStore}>
             <Router history={history}>
               <Alerts />
-              <Route
-                exact
-                path="/edit-entry/:id"
-                render={(props) => <EditEntry {...props} />}
-              />
+              <Route exact path="/edit-entry/:id">
+                <EditEntry />
+              </Route>
             </Router>
           </Provider>
         );
@@ -2427,11 +2419,9 @@ describe("<EditEntry>", () => {
           <Provider store={realStore}>
             <Router history={history}>
               <Alerts />
-              <Route
-                exact
-                path="/edit-entry/:id"
-                render={(props) => <EditEntry {...props} />}
-              />
+              <Route exact path="/edit-entry/:id">
+                <EditEntry />
+              </Route>
             </Router>
           </Provider>
         );

@@ -14,7 +14,7 @@ import { combineReducers } from "redux";
 
 import { ThunkAction, ThunkDispatch } from "redux-thunk";
 
-import { RouteComponentProps } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import moment from "moment";
 
@@ -548,6 +548,8 @@ export const editEntry = (
     dispatch(editEntryPending());
     try {
       const response = await axios.put(`/api/entries/${entryId}`, body, config);
+      console.debug("response.data");
+      console.debug(response.data);
       dispatch(editEntryFulfilled(response.data));
       return Promise.resolve();
     } catch (err) {
@@ -808,11 +810,9 @@ const App = () => {
           <Route exact path="/create-entry">
             <CreateEntry />
           </Route>
-          <Route
-            exact
-            path="/edit-entry/:id"
-            render={(props) => <EditEntry {...props} />}
-          />
+          <Route exact path="/edit-entry/:id">
+            <EditEntry />
+          </Route>
         </Switch>
       </BrowserRouter>
     </React.Fragment>
@@ -1242,23 +1242,27 @@ export const CreateEntry = () => {
   );
 };
 
-type EditEntryParams = {
-  id: string;
-};
-
-export const EditEntry = (props: RouteComponentProps<EditEntryParams>) => {
+export const EditEntry = () => {
   console.log(
     `${new Date().toISOString()} - ${__filename} - React is rendering <EditEntry>`
   );
+
+  const params: { id: string } = useParams();
   console.log(
     `${new Date().toISOString()}` +
       ` - ${__filename}` +
-      ` - inspecting the \`props\` passed in to <EditEntry>:`
+      ` - inspecting the \`params\` passed in to <EditEntry>:`
   );
-  console.log(props);
+  console.log(params);
 
-  const entryId: number = parseInt(props.match.params.id);
+  const entryId: number = parseInt(params.id);
   const entry: IEntry = useSelector((state: IState) => state.entries.entities)[entryId];
+
+  console.debug("entryId:");
+  console.debug(entryId);
+
+  console.debug("entry:");
+  console.debug(entry);
 
   const dispatch = useDispatch();
 
