@@ -2236,7 +2236,7 @@ describe("<EditEntry>", () => {
 
   beforeEach(() => {
     history = createMemoryHistory();
-    const route = "/edit-entry/1";
+    const route = "/entries/1/edit";
     history.push(route);
 
     const initState: IState = {
@@ -2265,7 +2265,7 @@ describe("<EditEntry>", () => {
       const { getByText, getAllByText, getByDisplayValue } = render(
         <Provider store={realStore}>
           <Router history={history}>
-            <Route exact path="/edit-entry/:id">
+            <Route exact path="/entries/:id/edit">
               <EditEntry />
             </Route>
           </Router>
@@ -2287,7 +2287,7 @@ describe("<EditEntry>", () => {
       const { getAllByRole, getByRole, getByDisplayValue } = render(
         <Provider store={realStore}>
           <Router history={history}>
-            <Route exact path="/edit-entry/:id">
+            <Route exact path="/entries/:id/edit">
               <EditEntry />
             </Route>
           </Router>
@@ -2334,7 +2334,7 @@ describe("<EditEntry>", () => {
             <Provider store={realStore}>
               <Router history={history}>
                 <Alerts />
-                <Route exact path="/edit-entry/:id">
+                <Route exact path="/entries/:id/edit">
                   <EditEntry />
                 </Route>
               </Router>
@@ -2391,7 +2391,7 @@ describe("<EditEntry>", () => {
           <Provider store={realStore}>
             <Router history={history}>
               <Alerts />
-              <Route exact path="/edit-entry/:id">
+              <Route exact path="/entries/:id/edit">
                 <EditEntry />
               </Route>
             </Router>
@@ -2419,7 +2419,7 @@ describe("<EditEntry>", () => {
           <Provider store={realStore}>
             <Router history={history}>
               <Alerts />
-              <Route exact path="/edit-entry/:id">
+              <Route exact path="/entries/:id/edit">
                 <EditEntry />
               </Route>
             </Router>

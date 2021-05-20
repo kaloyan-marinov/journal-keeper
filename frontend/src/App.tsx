@@ -807,10 +807,10 @@ const App = () => {
           <Route exact path="/my-monthly-journal">
             <MyMonthlyJournal />
           </Route>
-          <Route exact path="/create-entry">
+          <Route exact path="/entries/create">
             <CreateEntry />
           </Route>
-          <Route exact path="/edit-entry/:id">
+          <Route exact path="/entries/:id/edit">
             <EditEntry />
           </Route>
         </Switch>
@@ -1080,7 +1080,7 @@ export const MyMonthlyJournal = () => {
       <div key={e.id}>
         <hr />
         <SingleEntry timestampInUTC={e.timestampInUTC} content={e.content} />
-        <Link to={"/edit-entry/" + e.id}>Edit</Link>
+        <Link to={`/entries/${e.id}/edit`}>Edit</Link>
       </div>
     );
   });
@@ -1089,7 +1089,7 @@ export const MyMonthlyJournal = () => {
     <React.Fragment>
       {"<MyMonthlyJournal>"}
       <div>Review the entries in MyMonthlyJournal!</div>
-      <Link to="/create-entry">Create a new entry</Link>
+      <Link to="/entries/create">Create a new entry</Link>
       {entries}
     </React.Fragment>
   );
