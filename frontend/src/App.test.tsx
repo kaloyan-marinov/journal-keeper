@@ -7,7 +7,14 @@ import {
   createUserFulfilled,
   rootReducer,
 } from "./App";
-import App, { Alerts, SignUp, SignIn, MyMonthlyJournal, CreateEntry } from "./App";
+import App, {
+  JOURNAL_APP_TOKEN,
+  Alerts,
+  SignUp,
+  SignIn,
+  MyMonthlyJournal,
+  CreateEntry,
+} from "./App";
 
 import { Provider } from "react-redux";
 import { store } from "./App";
@@ -1376,8 +1383,26 @@ describe(
 );
 
 describe("<App>", () => {
+  let enhancer: any;
+  let initState: IState;
+
+  beforeEach(() => {
+    enhancer = applyMiddleware(thunkMiddleware);
+
+    initState = {
+      alerts: {
+        ...initialStateAlerts,
+      },
+      auth: {
+        ...initialStateAuth,
+      },
+      entries: {
+        ...initialStateEntries,
+      },
+    };
+  });
+
   test("initial render (i.e. before/without any user interaction)", () => {
-    const enhancer = applyMiddleware(thunkMiddleware);
     const realStore = createStore(rootReducer, enhancer);
     const { getByText } = render(
       <Provider store={realStore}>
@@ -1393,19 +1418,7 @@ describe("<App>", () => {
   });
 
   test("render after the user has signed in", () => {
-    const enhancer = applyMiddleware(thunkMiddleware);
-    const initState = {
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
-        ...initialStateAuth,
-        token: "a-jws-token-issued-by-the-backend",
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    };
+    initState.auth.token = "a-jws-token-issued-by-the-backend";
     const realStore = createStore(rootReducer, initState, enhancer);
     const { getByText } = render(
       <Provider store={realStore}>
@@ -1420,19 +1433,7 @@ describe("<App>", () => {
 
   test("after the user has signed in, the user clicks on 'Sign Out'", () => {
     // Arrange.
-    const enhancer = applyMiddleware(thunkMiddleware);
-    const initState = {
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
-        ...initialStateAuth,
-        token: "a-jws-token-issued-by-the-backend",
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    };
+    initState.auth.token = "a-jws-token-issued-by-the-backend";
     const realStore = createStore(rootReducer, initState, enhancer);
     const { getByText } = render(
       <Provider store={realStore}>
@@ -1451,6 +1452,29 @@ describe("<App>", () => {
 
     getByText("SIGN-OUT SUCCESSFUL");
   });
+
+  test(
+    "after the user has signed in, the user clicks on 'Sign Out'" +
+      " - that should update the localStorage correctly",
+    () => {
+      // Arrange.
+      localStorage.setItem(JOURNAL_APP_TOKEN, "a-jws-token-issued-by-the-backend");
+      initState.auth.token = localStorage.getItem(JOURNAL_APP_TOKEN);
+      const realStore = createStore(rootReducer, initState, enhancer);
+      const { getByText } = render(
+        <Provider store={realStore}>
+          <App />
+        </Provider>
+      );
+
+      // Act.
+      const signOutAnchor = getByText("Sign Out");
+      fireEvent.click(signOutAnchor);
+
+      // Assert.
+      expect(localStorage.getItem(JOURNAL_APP_TOKEN)).toEqual(null);
+    }
+  );
 });
 
 describe("<Alerts>", () => {

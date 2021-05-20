@@ -52,7 +52,7 @@ interface IStateAuth {
   token: string | null;
 }
 
-const JOURNAL_APP_TOKEN = "token-4-journal-app";
+export const JOURNAL_APP_TOKEN = "token-4-journal-app";
 
 export const initialStateAuth: IStateAuth = {
   requestStatus: RequestStatus.IDLE,
