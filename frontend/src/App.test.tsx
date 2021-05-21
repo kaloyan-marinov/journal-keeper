@@ -1475,6 +1475,29 @@ describe("<App>", () => {
       expect(localStorage.getItem(JOURNAL_APP_TOKEN)).toEqual(null);
     }
   );
+
+  test(
+    "if a user manually saves a token in their web-browser's localStorage," +
+      " the frontend application should still treat that user as _not logged in_",
+    () => {
+      // Arrange.
+      localStorage.setItem(JOURNAL_APP_TOKEN, "a-jws-token-not-issued-by-the-backend");
+      initState.auth.token = localStorage.getItem(JOURNAL_APP_TOKEN);
+      const realStore = createStore(rootReducer, initState, enhancer);
+
+      // Act.
+      const { getByText } = render(
+        <Provider store={realStore}>
+          <App />
+        </Provider>
+      );
+
+      // Assert.
+      getByText("Home");
+      getByText("Sign In");
+      getByText("Sign Up");
+    }
+  );
 });
 
 describe("<Alerts>", () => {
