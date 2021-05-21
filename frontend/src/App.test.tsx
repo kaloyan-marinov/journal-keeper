@@ -334,6 +334,7 @@ describe("reducers", () => {
           requestStatus: "idle",
           requestError: null,
           token: null,
+          hasValidToken: false,
         },
         entries: {
           requestStatus: "idle",
@@ -385,6 +386,7 @@ describe("reducers", () => {
           requestStatus: "idle",
           requestError: null,
           token: null,
+          hasValidToken: false,
         },
         entries: {
           requestStatus: "idle",
@@ -419,6 +421,7 @@ describe("reducers", () => {
           requestStatus: "loading",
           requestError: null,
           token: null,
+          hasValidToken: false,
         },
         entries: {
           requestStatus: "idle",
@@ -451,6 +454,7 @@ describe("reducers", () => {
           requestStatus: "failed",
           requestError: "auth-createUser-rejected",
           token: null,
+          hasValidToken: false,
         },
         entries: {
           requestStatus: "idle",
@@ -483,6 +487,7 @@ describe("reducers", () => {
           requestStatus: "succeeded",
           requestError: null,
           token: null,
+          hasValidToken: false,
         },
         entries: {
           requestStatus: "idle",
@@ -517,6 +522,7 @@ describe("reducers", () => {
           requestStatus: "loading",
           requestError: null,
           token: null,
+          hasValidToken: false,
         },
         entries: {
           requestStatus: "idle",
@@ -549,6 +555,7 @@ describe("reducers", () => {
           requestStatus: "failed",
           requestError: "auth-issueJWSToken-rejected",
           token: null,
+          hasValidToken: false,
         },
         entries: {
           requestStatus: "idle",
@@ -585,6 +592,7 @@ describe("reducers", () => {
           requestStatus: "succeeded",
           requestError: null,
           token: "a-jws-token-issued-by-the-backend",
+          hasValidToken: true,
         },
         entries: {
           requestStatus: "idle",
@@ -598,6 +606,7 @@ describe("reducers", () => {
 
   test("auth/removeJWSToken should clear state.auth.token", () => {
     initState.auth.token = "a-jws-token-issue-by-the-backend";
+    initState.auth.hasValidToken = true;
     const action = {
       type: "auth/removeJWSToken",
     };
@@ -613,6 +622,7 @@ describe("reducers", () => {
         requestStatus: "idle",
         requestError: null,
         token: null,
+        hasValidToken: false,
       },
       entries: {
         requestStatus: "idle",
@@ -1418,14 +1428,19 @@ describe("<App>", () => {
   });
 
   test("render after the user has signed in", () => {
+    // Arrange.
     initState.auth.token = "a-jws-token-issued-by-the-backend";
+    initState.auth.hasValidToken = true;
     const realStore = createStore(rootReducer, initState, enhancer);
+
+    // Act.
     const { getByText } = render(
       <Provider store={realStore}>
         <App />
       </Provider>
     );
 
+    // Assert.
     getByText("Home");
     getByText("MyMonthlyJournal");
     getByText("Sign Out");
@@ -1434,6 +1449,7 @@ describe("<App>", () => {
   test("after the user has signed in, the user clicks on 'Sign Out'", () => {
     // Arrange.
     initState.auth.token = "a-jws-token-issued-by-the-backend";
+    initState.auth.hasValidToken = true;
     const realStore = createStore(rootReducer, initState, enhancer);
     const { getByText } = render(
       <Provider store={realStore}>
@@ -1460,6 +1476,9 @@ describe("<App>", () => {
       // Arrange.
       localStorage.setItem(JOURNAL_APP_TOKEN, "a-jws-token-issued-by-the-backend");
       initState.auth.token = localStorage.getItem(JOURNAL_APP_TOKEN);
+
+      initState.auth.hasValidToken = true;
+
       const realStore = createStore(rootReducer, initState, enhancer);
       const { getByText } = render(
         <Provider store={realStore}>
@@ -1477,8 +1496,9 @@ describe("<App>", () => {
   );
 
   test(
-    "if a user manually saves a token in their web-browser's localStorage," +
-      " the frontend application should still treat that user as _not logged in_",
+    "if a user hasn't signed in" +
+      " but manually saves a token in their web-browser's localStorage," +
+      " the frontend application should still treat that user as _not signed in_",
     () => {
       // Arrange.
       localStorage.setItem(JOURNAL_APP_TOKEN, "a-jws-token-not-issued-by-the-backend");

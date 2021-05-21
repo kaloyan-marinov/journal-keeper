@@ -50,6 +50,7 @@ interface IStateAuth {
   requestStatus: RequestStatus;
   requestError: string | null;
   token: string | null;
+  hasValidToken: boolean;
 }
 
 export const JOURNAL_APP_TOKEN = "token-4-journal-app";
@@ -58,6 +59,7 @@ export const initialStateAuth: IStateAuth = {
   requestStatus: RequestStatus.IDLE,
   requestError: null,
   token: localStorage.getItem(JOURNAL_APP_TOKEN),
+  hasValidToken: false,
 };
 
 interface IEntry {
@@ -654,6 +656,7 @@ export const authReducer = (
         ...stateAuth,
         requestStatus: RequestStatus.FAILED,
         requestError: action.error,
+        hasValidToken: false,
       };
 
     case ActionTypesIssueJWSToken.FULFILLED:
@@ -661,12 +664,14 @@ export const authReducer = (
         requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
         token: action.payload.token,
+        hasValidToken: true,
       };
 
     case ACTION_TYPE_REMOVE_JWS_TOKEN:
       return {
         ...stateAuth,
         token: null,
+        hasValidToken: false,
       };
 
     default:
@@ -797,11 +802,14 @@ const composedEnhancer = composeWithDevTools(
 );
 export const store = createStore(rootReducer, composedEnhancer);
 
+/* Define selector functions. */
+const selectHasValidToken = (state: IState) => state.auth.hasValidToken;
+
 /* React components. */
 const App = () => {
   console.log(`${new Date().toISOString()} - ${__filename} - React is rendering <App>`);
 
-  const authToken: string | null = useSelector((state: IState) => state.auth.token);
+  const hasValidToken: boolean = useSelector(selectHasValidToken);
   const authRequestStatus: RequestStatus = useSelector(
     (state: IState) => state.auth.requestStatus
   );
@@ -817,7 +825,7 @@ const App = () => {
   };
 
   const navigationLinks =
-    authToken === null ? (
+    hasValidToken === false ? (
       <React.Fragment>
         <Link to="/">Home</Link> | <Link to="/sign-in">Sign In</Link> |{" "}
         <Link to="/sign-up">Sign Up</Link>
