@@ -325,6 +325,19 @@ router.post("/api/tokens", basicAuth, async (ctx: Koa.Context) => {
   ctx.body = { token };
 });
 
+router.get("/api/user-profile", tokenAuth, async (ctx: Koa.Context) => {
+  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
+    User
+  );
+  const user: User | undefined = await usersRepository.findOne({
+    select: ["id", "username", "name", "email", "createdAt", "updatedAt"],
+    where: {
+      id: ctx.user.id,
+    },
+  });
+  ctx.body = user;
+});
+
 router.post("/api/entries", tokenAuth, async (ctx: Koa.Context) => {
   if (ctx.request.headers["content-type"] !== "application/json") {
     ctx.status = 400;

@@ -46,6 +46,13 @@ import {
 } from "./App";
 import { issueJWSToken } from "./App";
 
+import {
+  fetchProfilePending,
+  fetchProfileRejected,
+  fetchProfileFulfilled,
+} from "./App";
+import { fetchProfile } from "./App";
+
 import { removeJWSToken } from "./App";
 
 import {
@@ -139,6 +146,42 @@ describe("action creators", () => {
       type: "auth/issueJWSToken/fulfilled",
       payload: {
         token: "a-jws-token-issued-by-the-backend",
+      },
+    });
+  });
+
+  test("fetchProfilePending", () => {
+    const action = fetchProfilePending();
+
+    expect(action).toEqual({
+      type: "auth/fetchProfile/pending",
+    });
+  });
+
+  test("fetchProfileRejected", () => {
+    const action = fetchProfileRejected("auth-fetchProfile-rejected");
+
+    expect(action).toEqual({
+      type: "auth/fetchProfile/rejected",
+      error: "auth-fetchProfile-rejected",
+    });
+  });
+
+  test("fetchProfileFulfilled", () => {
+    const profile = {
+      id: 17,
+      username: "jd",
+      name: "John Doe",
+      email: "john.doe@protonmail.com",
+      createdAt: "2021-05-23T11:10:17.000Z",
+      updatedAt: "2021-05-23T11:10:34.000Z",
+    };
+    const action = fetchProfileFulfilled(profile);
+
+    expect(action).toEqual({
+      type: "auth/fetchProfile/fulfilled",
+      payload: {
+        profile,
       },
     });
   });
@@ -335,6 +378,7 @@ describe("reducers", () => {
           requestError: null,
           token: null,
           hasValidToken: false,
+          signedInUserProfile: null,
         },
         entries: {
           requestStatus: "idle",
@@ -387,6 +431,7 @@ describe("reducers", () => {
           requestError: null,
           token: null,
           hasValidToken: false,
+          signedInUserProfile: null,
         },
         entries: {
           requestStatus: "idle",
@@ -422,6 +467,7 @@ describe("reducers", () => {
           requestError: null,
           token: null,
           hasValidToken: false,
+          signedInUserProfile: null,
         },
         entries: {
           requestStatus: "idle",
@@ -455,6 +501,7 @@ describe("reducers", () => {
           requestError: "auth-createUser-rejected",
           token: null,
           hasValidToken: false,
+          signedInUserProfile: null,
         },
         entries: {
           requestStatus: "idle",
@@ -488,6 +535,7 @@ describe("reducers", () => {
           requestError: null,
           token: null,
           hasValidToken: false,
+          signedInUserProfile: null,
         },
         entries: {
           requestStatus: "idle",
@@ -523,6 +571,7 @@ describe("reducers", () => {
           requestError: null,
           token: null,
           hasValidToken: false,
+          signedInUserProfile: null,
         },
         entries: {
           requestStatus: "idle",
@@ -556,6 +605,7 @@ describe("reducers", () => {
           requestError: "auth-issueJWSToken-rejected",
           token: null,
           hasValidToken: false,
+          signedInUserProfile: null,
         },
         entries: {
           requestStatus: "idle",
@@ -593,6 +643,7 @@ describe("reducers", () => {
           requestError: null,
           token: "a-jws-token-issued-by-the-backend",
           hasValidToken: true,
+          signedInUserProfile: null,
         },
         entries: {
           requestStatus: "idle",
@@ -604,8 +655,113 @@ describe("reducers", () => {
     }
   );
 
+  test("auth/fetchProfile/pending", () => {
+    const action = {
+      type: "auth/fetchProfile/pending",
+    };
+
+    const newState = rootReducer(initState, action);
+
+    expect(newState).toEqual({
+      alerts: {
+        entities: {},
+        ids: [],
+      },
+      auth: {
+        requestStatus: "loading",
+        requestError: null,
+        token: null,
+        hasValidToken: false,
+        signedInUserProfile: null,
+      },
+      entries: {
+        requestStatus: "idle",
+        requestError: null,
+        ids: [],
+        entities: {},
+      },
+    });
+  });
+
+  test("auth/fetchProfile/rejected", () => {
+    const action = {
+      type: "auth/fetchProfile/rejected",
+      error: "auth-fetchProfile-rejected",
+    };
+
+    const newState = rootReducer(initState, action);
+
+    expect(newState).toEqual({
+      alerts: {
+        entities: {},
+        ids: [],
+      },
+      auth: {
+        requestStatus: "failed",
+        requestError: "auth-fetchProfile-rejected",
+        token: null,
+        hasValidToken: false,
+        signedInUserProfile: null,
+      },
+      entries: {
+        requestStatus: "idle",
+        requestError: null,
+        ids: [],
+        entities: {},
+      },
+    });
+  });
+
+  test("auth/fetchProfile/fulfilled", () => {
+    initState.auth.requestStatus = "pending";
+    initState.auth.requestError = null;
+    initState.auth.token = "a-jws-token-issued-by-the-backend";
+    const action = {
+      type: "auth/fetchProfile/fulfilled",
+      payload: {
+        profile: {
+          id: 17,
+          username: "[mocked] ms",
+          name: "[mocked] Mary Smith",
+          email: "[mocked] mary.smith@protonmail.com",
+          createdAt: "[mocked] 2021-05-23T11:10:17.000Z",
+          updatedAt: "[mocked] 2021-05-23T11:10:34.000Z",
+        },
+      },
+    };
+
+    const newState = rootReducer(initState, action);
+
+    expect(newState).toEqual({
+      alerts: {
+        entities: {},
+        ids: [],
+      },
+      auth: {
+        requestStatus: "succeeded",
+        requestError: null,
+        token: "a-jws-token-issued-by-the-backend",
+        hasValidToken: true,
+        signedInUserProfile: {
+          id: 17,
+          username: "[mocked] ms",
+          name: "[mocked] Mary Smith",
+          email: "[mocked] mary.smith@protonmail.com",
+          createdAt: "[mocked] 2021-05-23T11:10:17.000Z",
+          updatedAt: "[mocked] 2021-05-23T11:10:34.000Z",
+        },
+      },
+      entries: {
+        requestStatus: "idle",
+        requestError: null,
+        ids: [],
+        entities: {},
+      },
+    });
+  });
+
   test("auth/removeJWSToken should clear state.auth.token", () => {
-    initState.auth.token = "a-jws-token-issue-by-the-backend";
+    initState.auth.token = "a-jws-token-issued-by-the-backend";
     initState.auth.hasValidToken = true;
     const action = {
       type: "auth/removeJWSToken",
@@ -623,6 +779,7 @@ describe("reducers", () => {
         requestError: null,
         token: null,
         hasValidToken: false,
+        signedInUserProfile: null,
       },
       entries: {
         requestStatus: "idle",
@@ -958,6 +1115,15 @@ describe("reducers", () => {
 });
 
 /* Describe what requests should be mocked. */
+const profileMock = {
+  id: 17,
+  username: "[mocked] jd",
+  name: "[mocked] John Doe",
+  email: "[mocked] john.doe@protonmail.com",
+  createdAt: "[mocked] 2021-05-23T11:10:17.000Z",
+  updatedAt: "[mocked] 2021-05-23T11:10:34.000Z",
+};
+
 const entry1Mock = {
   id: 1,
   timestampInUTC: "2020-12-01T15:17:00.000Z",
@@ -1009,6 +1175,10 @@ const requestHandlersToMock = [
         token: "mocked-json-web-signature-token",
       })
     );
+  }),
+
+  rest.get("/api/user-profile", (req, res, ctx) => {
+    return res(ctx.status(200), ctx.json(profileMock));
   }),
 
   rest.get("/api/entries", (req, res, ctx) => {
@@ -1196,6 +1366,63 @@ describe(
             type: "auth/issueJWSToken/fulfilled",
             payload: {
               token: "mocked-json-web-signature-token",
+            },
+          },
+        ]);
+      }
+    );
+
+    test(
+      "fetchProfile()" +
+        " + the HTTP request issued by that thunk-action is mocked to fail",
+      async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.get("/api/user-profile", (req, res, ctx) => {
+            return res(
+              ctx.status(401),
+              ctx.json({
+                error:
+                  "[mocked-response] Failed to authenticated you as an HTTP client",
+              })
+            );
+          })
+        );
+
+        // Act.
+        const fetchProfilePromise = storeMock.dispatch(fetchProfile());
+
+        // Assert.
+        await expect(fetchProfilePromise).rejects.toEqual(
+          "[mocked-response] Failed to authenticated you as an HTTP client"
+        );
+        expect(storeMock.getActions()).toEqual([
+          {
+            type: "auth/fetchProfile/pending",
+          },
+          {
+            type: "auth/fetchProfile/rejected",
+            error: "[mocked-response] Failed to authenticated you as an HTTP client",
+          },
+        ]);
+      }
+    );
+
+    test(
+      "fetchProfile()" +
+        " + the HTTP request issued by that thunk-action is mocked to succeed",
+      async () => {
+        const fetchProfilePromise = storeMock.dispatch(fetchProfile());
+
+        await expect(fetchProfilePromise).resolves.toEqual(undefined);
+        expect(storeMock.getActions()).toEqual([
+          {
+            type: "auth/fetchProfile/pending",
+          },
+          {
+            type: "auth/fetchProfile/fulfilled",
+            payload: {
+              profile: profileMock,
             },
           },
         ]);

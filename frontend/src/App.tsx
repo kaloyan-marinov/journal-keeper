@@ -46,11 +46,21 @@ enum RequestStatus {
   SUCCEEDED = "succeeded",
 }
 
+export interface IProfile {
+  id: number;
+  username: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface IStateAuth {
   requestStatus: RequestStatus;
   requestError: string | null;
   token: string | null;
   hasValidToken: boolean;
+  signedInUserProfile: IProfile | null;
 }
 
 export const JOURNAL_APP_TOKEN = "token-4-journal-app";
@@ -60,6 +70,7 @@ export const initialStateAuth: IStateAuth = {
   requestError: null,
   token: localStorage.getItem(JOURNAL_APP_TOKEN),
   hasValidToken: false,
+  signedInUserProfile: null,
 };
 
 interface IEntry {
@@ -298,6 +309,90 @@ export const issueJWSToken = (
       const responseBody = err.response.data;
       const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
       dispatch(issueJWSTokenRejected(responseBodyError));
+      return Promise.reject(responseBodyError);
+    }
+  };
+};
+
+/* authSlice - "auth/fetchProfile/" action creators */
+enum ActionTypesFetchProfile {
+  PENDING = "auth/fetchProfile/pending",
+  REJECTED = "auth/fetchProfile/rejected",
+  FULFILLED = "auth/fetchProfile/fulfilled",
+}
+
+interface IActionFetchProfilePending {
+  type: typeof ActionTypesFetchProfile.PENDING;
+}
+
+interface IActionFetchProfileRejected {
+  type: typeof ActionTypesFetchProfile.REJECTED;
+  error: string;
+}
+
+interface IActionFetchProfileFulfilled {
+  type: typeof ActionTypesFetchProfile.FULFILLED;
+  payload: {
+    profile: IProfile;
+  };
+}
+
+export const fetchProfilePending = (): IActionFetchProfilePending => ({
+  type: ActionTypesFetchProfile.PENDING,
+});
+
+export const fetchProfileRejected = (error: string): IActionFetchProfileRejected => ({
+  type: ActionTypesFetchProfile.REJECTED,
+  error,
+});
+
+export const fetchProfileFulfilled = (
+  profile: IProfile
+): IActionFetchProfileFulfilled => ({
+  type: ActionTypesFetchProfile.FULFILLED,
+  payload: {
+    profile,
+  },
+});
+
+type ActionFetchProfile =
+  | IActionFetchProfilePending
+  | IActionFetchProfileRejected
+  | IActionFetchProfileFulfilled;
+
+/* authSlice - "auth/fetchProfile" thunk-action creator */
+export const fetchProfile = (): ThunkAction<
+  void,
+  IState,
+  unknown,
+  ActionFetchProfile
+> => {
+  /*
+  Create a thunk-action.
+  When dispatched, it makes the web browser issue an HTTP request
+  to the backend's endpoint for fetching the Profile of a specific User.
+
+  That User is uniquely specified by JSON Web Signature token,
+  which is required to have been saved earlier (by the frontend)
+  in the HTTP-request-issuing web browser.
+  */
+
+  return async (dispatch) => {
+    const config = {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem(JOURNAL_APP_TOKEN),
+      },
+    };
+
+    dispatch(fetchProfilePending());
+    try {
+      const response = await axios.get("/api/user-profile", config);
+      dispatch(fetchProfileFulfilled(response.data));
+      return Promise.resolve();
+    } catch (err) {
+      const responseBody = err.response.data;
+      const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
+      dispatch(fetchProfileRejected(responseBodyError));
       return Promise.reject(responseBodyError);
     }
   };
@@ -620,7 +715,11 @@ export const alertsReducer = (
 /* authSlice - reducer */
 export const authReducer = (
   stateAuth: IStateAuth = initialStateAuth,
-  action: ActionCreateUser | ActionIssueJWSToken | IActionRemoveJWSToken
+  action:
+    | ActionCreateUser
+    | ActionIssueJWSToken
+    | ActionFetchProfile
+    | IActionRemoveJWSToken
 ): IStateAuth => {
   switch (action.type) {
     case ActionTypesCreateUser.PENDING:
@@ -661,11 +760,38 @@ export const authReducer = (
 
     case ActionTypesIssueJWSToken.FULFILLED:
       return {
+        ...stateAuth,
         requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
         token: action.payload.token,
         hasValidToken: true,
       };
+
+    case ActionTypesFetchProfile.PENDING:
+      return {
+        ...stateAuth,
+        requestStatus: RequestStatus.LOADING,
+        requestError: null,
+      };
+
+    case ActionTypesFetchProfile.REJECTED:
+      return {
+        ...stateAuth,
+        requestStatus: RequestStatus.FAILED,
+        requestError: action.error,
+      };
+
+    case ActionTypesFetchProfile.FULFILLED: {
+      const profile: IProfile = action.payload.profile;
+
+      return {
+        ...stateAuth,
+        requestStatus: RequestStatus.SUCCEEDED,
+        requestError: null,
+        hasValidToken: true,
+        signedInUserProfile: profile,
+      };
+    }
 
     case ACTION_TYPE_REMOVE_JWS_TOKEN:
       return {
@@ -814,7 +940,30 @@ const App = () => {
     (state: IState) => state.auth.requestStatus
   );
 
-  const dispatch: Dispatch<IActionRemoveJWSToken | IActionAlertsCreate> = useDispatch();
+  const dispatch: ThunkDispatch<
+    IState,
+    unknown,
+    IActionRemoveJWSToken | ActionFetchProfile | IActionAlertsCreate
+  > = useDispatch();
+
+  React.useEffect(() => {
+    console.log(
+      `${new Date().toISOString()}` +
+        ` - ${__filename}` +
+        ` - React is running <App>'s useEffect hook`
+    );
+
+    const effectFn = async () => {
+      try {
+        await dispatch(fetchProfile());
+      } catch (err) {
+        const id: string = uuidv4();
+        dispatch(alertsCreate(id, "PROFILE FETCHING FAILED"));
+      }
+    };
+
+    effectFn();
+  }, [dispatch]);
 
   const handleClickSignOut = () => {
     localStorage.removeItem(JOURNAL_APP_TOKEN);
