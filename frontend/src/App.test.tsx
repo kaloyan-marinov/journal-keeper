@@ -1858,6 +1858,34 @@ describe("<App>", () => {
       });
     }
   );
+
+  test(
+    "if a user hasn't signed in" +
+      " but manually changes the URL in her browser's address bar" +
+      " to /my-monthly-journal ," +
+      " the frontend application should redirect the user to /sign-in",
+    async () => {
+      // Arrange.
+      const realStore = createStore(rootReducer, initState, enhancer);
+
+      // Act.
+      history.push("/my-monthly-journal");
+
+      const { queryAllByText } = render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <App />
+          </Router>
+        </Provider>
+      );
+
+      // Assert.
+      await waitFor(() => {
+        const elements = queryAllByText("Review the entries in MyMonthlyJournal!");
+        expect(elements.length).toEqual(0);
+      });
+    }
+  );
 });
 
 describe("<Alerts>", () => {
