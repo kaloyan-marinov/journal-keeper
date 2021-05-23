@@ -18,6 +18,8 @@ import { useParams } from "react-router-dom";
 
 import moment from "moment";
 
+import { Redirect } from "react-router-dom";
+
 /*
 Specify all slices of the Redux state,
 along with an initial value for each slice.
@@ -1007,15 +1009,15 @@ const App = () => {
         <Route exact path="/sign-in">
           <SignIn />
         </Route>
-        <Route exact path="/my-monthly-journal">
+        <PrivateRoute exact path="/my-monthly-journal">
           <MyMonthlyJournal />
-        </Route>
-        <Route exact path="/entries/create">
+        </PrivateRoute>
+        <PrivateRoute exact path="/entries/create">
           <CreateEntry />
-        </Route>
-        <Route exact path="/entries/:id/edit">
+        </PrivateRoute>
+        <PrivateRoute exact path="/entries/:id/edit">
           <EditEntry />
-        </Route>
+        </PrivateRoute>
       </Switch>
     </React.Fragment>
   );
@@ -1241,6 +1243,38 @@ export const SignIn = () => {
       </form>
     </React.Fragment>
   );
+};
+
+export const PrivateRoute = (props: any) => {
+  console.log(
+    `${new Date().toISOString()}` +
+      `- ${__filename}` +
+      `- React is rendering <PrivateRoute> ...`
+  );
+  console.log(
+    `${new Date().toISOString()}` +
+      `- ${__filename}` +
+      `- ... and its children are as follows:`
+  );
+  const childrenCount: number = React.Children.count(props.children);
+  React.Children.forEach(props.children, (child, ind) => {
+    console.log(
+      `    child #${ind + 1} (out of ${childrenCount}): <${child.type.name}>`
+    );
+  });
+
+  const { children, ...rest } = props;
+
+  const hasValidToken: boolean = useSelector(selectHasValidToken);
+  // const authRequestStatus: RequestStatus = useSelector((state: IState) => state.auth.requestStatus)
+
+  if (hasValidToken === false) {
+    console.log(`    hasValidToken=${hasValidToken} > redirecting to /sign-in ...`);
+    return <Redirect to="/sign-in" />;
+  } else {
+    console.log(`    hasValidToken=${hasValidToken}`);
+    return <Route {...rest}>{children}</Route>;
+  }
 };
 
 export const MyMonthlyJournal = () => {

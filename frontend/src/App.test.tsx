@@ -1707,6 +1707,24 @@ describe("<App>", () => {
     });
   });
 
+  test(
+    "after the user has clicked on 'Sign me in'" +
+      " but before the user's frontend has received a JWS token from the backend",
+    () => {
+      initState.auth.requestStatus = "loading";
+      const realStore = createStore(rootReducer, initState, enhancer);
+      const { getByText } = render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <App />
+          </Router>
+        </Provider>
+      );
+
+      getByText("Loading...");
+    }
+  );
+
   test("after the user has signed in, the user clicks on 'Sign Out'", async () => {
     // Arrange.
     const realStore = createStore(rootReducer, initState, enhancer);
