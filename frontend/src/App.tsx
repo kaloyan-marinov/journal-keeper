@@ -957,20 +957,19 @@ const App = () => {
       try {
         await dispatch(fetchProfile());
       } catch (err) {
-        const id: string = uuidv4();
-        dispatch(alertsCreate(id, "PROFILE FETCHING FAILED"));
+        signOut("TO CONTINUE, PLEASE SIGN IN");
       }
     };
 
     effectFn();
   }, [dispatch]);
 
-  const handleClickSignOut = () => {
+  const signOut = (message: string) => {
     localStorage.removeItem(JOURNAL_APP_TOKEN);
     dispatch(removeJWSToken());
 
     const id: string = uuidv4();
-    dispatch(alertsCreate(id, "SIGN-OUT SUCCESSFUL"));
+    dispatch(alertsCreate(id, message));
   };
 
   const navigationLinks =
@@ -983,7 +982,7 @@ const App = () => {
       <React.Fragment>
         <Link to="/">Home</Link> |{" "}
         <Link to="/my-monthly-journal">MyMonthlyJournal</Link> |{" "}
-        <a href="#!" onClick={() => handleClickSignOut()}>
+        <a href="#!" onClick={() => signOut("SIGN-OUT SUCCESSFUL")}>
           Sign Out
         </a>
       </React.Fragment>
