@@ -931,16 +931,12 @@ const composedEnhancer = composeWithDevTools(
 export const store = createStore(rootReducer, composedEnhancer);
 
 /* Define selector functions. */
+const selectAuthRequestStatus = (state: IState) => state.auth.requestStatus;
 const selectHasValidToken = (state: IState) => state.auth.hasValidToken;
 
 /* React components. */
 const App = () => {
   console.log(`${new Date().toISOString()} - ${__filename} - React is rendering <App>`);
-
-  const hasValidToken: boolean = useSelector(selectHasValidToken);
-  const authRequestStatus: RequestStatus = useSelector(
-    (state: IState) => state.auth.requestStatus
-  );
 
   const dispatch: ThunkDispatch<
     IState,
@@ -959,45 +955,21 @@ const App = () => {
       try {
         await dispatch(fetchProfile());
       } catch (err) {
-        signOut("TO CONTINUE, PLEASE SIGN IN");
+        localStorage.removeItem(JOURNAL_APP_TOKEN);
+        dispatch(removeJWSToken());
+
+        const id: string = uuidv4();
+        dispatch(alertsCreate(id, "TO CONTINUE, PLEASE SIGN IN"));
       }
     };
 
     effectFn();
   }, [dispatch]);
 
-  const signOut = (message: string) => {
-    localStorage.removeItem(JOURNAL_APP_TOKEN);
-    dispatch(removeJWSToken());
-
-    const id: string = uuidv4();
-    dispatch(alertsCreate(id, message));
-  };
-
-  const navigationLinks =
-    hasValidToken === false ? (
-      <React.Fragment>
-        <Link to="/">Home</Link> | <Link to="/sign-in">Sign In</Link> |{" "}
-        <Link to="/sign-up">Sign Up</Link>
-      </React.Fragment>
-    ) : (
-      <React.Fragment>
-        <Link to="/">Home</Link> |{" "}
-        <Link to="/my-monthly-journal">MyMonthlyJournal</Link> |{" "}
-        <a href="#!" onClick={() => signOut("SIGN-OUT SUCCESSFUL")}>
-          Sign Out
-        </a>
-      </React.Fragment>
-    );
-
   return (
     <React.Fragment>
       {"<App>"}
-      {authRequestStatus === RequestStatus.LOADING ? (
-        <div>Loading...</div>
-      ) : (
-        <div>{navigationLinks}</div>
-      )}
+      <NavigationBar />
       <Alerts />
       <Switch>
         <Route exact path="/">
@@ -1055,6 +1027,54 @@ export const Alerts = () => {
         ))
       )}
     </>
+  );
+};
+
+export const NavigationBar = () => {
+  console.log(
+    `${new Date().toISOString()}` +
+      `- ${__filename}` +
+      `- React is rendering <NavigationBar>`
+  );
+
+  const authRequestStatus: RequestStatus = useSelector(selectAuthRequestStatus);
+  const hasValidToken: boolean = useSelector(selectHasValidToken);
+
+  const dispatch = useDispatch();
+
+  const signOut = () => {
+    localStorage.removeItem(JOURNAL_APP_TOKEN);
+    dispatch(removeJWSToken());
+
+    const id: string = uuidv4();
+    dispatch(alertsCreate(id, "SIGN-OUT SUCCESSFUL"));
+  };
+
+  const navigationLinks =
+    hasValidToken === false ? (
+      <React.Fragment>
+        <Link to="/">Home</Link> | <Link to="/sign-in">Sign In</Link> |{" "}
+        <Link to="/sign-up">Sign Up</Link>
+      </React.Fragment>
+    ) : (
+      <React.Fragment>
+        <Link to="/">Home</Link> |{" "}
+        <Link to="/my-monthly-journal">MyMonthlyJournal</Link> |{" "}
+        <a href="#!" onClick={() => signOut()}>
+          Sign Out
+        </a>
+      </React.Fragment>
+    );
+
+  return (
+    <React.Fragment>
+      <div>{"<NavigationBar>"}</div>
+      {authRequestStatus === RequestStatus.LOADING ? (
+        <div>Loading...</div>
+      ) : (
+        <div>{navigationLinks}</div>
+      )}
+    </React.Fragment>
   );
 };
 
