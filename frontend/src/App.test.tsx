@@ -1624,6 +1624,11 @@ describe("<App>", () => {
   let initState: IState;
   let history: any;
 
+  beforeAll(() => {
+    // Enable API mocking.
+    quasiServer.listen();
+  });
+
   beforeEach(() => {
     enhancer = applyMiddleware(thunkMiddleware);
 
@@ -1642,7 +1647,27 @@ describe("<App>", () => {
     history = createMemoryHistory();
   });
 
-  test("initial render (i.e. before/without any user interaction)", () => {
+  afterEach(() => {
+    quasiServer.resetHandlers();
+  });
+
+  afterAll(() => {
+    // Disable API mocking.
+    quasiServer.close();
+  });
+
+  test("initial render (i.e. before/without any user interaction)", async () => {
+    quasiServer.use(
+      rest.get("/api/user-profile", (req, res, ctx) => {
+        return res(
+          ctx.status(401),
+          ctx.json({
+            error: "[mocked-response] You have not signed in yet!",
+          })
+        );
+      })
+    );
+
     const realStore = createStore(rootReducer, enhancer);
     const { getByText } = render(
       <Provider store={realStore}>
@@ -1652,17 +1677,17 @@ describe("<App>", () => {
       </Provider>
     );
 
-    getByText("Home");
-    getByText("Sign In");
-    getByText("Sign Up");
+    await waitFor(() => {
+      getByText("Home");
+      getByText("Sign In");
+      getByText("Sign Up");
 
-    getByText("Welcome to MyMonthlyJournal!");
+      getByText("Welcome to MyMonthlyJournal!");
+    });
   });
 
-  test("render after the user has signed in", () => {
+  test("render after the user has signed in", async () => {
     // Arrange.
-    initState.auth.token = "a-jws-token-issued-by-the-backend";
-    initState.auth.hasValidToken = true;
     const realStore = createStore(rootReducer, initState, enhancer);
 
     // Act.
@@ -1675,15 +1700,15 @@ describe("<App>", () => {
     );
 
     // Assert.
-    getByText("Home");
-    getByText("MyMonthlyJournal");
-    getByText("Sign Out");
+    await waitFor(() => {
+      getByText("Home");
+      getByText("MyMonthlyJournal");
+      getByText("Sign Out");
+    });
   });
 
-  test("after the user has signed in, the user clicks on 'Sign Out'", () => {
+  test("after the user has signed in, the user clicks on 'Sign Out'", async () => {
     // Arrange.
-    initState.auth.token = "a-jws-token-issued-by-the-backend";
-    initState.auth.hasValidToken = true;
     const realStore = createStore(rootReducer, initState, enhancer);
     const { getByText } = render(
       <Provider store={realStore}>
@@ -1694,25 +1719,31 @@ describe("<App>", () => {
     );
 
     // Act.
-    const signOutAnchor = getByText("Sign Out");
-    fireEvent.click(signOutAnchor);
+    await waitFor(() => {
+      const signOutAnchor = getByText("Sign Out");
+      fireEvent.click(signOutAnchor);
+    });
 
     // Assert.
-    getByText("Home");
-    getByText("Sign In");
-    getByText("Sign Up");
+    await waitFor(() => {
+      getByText("Home");
+      getByText("Sign In");
+      getByText("Sign Up");
 
-    getByText("SIGN-OUT SUCCESSFUL");
+      getByText("SIGN-OUT SUCCESSFUL");
+    });
   });
 
   test(
     "after the user has signed in, the user clicks on 'Sign Out'" +
       " - that should update the localStorage correctly",
-    () => {
+    async () => {
       // Arrange.
       localStorage.setItem(JOURNAL_APP_TOKEN, "a-jws-token-issued-by-the-backend");
+      // Strictly speaking, the setup logic for this test case renders
+      // the next two statements unnecessary-to-have,
+      // but including them is of some instructive value.
       initState.auth.token = localStorage.getItem(JOURNAL_APP_TOKEN);
-
       initState.auth.hasValidToken = true;
 
       const realStore = createStore(rootReducer, initState, enhancer);
@@ -1725,8 +1756,10 @@ describe("<App>", () => {
       );
 
       // Act.
-      const signOutAnchor = getByText("Sign Out");
-      fireEvent.click(signOutAnchor);
+      await waitFor(() => {
+        const signOutAnchor = getByText("Sign Out");
+        fireEvent.click(signOutAnchor);
+      });
 
       // Assert.
       expect(localStorage.getItem(JOURNAL_APP_TOKEN)).toEqual(null);
@@ -1736,12 +1769,31 @@ describe("<App>", () => {
   test(
     "if a user hasn't signed in" +
       " but manually saves a token in their web-browser's localStorage," +
-      " the frontend application should still treat that user as _not signed in_",
-    () => {
+      " the frontend application should display only the following navigation links:" +
+      " 'Home', 'Sign In', 'Sign Up'",
+    async () => {
       // Arrange.
-      localStorage.setItem(JOURNAL_APP_TOKEN, "a-jws-token-not-issued-by-the-backend");
+
+      // Strictly speaking, the setup logic for this test case renders
+      // the next two statements unnecessary-to-have,
+      // but including them is of some instructive value.
+      localStorage.setItem(JOURNAL_APP_TOKEN, "a-jws-token-NOT-issued-by-the-backend");
       initState.auth.token = localStorage.getItem(JOURNAL_APP_TOKEN);
+
       const realStore = createStore(rootReducer, initState, enhancer);
+
+      quasiServer.use(
+        rest.get("/api/user-profile", (req, res, ctx) => {
+          return res(
+            ctx.status(401),
+            ctx.json({
+              error:
+                "[mocked-response] Although state.auth.token is not `null`," +
+                " it is invalid",
+            })
+          );
+        })
+      );
 
       // Act.
       const { getByText } = render(
@@ -1753,9 +1805,11 @@ describe("<App>", () => {
       );
 
       // Assert.
-      getByText("Home");
-      getByText("Sign In");
-      getByText("Sign Up");
+      await waitFor(() => {
+        getByText("Home");
+        getByText("Sign In");
+        getByText("Sign Up");
+      });
     }
   );
 
@@ -1763,16 +1817,10 @@ describe("<App>", () => {
     "if a user signs in" +
       " and goes on to manually change the URL in her browser's address bar" +
       " to /my-monthly-journal ," +
-      " then the displayed navigation links should be" +
+      " the frontend application should display only the following navigation links:" +
       " 'Home', 'MyMonthlyJournal', and 'Sign Out'",
     async () => {
-      // Enable API mocking.
-      quasiServer.listen();
-
       // Arrange.
-      localStorage.setItem(JOURNAL_APP_TOKEN, "a-jws-token-issued-by-the-backend");
-      initState.auth.token = localStorage.getItem(JOURNAL_APP_TOKEN);
-
       const realStore = createStore(rootReducer, initState, enhancer);
 
       // Act:
@@ -1808,9 +1856,6 @@ describe("<App>", () => {
         getByTextFromMyMonthlyJournalURL("Sign Out");
         getByTextFromMyMonthlyJournalURL("MyMonthlyJournal");
       });
-
-      // Disable API mocking.
-      quasiServer.close();
     }
   );
 });
