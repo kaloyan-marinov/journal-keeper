@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Switch, Route, Link } from "react-router-dom";
+import { Switch, Route, Link } from "react-router-dom";
 import { createStore } from "redux";
 import { useDispatch, useSelector } from "react-redux";
 import { composeWithDevTools } from "redux-devtools-extension";
@@ -843,34 +843,32 @@ const App = () => {
   return (
     <React.Fragment>
       {"<App>"}
-      <BrowserRouter>
-        {authRequestStatus === RequestStatus.LOADING ? (
-          <div>Loading...</div>
-        ) : (
-          <div>{navigationLinks}</div>
-        )}
-        <Alerts />
-        <Switch>
-          <Route exact path="/">
-            <div>Welcome to MyMonthlyJournal!</div>
-          </Route>
-          <Route exact path="/sign-up">
-            <SignUp />
-          </Route>
-          <Route exact path="/sign-in">
-            <SignIn />
-          </Route>
-          <Route exact path="/my-monthly-journal">
-            <MyMonthlyJournal />
-          </Route>
-          <Route exact path="/entries/create">
-            <CreateEntry />
-          </Route>
-          <Route exact path="/entries/:id/edit">
-            <EditEntry />
-          </Route>
-        </Switch>
-      </BrowserRouter>
+      {authRequestStatus === RequestStatus.LOADING ? (
+        <div>Loading...</div>
+      ) : (
+        <div>{navigationLinks}</div>
+      )}
+      <Alerts />
+      <Switch>
+        <Route exact path="/">
+          <div>Welcome to MyMonthlyJournal!</div>
+        </Route>
+        <Route exact path="/sign-up">
+          <SignUp />
+        </Route>
+        <Route exact path="/sign-in">
+          <SignIn />
+        </Route>
+        <Route exact path="/my-monthly-journal">
+          <MyMonthlyJournal />
+        </Route>
+        <Route exact path="/entries/create">
+          <CreateEntry />
+        </Route>
+        <Route exact path="/entries/:id/edit">
+          <EditEntry />
+        </Route>
+      </Switch>
     </React.Fragment>
   );
 };

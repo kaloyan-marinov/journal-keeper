@@ -1,4 +1,4 @@
-import { render, fireEvent, waitFor } from "@testing-library/react";
+import { render, fireEvent, waitFor, cleanup } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 
 import {
@@ -1395,6 +1395,7 @@ describe(
 describe("<App>", () => {
   let enhancer: any;
   let initState: IState;
+  let history: any;
 
   beforeEach(() => {
     enhancer = applyMiddleware(thunkMiddleware);
@@ -1410,13 +1411,17 @@ describe("<App>", () => {
         ...initialStateEntries,
       },
     };
+
+    history = createMemoryHistory();
   });
 
   test("initial render (i.e. before/without any user interaction)", () => {
     const realStore = createStore(rootReducer, enhancer);
     const { getByText } = render(
       <Provider store={realStore}>
-        <App />
+        <Router history={history}>
+          <App />
+        </Router>
       </Provider>
     );
 
@@ -1436,7 +1441,9 @@ describe("<App>", () => {
     // Act.
     const { getByText } = render(
       <Provider store={realStore}>
-        <App />
+        <Router history={history}>
+          <App />
+        </Router>
       </Provider>
     );
 
@@ -1453,7 +1460,9 @@ describe("<App>", () => {
     const realStore = createStore(rootReducer, initState, enhancer);
     const { getByText } = render(
       <Provider store={realStore}>
-        <App />
+        <Router history={history}>
+          <App />
+        </Router>
       </Provider>
     );
 
@@ -1482,7 +1491,9 @@ describe("<App>", () => {
       const realStore = createStore(rootReducer, initState, enhancer);
       const { getByText } = render(
         <Provider store={realStore}>
-          <App />
+          <Router history={history}>
+            <App />
+          </Router>
         </Provider>
       );
 
@@ -1508,7 +1519,9 @@ describe("<App>", () => {
       // Act.
       const { getByText } = render(
         <Provider store={realStore}>
-          <App />
+          <Router history={history}>
+            <App />
+          </Router>
         </Provider>
       );
 
@@ -1516,6 +1529,61 @@ describe("<App>", () => {
       getByText("Home");
       getByText("Sign In");
       getByText("Sign Up");
+    }
+  );
+
+  test(
+    "if a user signs in" +
+      " and goes on to manually change the URL in her browser's address bar" +
+      " to /my-monthly-journal ," +
+      " then the displayed navigation links should be" +
+      " 'Home', 'MyMonthlyJournal', and 'Sign Out'",
+    async () => {
+      // Enable API mocking.
+      quasiServer.listen();
+
+      // Arrange.
+      localStorage.setItem(JOURNAL_APP_TOKEN, "a-jws-token-issued-by-the-backend");
+      initState.auth.token = localStorage.getItem(JOURNAL_APP_TOKEN);
+
+      const realStore = createStore(rootReducer, initState, enhancer);
+
+      // Act:
+
+      // - navigate to the root URL, and mount the application's entire React tree
+      history.push("/");
+
+      const { getByText: getByTextFromRootURL } = render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <App />
+          </Router>
+        </Provider>
+      );
+
+      // - unamount React trees that were mounted with render
+      cleanup();
+
+      // - navigate to the /my-monthly-journal URL,
+      //   and mount the application's entire React tree
+      history.push("/my-monthly-journal");
+      const { getByText: getByTextFromMyMonthlyJournalURL } = render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <App />
+          </Router>
+        </Provider>
+      );
+
+      // Assert.
+      await waitFor(() => {
+        getByTextFromMyMonthlyJournalURL("Home");
+        getByTextFromMyMonthlyJournalURL("Sign Out");
+        getByTextFromMyMonthlyJournalURL("MyMonthlyJournal");
+      });
+
+      // Disable API mocking.
+      quasiServer.close();
     }
   );
 });
