@@ -1034,11 +1034,10 @@ export const Alerts = () => {
 export const NavigationBar = () => {
   console.log(
     `${new Date().toISOString()}` +
-      `- ${__filename}` +
-      `- React is rendering <NavigationBar>`
+      ` - ${__filename}` +
+      ` - React is rendering <NavigationBar>`
   );
 
-  const authRequestStatus: RequestStatus = useSelector(selectAuthRequestStatus);
   const hasValidToken: boolean | null = useSelector(selectHasValidToken);
 
   const dispatch = useDispatch();
@@ -1069,11 +1068,7 @@ export const NavigationBar = () => {
   return (
     <React.Fragment>
       <div>{"<NavigationBar>"}</div>
-      {authRequestStatus === RequestStatus.LOADING ? (
-        <div>Loading...</div>
-      ) : (
-        <div>{navigationLinks}</div>
-      )}
+      <div>{navigationLinks}</div>
     </React.Fragment>
   );
 };
@@ -1096,6 +1091,9 @@ export const SignUp = () => {
   });
 
   if (hasValidToken === true) {
+    console.log(
+      `    hasValidToken=${hasValidToken} > redirecting to /my-monthly-journal ...`
+    );
     return <Redirect to="/my-monthly-journal" />;
   }
 
@@ -1218,6 +1216,9 @@ export const SignIn = () => {
   });
 
   if (hasValidToken === true) {
+    console.log(
+      `    hasValidToken=${hasValidToken} > redirecting to /my-monthly-journal ...`
+    );
     return <Redirect to="/my-monthly-journal" />;
   }
 
@@ -1283,14 +1284,11 @@ export const SignIn = () => {
 export const PrivateRoute = (props: any) => {
   console.log(
     `${new Date().toISOString()}` +
-      `- ${__filename}` +
-      `- React is rendering <PrivateRoute> ...`
+      ` - ${__filename}` +
+      ` - React is rendering <PrivateRoute>`
   );
-  console.log(
-    `${new Date().toISOString()}` +
-      `- ${__filename}` +
-      `- ... and its children are as follows:`
-  );
+
+  console.log(`    its children are as follows:`);
   const childrenCount: number = React.Children.count(props.children);
   React.Children.forEach(props.children, (child, ind) => {
     console.log(
@@ -1300,14 +1298,21 @@ export const PrivateRoute = (props: any) => {
 
   const { children, ...rest } = props;
 
+  const authRequestStatus: RequestStatus = useSelector(selectAuthRequestStatus);
   const hasValidToken: boolean | null = useSelector(selectHasValidToken);
-  // const authRequestStatus: RequestStatus = useSelector((state: IState) => state.auth.requestStatus)
 
-  if (!hasValidToken) {
+  if (authRequestStatus === RequestStatus.LOADING) {
+    console.log(`    authRequestStatus="${RequestStatus.LOADING}"`);
+    return React.Children.map(props.children, (child) => (
+      <div>{`<${child.type.name}>`} - Loading...</div>
+    ));
+  } else if (!hasValidToken) {
     console.log(`    hasValidToken=${hasValidToken} > redirecting to /sign-in ...`);
     return <Redirect to="/sign-in" />;
   } else {
-    console.log(`    hasValidToken=${hasValidToken}`);
+    console.log(
+      `    hasValidToken=${hasValidToken} > rendering the above-listed children`
+    );
     return <Route {...rest}>{children}</Route>;
   }
 };
