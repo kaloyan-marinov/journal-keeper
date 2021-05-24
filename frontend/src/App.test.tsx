@@ -2363,6 +2363,8 @@ describe(
   "<Alerts> + <SignIn>" +
     " (with the user interaction triggering network communication)",
   () => {
+    let realStore: any;
+
     beforeAll(() => {
       // Enable API mocking.
       quasiServer.listen();
@@ -2370,6 +2372,9 @@ describe(
 
     beforeEach(() => {
       quasiServer.resetHandlers();
+
+      const enhancer = applyMiddleware(thunkMiddleware);
+      realStore = createStore(rootReducer, enhancer);
     });
 
     afterAll(() => {
@@ -2395,9 +2400,6 @@ describe(
             );
           })
         );
-
-        const enhancer = applyMiddleware(thunkMiddleware);
-        const realStore = createStore(rootReducer, enhancer);
 
         const { getByPlaceholderText, getByRole, getByText } = render(
           <Provider store={realStore}>
@@ -2431,13 +2433,14 @@ describe(
         " the form submission was accepted as valid and processed",
       async () => {
         // Arrange.
-        const enhancer = applyMiddleware(thunkMiddleware);
-        const realStore = createStore(rootReducer, enhancer);
+        const history = createMemoryHistory();
 
         const { getByPlaceholderText, getByRole, getByText } = render(
           <Provider store={realStore}>
-            <Alerts />
-            <SignIn />
+            <Router history={history}>
+              <Alerts />
+              <SignIn />
+            </Router>
           </Provider>
         );
 

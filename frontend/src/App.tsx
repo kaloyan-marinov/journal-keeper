@@ -1083,6 +1083,8 @@ export const SignUp = () => {
     `${new Date().toISOString()} - ${__filename} - React is rendering <SignUp>`
   );
 
+  const hasValidToken: boolean | null = useSelector(selectHasValidToken);
+
   const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
 
   const [formData, setFormData] = React.useState({
@@ -1092,6 +1094,11 @@ export const SignUp = () => {
     password: "",
     repeatPassword: "",
   });
+
+  if (hasValidToken === true) {
+    return <Redirect to="/my-monthly-journal" />;
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -1201,12 +1208,19 @@ export const SignIn = () => {
     `${new Date().toISOString()} - ${__filename} - React is rendering <SignIn>`
   );
 
+  const hasValidToken: boolean | null = useSelector(selectHasValidToken);
+
   const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
 
   const [formData, setFormData] = React.useState({
     email: "",
     password: "",
   });
+
+  if (hasValidToken === true) {
+    return <Redirect to="/my-monthly-journal" />;
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
