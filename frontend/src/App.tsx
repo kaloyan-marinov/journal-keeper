@@ -932,8 +932,14 @@ const composedEnhancer = composeWithDevTools(
 export const store = createStore(rootReducer, composedEnhancer);
 
 /* Define selector functions. */
+const selectAlertsIds = (state: IState) => state.alerts.ids;
+const selectAlertsEntities = (state: IState) => state.alerts.entities;
+
 const selectAuthRequestStatus = (state: IState) => state.auth.requestStatus;
 const selectHasValidToken = (state: IState) => state.auth.hasValidToken;
+
+const selectEntriesIds = (state: IState) => state.entries.ids;
+const selectEntriesEntities = (state: IState) => state.entries.entities;
 
 /* React components. */
 const App = () => {
@@ -1001,7 +1007,9 @@ export const Alerts = () => {
     `${new Date().toISOString()} - ${__filename} - React is rendering <Alerts>`
   );
 
-  const alerts: IStateAlerts = useSelector((state: IState) => state.alerts);
+  const alertsIds: string[] = useSelector(selectAlertsIds);
+  const alertsEntities: { [alertId: string]: IAlert } =
+    useSelector(selectAlertsEntities);
 
   const dispatch = useDispatch();
 
@@ -1013,17 +1021,17 @@ export const Alerts = () => {
     <>
       {"<Alerts>"}
       <br />
-      {alerts.ids.length === 0 ? (
+      {alertsIds.length === 0 ? (
         <br />
       ) : (
-        alerts.ids.map((id: string) => (
+        alertsIds.map((id: string) => (
           <div key={id} style={{ color: "red" }}>
             <button
               onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleClickX(id, e)}
             >
               X
             </button>
-            {alerts.entities[id].message}
+            {alertsEntities[id].message}
           </div>
         ))
       )}
@@ -1323,10 +1331,9 @@ export const MyMonthlyJournal = () => {
       ` - React is rendering <MyMonthlyJournal>`
   );
 
-  const entriesEntities: { [key: string]: IEntry } = useSelector(
-    (state: IState) => state.entries.entities
-  );
-  const entriesIds: number[] = useSelector((state: IState) => state.entries.ids);
+  const entriesIds: number[] = useSelector(selectEntriesIds);
+  const entriesEntities: { [entryId: string]: IEntry } =
+    useSelector(selectEntriesEntities);
 
   const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
 
@@ -1533,13 +1540,8 @@ export const EditEntry = () => {
   console.log(params);
 
   const entryId: number = parseInt(params.id);
-  const entry: IEntry = useSelector((state: IState) => state.entries.entities)[entryId];
 
-  console.debug("entryId:");
-  console.debug(entryId);
-
-  console.debug("entry:");
-  console.debug(entry);
+  const entry: IEntry = useSelector(selectEntriesEntities)[entryId];
 
   const dispatch = useDispatch();
 
