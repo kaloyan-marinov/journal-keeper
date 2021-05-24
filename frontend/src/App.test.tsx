@@ -700,7 +700,7 @@ describe("reducers", () => {
         requestStatus: "failed",
         requestError: "auth-fetchProfile-rejected",
         token: null,
-        hasValidToken: null,
+        hasValidToken: false,
         signedInUserProfile: null,
       },
       entries: {

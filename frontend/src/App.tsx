@@ -781,6 +781,7 @@ export const authReducer = (
         ...stateAuth,
         requestStatus: RequestStatus.FAILED,
         requestError: action.error,
+        hasValidToken: false,
       };
 
     case ActionTypesFetchProfile.FULFILLED: {
