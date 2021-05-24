@@ -942,58 +942,6 @@ const selectSignedInUserProfile = (state: IState) => state.auth.signedInUserProf
 
 const selectEntriesIds = (state: IState) => state.entries.ids;
 const selectEntriesEntities = (state: IState) => state.entries.entities;
-/*
-const selectAlertsIds = (state: IState) => {
-  const alertsIds: string[] = state.alerts.ids;
-
-  console.log(`    alertsIds:`);
-  console.log(alertsIds);
-
-  return alertsIds;
-};
-const selectAlertsEntities = (state: IState) => {
-  const alertsEntities: { [alertId: string]: IAlert } = state.alerts.entities;
-
-  console.log(`    alertsEntities:`);
-  console.log(alertsEntities);
-
-  return alertsEntities;
-};
-
-const selectAuthRequestStatus = (state: IState) => {
-  const requestStatus: RequestStatus = state.auth.requestStatus;
-
-  console.log(`    requestStatus:`);
-  console.log(requestStatus);
-
-  return requestStatus;
-};
-const selectHasValidToken = (state: IState) => {
-  const hasValidToken: boolean | null = state.auth.hasValidToken;
-
-  console.log(`    hasValidToken:`);
-  console.log(hasValidToken);
-
-  return hasValidToken;
-};
-
-const selectEntriesIds = (state: IState) => {
-  const entriesIds: number[] = state.entries.ids;
-
-  console.log(`    entriesIds:`);
-  console.log(entriesIds);
-
-  return entriesIds;
-};
-const selectEntriesEntities = (state: IState) => {
-  const entriesEntities: { [entryId: string]: IEntry } = state.entries.entities;
-
-  console.log(`    entriesEntities:`);
-  console.log(entriesEntities);
-
-  return entriesEntities;
-};
-*/
 
 /* React components. */
 const App = () => {
@@ -1013,6 +961,8 @@ const App = () => {
     );
 
     const effectFn = async () => {
+      console.log("    <App>'s useEffect hook is dispatching fetchProfile()");
+
       try {
         await dispatch(fetchProfile());
       } catch (err) {
@@ -1064,6 +1014,7 @@ export const Alerts = () => {
   const alertsIds: string[] = useSelector(selectAlertsIds);
   console.log("    alertsIds:");
   console.log(alertsIds);
+
   const alertsEntities: { [alertId: string]: IAlert } =
     useSelector(selectAlertsEntities);
   console.log("    alertsEntities:");
@@ -1373,6 +1324,7 @@ export const PrivateRoute = (props: any) => {
   const authRequestStatus: RequestStatus = useSelector(selectAuthRequestStatus);
   console.log("    authRequestStatus:");
   console.log(authRequestStatus);
+
   const hasValidToken: boolean | null = useSelector(selectHasValidToken);
   console.log("    hasValidToken:");
   console.log(hasValidToken);
@@ -1402,9 +1354,11 @@ export const MyMonthlyJournal = () => {
   const signedInUserProfile: IProfile | null = useSelector(selectSignedInUserProfile);
   console.log("    signedInUserProfile:");
   console.log(signedInUserProfile);
+
   const entriesIds: number[] = useSelector(selectEntriesIds);
   console.log("    entriesIds:");
   console.log(entriesIds);
+
   const entriesEntities: { [entryId: string]: IEntry } =
     useSelector(selectEntriesEntities);
   console.log("    entriesEntities:");
@@ -1421,6 +1375,10 @@ export const MyMonthlyJournal = () => {
 
     const effectFn = async () => {
       if (signedInUserProfile !== null) {
+        console.log(
+          "    <MyMonthlyJournal>'s useEffect hook is dispatching fetchEntries()"
+        );
+
         try {
           await dispatch(fetchEntries());
         } catch (err) {
@@ -1615,7 +1573,6 @@ export const EditEntry = () => {
       ` - inspecting the \`params\` passed in to <EditEntry>:`
   );
   console.log(params);
-
   const entryId: number = parseInt(params.id);
 
   const entry: IEntry = useSelector(selectEntriesEntities)[entryId];
