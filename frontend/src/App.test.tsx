@@ -1,4 +1,4 @@
-import { render, fireEvent, waitFor, cleanup } from "@testing-library/react";
+import { render, fireEvent, waitFor, cleanup, prettyDOM } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 
 import {
@@ -1710,10 +1710,11 @@ describe("<App>", () => {
   test(
     "after the user has clicked on 'Sign me in'" +
       " but before the user's frontend has received a JWS token from the backend",
-    () => {
-      initState.auth.requestStatus = "loading";
+    async () => {
       const realStore = createStore(rootReducer, initState, enhancer);
-      const { getByText } = render(
+      history.push("/sign-in");
+
+      const { getByPlaceholderText, getByRole, getByText } = render(
         <Provider store={realStore}>
           <Router history={history}>
             <App />
@@ -1721,7 +1722,20 @@ describe("<App>", () => {
         </Provider>
       );
 
-      getByText("Loading...");
+      const emailInput = getByPlaceholderText("Enter your email...");
+      const passwordInput = getByPlaceholderText("Enter your password...");
+
+      fireEvent.change(emailInput, { target: { value: "[f-e] jd" } });
+      fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
+
+      const button = getByRole("button");
+      fireEvent.click(button);
+
+      await waitFor(() => {
+        getByText("<MyMonthlyJournal> - Loading...");
+      });
+      // Print out "the whole DOM" (= the DOM tree of the top-level node).
+      //console.log(prettyDOM(document));
     }
   );
 
