@@ -1239,6 +1239,7 @@ export const SignIn = () => {
       try {
         await dispatch(issueJWSToken(formData.email, formData.password));
         await dispatch(alertsCreate(id, "SIGN-IN SUCCESSFUL"));
+        await dispatch(fetchProfile());
       } catch (thunkActionError) {
         dispatch(alertsCreate(id, thunkActionError));
       }
