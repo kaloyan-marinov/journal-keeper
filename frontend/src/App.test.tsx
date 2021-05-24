@@ -377,7 +377,7 @@ describe("reducers", () => {
           requestStatus: "idle",
           requestError: null,
           token: null,
-          hasValidToken: false,
+          hasValidToken: null,
           signedInUserProfile: null,
         },
         entries: {
@@ -430,7 +430,7 @@ describe("reducers", () => {
           requestStatus: "idle",
           requestError: null,
           token: null,
-          hasValidToken: false,
+          hasValidToken: null,
           signedInUserProfile: null,
         },
         entries: {
@@ -466,7 +466,7 @@ describe("reducers", () => {
           requestStatus: "loading",
           requestError: null,
           token: null,
-          hasValidToken: false,
+          hasValidToken: null,
           signedInUserProfile: null,
         },
         entries: {
@@ -500,7 +500,7 @@ describe("reducers", () => {
           requestStatus: "failed",
           requestError: "auth-createUser-rejected",
           token: null,
-          hasValidToken: false,
+          hasValidToken: null,
           signedInUserProfile: null,
         },
         entries: {
@@ -534,7 +534,7 @@ describe("reducers", () => {
           requestStatus: "succeeded",
           requestError: null,
           token: null,
-          hasValidToken: false,
+          hasValidToken: null,
           signedInUserProfile: null,
         },
         entries: {
@@ -570,7 +570,7 @@ describe("reducers", () => {
           requestStatus: "loading",
           requestError: null,
           token: null,
-          hasValidToken: false,
+          hasValidToken: null,
           signedInUserProfile: null,
         },
         entries: {
@@ -671,7 +671,7 @@ describe("reducers", () => {
         requestStatus: "loading",
         requestError: null,
         token: null,
-        hasValidToken: false,
+        hasValidToken: null,
         signedInUserProfile: null,
       },
       entries: {
@@ -700,7 +700,7 @@ describe("reducers", () => {
         requestStatus: "failed",
         requestError: "auth-fetchProfile-rejected",
         token: null,
-        hasValidToken: false,
+        hasValidToken: null,
         signedInUserProfile: null,
       },
       entries: {

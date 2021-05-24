@@ -61,7 +61,7 @@ interface IStateAuth {
   requestStatus: RequestStatus;
   requestError: string | null;
   token: string | null;
-  hasValidToken: boolean;
+  hasValidToken: boolean | null;
   signedInUserProfile: IProfile | null;
 }
 
@@ -71,7 +71,7 @@ export const initialStateAuth: IStateAuth = {
   requestStatus: RequestStatus.IDLE,
   requestError: null,
   token: localStorage.getItem(JOURNAL_APP_TOKEN),
-  hasValidToken: false,
+  hasValidToken: null,
   signedInUserProfile: null,
 };
 
@@ -1038,7 +1038,7 @@ export const NavigationBar = () => {
   );
 
   const authRequestStatus: RequestStatus = useSelector(selectAuthRequestStatus);
-  const hasValidToken: boolean = useSelector(selectHasValidToken);
+  const hasValidToken: boolean | null = useSelector(selectHasValidToken);
 
   const dispatch = useDispatch();
 
@@ -1050,21 +1050,20 @@ export const NavigationBar = () => {
     dispatch(alertsCreate(id, "SIGN-OUT SUCCESSFUL"));
   };
 
-  const navigationLinks =
-    hasValidToken === false ? (
-      <React.Fragment>
-        <Link to="/">Home</Link> | <Link to="/sign-in">Sign In</Link> |{" "}
-        <Link to="/sign-up">Sign Up</Link>
-      </React.Fragment>
-    ) : (
-      <React.Fragment>
-        <Link to="/">Home</Link> |{" "}
-        <Link to="/my-monthly-journal">MyMonthlyJournal</Link> |{" "}
-        <a href="#!" onClick={() => signOut()}>
-          Sign Out
-        </a>
-      </React.Fragment>
-    );
+  const navigationLinks = !hasValidToken ? (
+    <React.Fragment>
+      <Link to="/">Home</Link> | <Link to="/sign-in">Sign In</Link> |{" "}
+      <Link to="/sign-up">Sign Up</Link>
+    </React.Fragment>
+  ) : (
+    <React.Fragment>
+      <Link to="/">Home</Link> | <Link to="/my-monthly-journal">MyMonthlyJournal</Link>{" "}
+      |{" "}
+      <a href="#!" onClick={() => signOut()}>
+        Sign Out
+      </a>
+    </React.Fragment>
+  );
 
   return (
     <React.Fragment>
@@ -1285,10 +1284,10 @@ export const PrivateRoute = (props: any) => {
 
   const { children, ...rest } = props;
 
-  const hasValidToken: boolean = useSelector(selectHasValidToken);
+  const hasValidToken: boolean | null = useSelector(selectHasValidToken);
   // const authRequestStatus: RequestStatus = useSelector((state: IState) => state.auth.requestStatus)
 
-  if (hasValidToken === false) {
+  if (!hasValidToken) {
     console.log(`    hasValidToken=${hasValidToken} > redirecting to /sign-in ...`);
     return <Redirect to="/sign-in" />;
   } else {
