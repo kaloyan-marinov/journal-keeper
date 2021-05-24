@@ -2509,8 +2509,27 @@ describe("<MyMonthlyJournal> - initial render", () => {
         })
       );
 
+      const initState = {
+        alerts: {
+          ...initialStateAlerts,
+        },
+        auth: {
+          ...initialStateAuth,
+          signedInUserProfile: {
+            id: 17,
+            username: "[mocked] jd",
+            name: "[mocked] John Doe",
+            email: "[mocked] john.doe@protonmail.com",
+            createdAt: "[mocked] 2021-05-24T20:10:17.000Z",
+            updatedAt: "[mocked] 2021-05-24T20:10:17.000Z",
+          },
+        },
+        entries: {
+          ...initialStateEntries,
+        },
+      };
       const enhancer = applyMiddleware(thunkMiddleware);
-      const realStore = createStore(rootReducer, enhancer);
+      const realStore = createStore(rootReducer, initState, enhancer);
 
       // Act.
       const { getByText, getByRole } = render(
@@ -2535,8 +2554,27 @@ describe("<MyMonthlyJournal> - initial render", () => {
       " as part of the effect function, and the backend is _mocked_ to accept" +
       " the client-provided authentication credential as valid",
     async () => {
+      const initState = {
+        alerts: {
+          ...initialStateAlerts,
+        },
+        auth: {
+          ...initialStateAuth,
+          signedInUserProfile: {
+            id: 17,
+            username: "[mocked] jd",
+            name: "[mocked] John Doe",
+            email: "[mocked] john.doe@protonmail.com",
+            createdAt: "[mocked] 2021-05-24T20:10:17.000Z",
+            updatedAt: "[mocked] 2021-05-24T20:10:17.000Z",
+          },
+        },
+        entries: {
+          ...initialStateEntries,
+        },
+      };
       const enhancer = applyMiddleware(thunkMiddleware);
-      const realStore = createStore(rootReducer, enhancer);
+      const realStore = createStore(rootReducer, initState, enhancer);
 
       const { getByText, getAllByText } = render(
         <Provider store={realStore}>

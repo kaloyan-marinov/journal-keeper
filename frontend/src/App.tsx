@@ -801,6 +801,7 @@ export const authReducer = (
         ...stateAuth,
         token: null,
         hasValidToken: false,
+        signedInUserProfile: null,
       };
 
     default:
@@ -937,9 +938,62 @@ const selectAlertsEntities = (state: IState) => state.alerts.entities;
 
 const selectAuthRequestStatus = (state: IState) => state.auth.requestStatus;
 const selectHasValidToken = (state: IState) => state.auth.hasValidToken;
+const selectSignedInUserProfile = (state: IState) => state.auth.signedInUserProfile;
 
 const selectEntriesIds = (state: IState) => state.entries.ids;
 const selectEntriesEntities = (state: IState) => state.entries.entities;
+/*
+const selectAlertsIds = (state: IState) => {
+  const alertsIds: string[] = state.alerts.ids;
+
+  console.log(`    alertsIds:`);
+  console.log(alertsIds);
+
+  return alertsIds;
+};
+const selectAlertsEntities = (state: IState) => {
+  const alertsEntities: { [alertId: string]: IAlert } = state.alerts.entities;
+
+  console.log(`    alertsEntities:`);
+  console.log(alertsEntities);
+
+  return alertsEntities;
+};
+
+const selectAuthRequestStatus = (state: IState) => {
+  const requestStatus: RequestStatus = state.auth.requestStatus;
+
+  console.log(`    requestStatus:`);
+  console.log(requestStatus);
+
+  return requestStatus;
+};
+const selectHasValidToken = (state: IState) => {
+  const hasValidToken: boolean | null = state.auth.hasValidToken;
+
+  console.log(`    hasValidToken:`);
+  console.log(hasValidToken);
+
+  return hasValidToken;
+};
+
+const selectEntriesIds = (state: IState) => {
+  const entriesIds: number[] = state.entries.ids;
+
+  console.log(`    entriesIds:`);
+  console.log(entriesIds);
+
+  return entriesIds;
+};
+const selectEntriesEntities = (state: IState) => {
+  const entriesEntities: { [entryId: string]: IEntry } = state.entries.entities;
+
+  console.log(`    entriesEntities:`);
+  console.log(entriesEntities);
+
+  return entriesEntities;
+};
+*/
 
 /* React components. */
 const App = () => {
@@ -1008,8 +1062,12 @@ export const Alerts = () => {
   );
 
   const alertsIds: string[] = useSelector(selectAlertsIds);
+  console.log("    alertsIds:");
+  console.log(alertsIds);
   const alertsEntities: { [alertId: string]: IAlert } =
     useSelector(selectAlertsEntities);
+  console.log("    alertsEntities:");
+  console.log(alertsEntities);
 
   const dispatch = useDispatch();
 
@@ -1047,6 +1105,8 @@ export const NavigationBar = () => {
   );
 
   const hasValidToken: boolean | null = useSelector(selectHasValidToken);
+  console.log("    hasValidToken:");
+  console.log(hasValidToken);
 
   const dispatch = useDispatch();
 
@@ -1087,6 +1147,8 @@ export const SignUp = () => {
   );
 
   const hasValidToken: boolean | null = useSelector(selectHasValidToken);
+  console.log("    hasValidToken:");
+  console.log(hasValidToken);
 
   const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
 
@@ -1215,6 +1277,8 @@ export const SignIn = () => {
   );
 
   const hasValidToken: boolean | null = useSelector(selectHasValidToken);
+  console.log("    hasValidToken:");
+  console.log(hasValidToken);
 
   const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
 
@@ -1307,7 +1371,11 @@ export const PrivateRoute = (props: any) => {
   const { children, ...rest } = props;
 
   const authRequestStatus: RequestStatus = useSelector(selectAuthRequestStatus);
+  console.log("    authRequestStatus:");
+  console.log(authRequestStatus);
   const hasValidToken: boolean | null = useSelector(selectHasValidToken);
+  console.log("    hasValidToken:");
+  console.log(hasValidToken);
 
   if (authRequestStatus === RequestStatus.LOADING) {
     console.log(`    authRequestStatus="${RequestStatus.LOADING}"`);
@@ -1331,9 +1399,16 @@ export const MyMonthlyJournal = () => {
       ` - React is rendering <MyMonthlyJournal>`
   );
 
+  const signedInUserProfile: IProfile | null = useSelector(selectSignedInUserProfile);
+  console.log("    signedInUserProfile:");
+  console.log(signedInUserProfile);
   const entriesIds: number[] = useSelector(selectEntriesIds);
+  console.log("    entriesIds:");
+  console.log(entriesIds);
   const entriesEntities: { [entryId: string]: IEntry } =
     useSelector(selectEntriesEntities);
+  console.log("    entriesEntities:");
+  console.log(entriesEntities);
 
   const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
 
@@ -1345,11 +1420,13 @@ export const MyMonthlyJournal = () => {
     );
 
     const effectFn = async () => {
-      try {
-        await dispatch(fetchEntries());
-      } catch (err) {
-        const id = uuidv4();
-        dispatch(alertsCreate(id, err));
+      if (signedInUserProfile !== null) {
+        try {
+          await dispatch(fetchEntries());
+        } catch (err) {
+          const id = uuidv4();
+          dispatch(alertsCreate(id, err));
+        }
       }
     };
 
@@ -1542,6 +1619,8 @@ export const EditEntry = () => {
   const entryId: number = parseInt(params.id);
 
   const entry: IEntry = useSelector(selectEntriesEntities)[entryId];
+  console.log("    entry:");
+  console.log(entry);
 
   const dispatch = useDispatch();
 
