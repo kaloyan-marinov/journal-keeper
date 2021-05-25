@@ -984,7 +984,7 @@ const App = () => {
       <Alerts />
       <Switch>
         <Route exact path="/">
-          <div>Welcome to MyMonthlyJournal!</div>
+          <Home />
         </Route>
         <Route exact path="/sign-up">
           <SignUp />
@@ -1045,6 +1045,60 @@ export const Alerts = () => {
         ))
       )}
     </>
+  );
+};
+
+export const Home = () => {
+  console.log(
+    `${new Date().toISOString()}` + ` - ${__filename}` + ` - React is rendering <Home>`
+  );
+
+  const hasValidToken: boolean | null = useSelector(selectHasValidToken);
+  console.log("    hasValidToken");
+  console.log(hasValidToken);
+
+  const signedInUserProfile: IProfile | null = useSelector(selectSignedInUserProfile);
+  console.log("    signedInUserProfile:");
+  console.log(signedInUserProfile);
+
+  const dispatch = useDispatch();
+
+  React.useEffect(() => {
+    console.log(
+      `${new Date().toISOString()}` +
+        ` - ${__filename}` +
+        ` - React is running <Home>'s useEffect hook`
+    );
+
+    const effectFn = async () => {
+      if (hasValidToken === true && signedInUserProfile === null) {
+        console.log("    <Home>'s useEffect hook is dispatching fetchProfile()");
+
+        try {
+          await dispatch(fetchProfile());
+        } catch (err) {
+          localStorage.removeItem(JOURNAL_APP_TOKEN);
+          dispatch(removeJWSToken());
+
+          const id: string = uuidv4();
+          dispatch(alertsCreate(id, "TO CONTINUE, PLEASE SIGN IN"));
+        }
+      }
+    };
+
+    effectFn();
+  }, [dispatch]);
+
+  const greeting =
+    signedInUserProfile !== null
+      ? `Hello, ${signedInUserProfile.name}!`
+      : "Welcome to MyMonthlyJournal!";
+
+  return (
+    <React.Fragment>
+      {"<Home>"}
+      <div>{greeting}</div>
+    </React.Fragment>
   );
 };
 
@@ -1112,10 +1166,8 @@ export const SignUp = () => {
   });
 
   if (hasValidToken === true) {
-    console.log(
-      `    hasValidToken=${hasValidToken} > redirecting to /my-monthly-journal ...`
-    );
-    return <Redirect to="/my-monthly-journal" />;
+    console.log(`    hasValidToken=${hasValidToken} > redirecting to / ...`);
+    return <Redirect to="/" />;
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1239,10 +1291,8 @@ export const SignIn = () => {
   });
 
   if (hasValidToken === true) {
-    console.log(
-      `    hasValidToken=${hasValidToken} > redirecting to /my-monthly-journal ...`
-    );
-    return <Redirect to="/my-monthly-journal" />;
+    console.log(`    hasValidToken=${hasValidToken} > redirecting to / ...`);
+    return <Redirect to="/" />;
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1263,7 +1313,6 @@ export const SignIn = () => {
       try {
         await dispatch(issueJWSToken(formData.email, formData.password));
         await dispatch(alertsCreate(id, "SIGN-IN SUCCESSFUL"));
-        await dispatch(fetchProfile());
       } catch (thunkActionError) {
         dispatch(alertsCreate(id, thunkActionError));
       }
@@ -1351,10 +1400,6 @@ export const MyMonthlyJournal = () => {
       ` - React is rendering <MyMonthlyJournal>`
   );
 
-  const signedInUserProfile: IProfile | null = useSelector(selectSignedInUserProfile);
-  console.log("    signedInUserProfile:");
-  console.log(signedInUserProfile);
-
   const entriesIds: number[] = useSelector(selectEntriesIds);
   console.log("    entriesIds:");
   console.log(entriesIds);
@@ -1374,17 +1419,15 @@ export const MyMonthlyJournal = () => {
     );
 
     const effectFn = async () => {
-      if (signedInUserProfile !== null) {
-        console.log(
-          "    <MyMonthlyJournal>'s useEffect hook is dispatching fetchEntries()"
-        );
+      console.log(
+        "    <MyMonthlyJournal>'s useEffect hook is dispatching fetchEntries()"
+      );
 
-        try {
-          await dispatch(fetchEntries());
-        } catch (err) {
-          const id = uuidv4();
-          dispatch(alertsCreate(id, err));
-        }
+      try {
+        await dispatch(fetchEntries());
+      } catch (err) {
+        const id = uuidv4();
+        dispatch(alertsCreate(id, err));
       }
     };
 
