@@ -1013,12 +1013,12 @@ export const Alerts = () => {
 
   const alertsIds: string[] = useSelector(selectAlertsIds);
   console.log("    alertsIds:");
-  console.log(alertsIds);
+  console.log(`    ${JSON.stringify(alertsIds)}`);
 
   const alertsEntities: { [alertId: string]: IAlert } =
     useSelector(selectAlertsEntities);
   console.log("    alertsEntities:");
-  console.log(alertsEntities);
+  console.log(`    ${JSON.stringify(alertsEntities)}`);
 
   const dispatch = useDispatch();
 
@@ -1054,12 +1054,12 @@ export const Home = () => {
   );
 
   const hasValidToken: boolean | null = useSelector(selectHasValidToken);
-  console.log("    hasValidToken");
-  console.log(hasValidToken);
+  console.log("    hasValidToken:");
+  console.log(`    ${hasValidToken}`);
 
   const signedInUserProfile: IProfile | null = useSelector(selectSignedInUserProfile);
   console.log("    signedInUserProfile:");
-  console.log(signedInUserProfile);
+  console.log(`    ${JSON.stringify(signedInUserProfile)}`);
 
   const dispatch = useDispatch();
 
@@ -1111,7 +1111,7 @@ export const NavigationBar = () => {
 
   const hasValidToken: boolean | null = useSelector(selectHasValidToken);
   console.log("    hasValidToken:");
-  console.log(hasValidToken);
+  console.log(`    ${hasValidToken}`);
 
   const dispatch = useDispatch();
 
@@ -1153,7 +1153,7 @@ export const SignUp = () => {
 
   const hasValidToken: boolean | null = useSelector(selectHasValidToken);
   console.log("    hasValidToken:");
-  console.log(hasValidToken);
+  console.log(`    ${hasValidToken}`);
 
   const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
 
@@ -1166,8 +1166,9 @@ export const SignUp = () => {
   });
 
   if (hasValidToken === true) {
-    console.log(`    hasValidToken=${hasValidToken} > redirecting to / ...`);
-    return <Redirect to="/" />;
+    const nextURL: string = "/";
+    console.log(`    hasValidToken=${hasValidToken} > redirecting to ${nextURL} ...`);
+    return <Redirect to={nextURL} />;
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1281,7 +1282,7 @@ export const SignIn = () => {
 
   const hasValidToken: boolean | null = useSelector(selectHasValidToken);
   console.log("    hasValidToken:");
-  console.log(hasValidToken);
+  console.log(`    ${hasValidToken}`);
 
   const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
 
@@ -1291,8 +1292,9 @@ export const SignIn = () => {
   });
 
   if (hasValidToken === true) {
-    console.log(`    hasValidToken=${hasValidToken} > redirecting to / ...`);
-    return <Redirect to="/" />;
+    const nextURL: string = "/";
+    console.log(`    hasValidToken=${hasValidToken} > redirecting to ${nextURL} ...`);
+    return <Redirect to={nextURL} />;
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1372,11 +1374,11 @@ export const PrivateRoute = (props: any) => {
 
   const authRequestStatus: RequestStatus = useSelector(selectAuthRequestStatus);
   console.log("    authRequestStatus:");
-  console.log(authRequestStatus);
+  console.log(`    ${authRequestStatus}`);
 
   const hasValidToken: boolean | null = useSelector(selectHasValidToken);
   console.log("    hasValidToken:");
-  console.log(hasValidToken);
+  console.log(`    ${hasValidToken}`);
 
   if (authRequestStatus === RequestStatus.LOADING) {
     console.log(`    authRequestStatus="${RequestStatus.LOADING}"`);
@@ -1384,8 +1386,9 @@ export const PrivateRoute = (props: any) => {
       <div>{`<${child.type.name}>`} - Loading...</div>
     ));
   } else if (!hasValidToken) {
-    console.log(`    hasValidToken=${hasValidToken} > redirecting to /sign-in ...`);
-    return <Redirect to="/sign-in" />;
+    const nextURL: string = "/sign-in";
+    console.log(`    hasValidToken=${hasValidToken} > redirecting to ${nextURL} ...`);
+    return <Redirect to={nextURL} />;
   } else {
     console.log(
       `    hasValidToken=${hasValidToken} > rendering the above-listed children`
@@ -1402,12 +1405,12 @@ export const MyMonthlyJournal = () => {
 
   const entriesIds: number[] = useSelector(selectEntriesIds);
   console.log("    entriesIds:");
-  console.log(entriesIds);
+  console.log(`    ${JSON.stringify(entriesIds)}`);
 
   const entriesEntities: { [entryId: string]: IEntry } =
     useSelector(selectEntriesEntities);
   console.log("    entriesEntities:");
-  console.log(entriesEntities);
+  console.log(`    ${JSON.stringify(entriesEntities)}`);
 
   const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
 
@@ -1620,7 +1623,7 @@ export const EditEntry = () => {
 
   const entry: IEntry = useSelector(selectEntriesEntities)[entryId];
   console.log("    entry:");
-  console.log(entry);
+  console.log(`    ${JSON.stringify(entry)}`);
 
   const dispatch = useDispatch();
 
