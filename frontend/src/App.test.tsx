@@ -1178,7 +1178,7 @@ const requestHandlersToMock = [
   }),
 
   rest.get("/api/user-profile", (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(profileMock));
+    return res.once(ctx.status(200), ctx.json(profileMock));
   }),
 
   rest.get("/api/entries", (req, res, ctx) => {
@@ -1711,6 +1711,17 @@ describe("<App>", () => {
     "after the user has clicked on 'Sign me in'" +
       " but before the user's frontend has received a JWS token from the backend",
     async () => {
+      // quasiServer.use(
+      //   rest.get("/api/user-profile", (req, res, ctx) => {
+      //     return res(
+      //       ctx.status(401),
+      //       ctx.json({
+      //         error: "[mocked-response] You have not signed in yet!",
+      //       })
+      //     );
+      //   })
+      // );
+
       const realStore = createStore(rootReducer, initState, enhancer);
       history.push("/sign-in");
 
@@ -1732,10 +1743,14 @@ describe("<App>", () => {
       fireEvent.click(button);
 
       await waitFor(() => {
-        getByText("<MyMonthlyJournal> - Loading...");
+        getByText("Home");
+        getByText("Sign In");
+        getByText("Sign Up");
+
+        getByText("Loading...");
       });
       // Print out "the whole DOM" (= the DOM tree of the top-level node).
-      //console.log(prettyDOM(document));
+      console.log(prettyDOM(document));
     }
   );
 
