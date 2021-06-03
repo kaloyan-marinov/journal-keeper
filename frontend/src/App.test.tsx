@@ -10,6 +10,7 @@ import {
 import App, {
   JOURNAL_APP_TOKEN,
   Alerts,
+  Home,
   SignUp,
   SignIn,
   MyMonthlyJournal,
@@ -2444,6 +2445,72 @@ describe(
     );
   }
 );
+
+describe("<Home>", () => {
+  beforeAll(() => {
+    // Enable API mocking.
+    quasiServer.listen();
+  });
+
+  beforeEach(() => {
+    quasiServer.resetHandlers();
+  });
+
+  afterAll(() => {
+    // Disable API mocking.
+    quasiServer.close();
+  });
+
+  test("tbd", async () => {
+    // Arrange.
+    quasiServer.use(
+      rest.get("/api/user-profile", (req, res, ctx) => {
+        return res(
+          ctx.status(401),
+          ctx.json({
+            error: "[mocked-response] Failed to authenticate you as an HTTP client",
+          })
+        );
+      })
+    );
+
+    const expiredToken =
+      "pretend-that-this-was-actually-issued-by-the-backend-but-is-no-longer-valid";
+    localStorage.setItem(JOURNAL_APP_TOKEN, expiredToken);
+
+    const initState = {
+      alerts: {
+        ...initialStateAlerts,
+      },
+      auth: {
+        ...initialStateAuth,
+        token: expiredToken,
+        hasValidToken: true,
+        signedInUserProfile: null,
+      },
+      entries: {
+        ...initialStateEntries,
+      },
+    };
+    const enhancer = applyMiddleware(thunkMiddleware);
+    const realStore = createStore(rootReducer, initState, enhancer);
+
+    // Act.
+    const { getByText } = render(
+      <Provider store={realStore}>
+        <Home />
+        <Alerts />
+      </Provider>
+    );
+
+    // Assert.
+    await waitFor(() => {
+      getByText("TO CONTINUE, PLEASE SIGN IN");
+    });
+
+    expect(localStorage.getItem(JOURNAL_APP_TOKEN)).toEqual(null);
+  });
+});
 
 describe("<MyMonthlyJournal> - initial render", () => {
   beforeAll(() => {
