@@ -1395,8 +1395,10 @@ export const MyMonthlyJournal = () => {
         await dispatch(fetchEntries());
       } catch (err) {
         if (err.response.status === 401) {
-          const id: string = uuidv4();
+          localStorage.removeItem(JOURNAL_APP_TOKEN);
           dispatch(removeJWSToken());
+
+          const id: string = uuidv4();
           dispatch(
             alertsCreate(
               id,
@@ -1405,7 +1407,9 @@ export const MyMonthlyJournal = () => {
           );
         } else {
           const id: string = uuidv4();
-          dispatch(alertsCreate(id, "UNKNOWN ERROR ENCOUNTERED"));
+          const message: string =
+            err.response.data.error || "UNKNOWN ERROR ENCOUNTERED";
+          dispatch(alertsCreate(id, message));
         }
       }
     };
@@ -1516,14 +1520,18 @@ export const CreateEntry = () => {
         dispatch(alertsCreate(id, "ENTRY CREATION SUCCESSFUL"));
       } catch (err) {
         if (err.response.status === 401) {
-          const id: string = uuidv4();
+          localStorage.removeItem(JOURNAL_APP_TOKEN);
           dispatch(removeJWSToken());
+
+          const id: string = uuidv4();
           dispatch(
             alertsCreate(id, "[FROM <CreateEntry>'S handleSubmit] PLEASE SIGN BACK IN")
           );
         } else {
           const id: string = uuidv4();
-          dispatch(alertsCreate(id, "UNKNOWN ERROR ENCOUNTERED"));
+          const message: string =
+            err.response.data.error || "UNKNOWN ERROR ENCOUNTERED";
+          dispatch(alertsCreate(id, message));
         }
       }
     }
@@ -1649,14 +1657,18 @@ export const EditEntry = () => {
         dispatch(alertsCreate(id, "ENTRY EDITING SUCCESSFUL"));
       } catch (err) {
         if (err.response.status === 401) {
-          const id: string = uuidv4();
+          localStorage.removeItem(JOURNAL_APP_TOKEN);
           dispatch(removeJWSToken());
+
+          const id: string = uuidv4();
           dispatch(
             alertsCreate(id, "[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN")
           );
         } else {
           const id: string = uuidv4();
-          dispatch(alertsCreate(id, "UNKNOWN ERROR ENCOUNTERED"));
+          const message: string =
+            err.response.data.error || "UNKNOWN ERROR ENCOUNTERED";
+          dispatch(alertsCreate(id, message));
         }
       }
     }

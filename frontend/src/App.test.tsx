@@ -1451,7 +1451,7 @@ describe(
 
         // Assert.
         await expect(fetchEntriesPromise).rejects.toEqual(
-          "[mocked-response] Failed to authenticate you as an HTTP client"
+          new Error("Request failed with status code 401")
         );
         expect(storeMock.getActions()).toEqual([
           {
@@ -1509,7 +1509,7 @@ describe(
 
         // Assert.
         await expect(createEntryPromise).rejects.toEqual(
-          "[mocked-response] Failed to create a new Entry resource"
+          new Error("Request failed with status code 400")
         );
         expect(storeMock.getActions()).toEqual([
           {
@@ -1574,7 +1574,7 @@ describe(
 
         // Assert.
         await expect(editEntryPromise).rejects.toEqual(
-          "[mocked response] Failed to edit the targeted Entry resource"
+          new Error("Request failed with status code 400")
         );
 
         expect(storeMock.getActions()).toEqual([
@@ -2620,7 +2620,7 @@ describe("<MyMonthlyJournal> - initial render", () => {
       // Assert.
       await waitFor(() => {
         getByRole("button");
-        getByText("[mocked-response] Failed to authenticate you as an HTTP client");
+        getByText("[FROM <MyMonthlyJournal>'S useEffect HOOK] PLEASE SIGN BACK IN");
       });
     }
   );
