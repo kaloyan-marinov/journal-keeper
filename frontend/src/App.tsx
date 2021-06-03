@@ -487,10 +487,9 @@ export const fetchEntries = (): ThunkAction<
       dispatch(fetchEntriesFulfilled(response.data.entries));
       return Promise.resolve();
     } catch (err) {
-      const responseBody = err.response.data;
-      const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
+      const responseBodyError = err.response.data.error || "ERROR NOT FROM BACKEND";
       dispatch(fetchEntriesRejected(responseBodyError));
-      return Promise.reject(responseBodyError);
+      return Promise.reject(err);
     }
   };
 };
@@ -575,10 +574,9 @@ export const createEntry = (
       dispatch(createEntryFulfilled(response.data));
       return Promise.resolve();
     } catch (err) {
-      const responseBody = err.response.data;
-      const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
+      const responseBodyError = err.response.data.error || "ERROR NOT FROM BACKEND";
       dispatch(createEntryRejected(responseBodyError));
-      return Promise.reject(responseBodyError);
+      return Promise.reject(err);
     }
   };
 };
@@ -658,15 +656,12 @@ export const editEntry = (
     dispatch(editEntryPending());
     try {
       const response = await axios.put(`/api/entries/${entryId}`, body, config);
-      console.debug("response.data");
-      console.debug(response.data);
       dispatch(editEntryFulfilled(response.data));
       return Promise.resolve();
     } catch (err) {
-      const responseBody = err.response.data;
-      const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
+      const responseBodyError = err.response.data.error || "ERROR NOT FROM BACKEND";
       dispatch(editEntryRejected(responseBodyError));
-      return Promise.reject(responseBodyError);
+      return Promise.reject(err);
     }
   };
 };
@@ -1381,7 +1376,8 @@ export const MyMonthlyJournal = () => {
   console.log("    entriesEntities:");
   console.log(`    ${JSON.stringify(entriesEntities)}`);
 
-  const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
+  const dispatch: ThunkDispatch<IState, unknown, IActionRemoveJWSToken | ActionAlerts> =
+    useDispatch();
 
   React.useEffect(() => {
     console.log(
@@ -1398,8 +1394,19 @@ export const MyMonthlyJournal = () => {
       try {
         await dispatch(fetchEntries());
       } catch (err) {
-        const id = uuidv4();
-        dispatch(alertsCreate(id, err));
+        if (err.response.status === 401) {
+          const id: string = uuidv4();
+          dispatch(removeJWSToken());
+          dispatch(
+            alertsCreate(
+              id,
+              "[FROM <MyMonthlyJournal>'S useEffect HOOK] PLEASE SIGN BACK IN"
+            )
+          );
+        } else {
+          const id: string = uuidv4();
+          dispatch(alertsCreate(id, "UNKNOWN ERROR ENCOUNTERED"));
+        }
       }
     };
 
@@ -1472,7 +1479,8 @@ export const CreateEntry = () => {
     `${new Date().toISOString()} - ${__filename} - React is rendering <CreateEntry>`
   );
 
-  const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
+  const dispatch: ThunkDispatch<IState, unknown, IActionRemoveJWSToken | ActionAlerts> =
+    useDispatch();
 
   const [formData, setFormData] = React.useState({
     timezone: "",
@@ -1506,8 +1514,17 @@ export const CreateEntry = () => {
         );
 
         dispatch(alertsCreate(id, "ENTRY CREATION SUCCESSFUL"));
-      } catch (thunkActionError) {
-        dispatch(alertsCreate(id, thunkActionError));
+      } catch (err) {
+        if (err.response.status === 401) {
+          const id: string = uuidv4();
+          dispatch(removeJWSToken());
+          dispatch(
+            alertsCreate(id, "[FROM <CreateEntry>'S handleSubmit] PLEASE SIGN BACK IN")
+          );
+        } else {
+          const id: string = uuidv4();
+          dispatch(alertsCreate(id, "UNKNOWN ERROR ENCOUNTERED"));
+        }
       }
     }
   };
@@ -1630,8 +1647,17 @@ export const EditEntry = () => {
           editEntry(entryId, formData.localTime, formData.timezone, formData.content)
         );
         dispatch(alertsCreate(id, "ENTRY EDITING SUCCESSFUL"));
-      } catch (thunkActionError) {
-        dispatch(alertsCreate(id, thunkActionError));
+      } catch (err) {
+        if (err.response.status === 401) {
+          const id: string = uuidv4();
+          dispatch(removeJWSToken());
+          dispatch(
+            alertsCreate(id, "[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN")
+          );
+        } else {
+          const id: string = uuidv4();
+          dispatch(alertsCreate(id, "UNKNOWN ERROR ENCOUNTERED"));
+        }
       }
     }
   };

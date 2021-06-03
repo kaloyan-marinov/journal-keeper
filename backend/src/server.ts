@@ -320,8 +320,9 @@ router.delete("/api/users/:id", basicAuth, async (ctx: Koa.Context) => {
 });
 
 router.post("/api/tokens", basicAuth, async (ctx: Koa.Context) => {
+  console.log(`${new Date().toISOString()} - issuing a JWS token`);
   const payload = { userId: ctx.user.id };
-  const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "1h" });
+  const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "1m" });
   ctx.body = { token };
 });
 
