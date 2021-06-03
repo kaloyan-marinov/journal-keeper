@@ -2270,6 +2270,57 @@ describe(
   }
 );
 
+describe("<SignUp> + <Home>", () => {
+  test(
+    "if a(n already registered) user has already signed in" +
+      " and then tries to navigate to /sign-up," +
+      " she should be redirected to /",
+    () => {
+      // Arrange.
+      const token = "pretend-that-this-was-actually-issued-by-the-backend";
+      localStorage.setItem(JOURNAL_APP_TOKEN, token);
+
+      const initState = {
+        alerts: {
+          ...initialStateAlerts,
+        },
+        auth: {
+          ...initialStateAuth,
+          token,
+          hasValidToken: true,
+          signedInUserProfile: profileMock,
+        },
+        entries: {
+          ...initialStateEntries,
+        },
+      };
+      const enhancer = applyMiddleware(thunkMiddleware);
+      const realStore = createStore(rootReducer, initState, enhancer);
+
+      const history = createMemoryHistory();
+
+      // Act.
+      history.push("/sign-up");
+
+      const { getByText } = render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <Route exact path="/sign-up">
+              <SignUp />
+            </Route>
+            <Route exact path="/">
+              <Home />
+            </Route>
+          </Router>
+        </Provider>
+      );
+
+      // Assert.
+      getByText("Hello, [mocked] John Doe!");
+    }
+  );
+});
+
 describe("<SignIn>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
     const { getByText, getAllByRole, getByPlaceholderText } = render(
