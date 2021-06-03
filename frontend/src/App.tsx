@@ -666,6 +666,22 @@ export const editEntry = (
   };
 };
 
+/* entriesSlice - "entries/editEntry" thunk-action creator */
+export const signOut = (message: string) => {
+  /*
+  Create a thunk-action.
+  When dispatched, it signs the user out
+  and creates an alert.
+  */
+  return (dispatch: Dispatch<IActionRemoveJWSToken | IActionAlertsCreate>) => {
+    localStorage.removeItem(JOURNAL_APP_TOKEN);
+    dispatch(removeJWSToken());
+
+    const id: string = uuidv4();
+    dispatch(alertsCreate(id, message));
+  };
+};
+
 /* alertsSlice - reducer */
 export const alertsReducer = (
   stateAlerts: IStateAlerts = initialStateAlerts,
@@ -961,11 +977,7 @@ const App = () => {
       try {
         await dispatch(fetchProfile());
       } catch (err) {
-        localStorage.removeItem(JOURNAL_APP_TOKEN);
-        dispatch(removeJWSToken());
-
-        const id: string = uuidv4();
-        dispatch(alertsCreate(id, "TO CONTINUE, PLEASE SIGN IN"));
+        dispatch(signOut("TO CONTINUE, PLEASE SIGN IN"));
       }
     };
 
@@ -1078,12 +1090,8 @@ export const NavigationBar = () => {
 
   const dispatch = useDispatch();
 
-  const signOut = () => {
-    localStorage.removeItem(JOURNAL_APP_TOKEN);
-    dispatch(removeJWSToken());
-
-    const id: string = uuidv4();
-    dispatch(alertsCreate(id, "SIGN-OUT SUCCESSFUL"));
+  const handleClick = () => {
+    dispatch(signOut("SIGN-OUT SUCCESSFUL"));
   };
 
   const navigationLinks = !hasValidToken ? (
@@ -1095,7 +1103,7 @@ export const NavigationBar = () => {
     <React.Fragment>
       <Link to="/">Home</Link> | <Link to="/my-monthly-journal">MyMonthlyJournal</Link>{" "}
       |{" "}
-      <a href="#!" onClick={() => signOut()}>
+      <a href="#!" onClick={() => handleClick()}>
         Sign Out
       </a>
     </React.Fragment>
@@ -1395,15 +1403,8 @@ export const MyMonthlyJournal = () => {
         await dispatch(fetchEntries());
       } catch (err) {
         if (err.response.status === 401) {
-          localStorage.removeItem(JOURNAL_APP_TOKEN);
-          dispatch(removeJWSToken());
-
-          const id: string = uuidv4();
           dispatch(
-            alertsCreate(
-              id,
-              "[FROM <MyMonthlyJournal>'S useEffect HOOK] PLEASE SIGN BACK IN"
-            )
+            signOut("[FROM <MyMonthlyJournal>'S useEffect HOOK] PLEASE SIGN BACK IN")
           );
         } else {
           const id: string = uuidv4();
@@ -1520,13 +1521,7 @@ export const CreateEntry = () => {
         dispatch(alertsCreate(id, "ENTRY CREATION SUCCESSFUL"));
       } catch (err) {
         if (err.response.status === 401) {
-          localStorage.removeItem(JOURNAL_APP_TOKEN);
-          dispatch(removeJWSToken());
-
-          const id: string = uuidv4();
-          dispatch(
-            alertsCreate(id, "[FROM <CreateEntry>'S handleSubmit] PLEASE SIGN BACK IN")
-          );
+          dispatch(signOut("[FROM <CreateEntry>'S handleSubmit] PLEASE SIGN BACK IN"));
         } else {
           const id: string = uuidv4();
           const message: string =
@@ -1657,13 +1652,7 @@ export const EditEntry = () => {
         dispatch(alertsCreate(id, "ENTRY EDITING SUCCESSFUL"));
       } catch (err) {
         if (err.response.status === 401) {
-          localStorage.removeItem(JOURNAL_APP_TOKEN);
-          dispatch(removeJWSToken());
-
-          const id: string = uuidv4();
-          dispatch(
-            alertsCreate(id, "[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN")
-          );
+          dispatch(signOut("[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN"));
         } else {
           const id: string = uuidv4();
           const message: string =
