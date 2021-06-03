@@ -1053,10 +1053,6 @@ export const Home = () => {
     `${new Date().toISOString()}` + ` - ${__filename}` + ` - React is rendering <Home>`
   );
 
-  const authRequestStatus: RequestStatus = useSelector(selectAuthRequestStatus);
-  console.log("    authRequestStatus:");
-  console.log(`    ${authRequestStatus}`);
-
   const hasValidToken: boolean | null = useSelector(selectHasValidToken);
   console.log("    hasValidToken:");
   console.log(`    ${hasValidToken}`);
@@ -1093,29 +1089,10 @@ export const Home = () => {
     effectFn();
   }, [dispatch]);
 
-  /*
-  const greeting = !hasValidToken
-    ? "Welcome to MyMonthlyJournal!"
-    : signedInUserProfile === null
-    ? "Loading..."
-    : `Hello, ${signedInUserProfile.name}!`;
-  */
-  let greeting;
-  if (!hasValidToken) {
-    switch (authRequestStatus) {
-      case RequestStatus.LOADING:
-        greeting = "Loading...";
-        break;
-      default:
-        greeting = "Welcome to MyMonthlyJournal!";
-        break;
-    }
-  } else {
-    greeting =
-      signedInUserProfile === null
-        ? "Loading..."
-        : `Hello, ${signedInUserProfile.name}!`;
-  }
+  const greeting =
+    signedInUserProfile !== null
+      ? `Hello, ${signedInUserProfile.name}!`
+      : "Welcome to MyMonthlyJournal!";
 
   return (
     <React.Fragment>
