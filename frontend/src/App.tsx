@@ -1053,41 +1053,9 @@ export const Home = () => {
     `${new Date().toISOString()}` + ` - ${__filename}` + ` - React is rendering <Home>`
   );
 
-  const hasValidToken: boolean | null = useSelector(selectHasValidToken);
-  console.log("    hasValidToken:");
-  console.log(`    ${hasValidToken}`);
-
   const signedInUserProfile: IProfile | null = useSelector(selectSignedInUserProfile);
   console.log("    signedInUserProfile:");
   console.log(`    ${JSON.stringify(signedInUserProfile)}`);
-
-  const dispatch = useDispatch();
-
-  React.useEffect(() => {
-    console.log(
-      `${new Date().toISOString()}` +
-        ` - ${__filename}` +
-        ` - React is running <Home>'s useEffect hook`
-    );
-
-    const effectFn = async () => {
-      if (hasValidToken === true && signedInUserProfile === null) {
-        console.log("    <Home>'s useEffect hook is dispatching fetchProfile()");
-
-        try {
-          await dispatch(fetchProfile());
-        } catch (err) {
-          localStorage.removeItem(JOURNAL_APP_TOKEN);
-          dispatch(removeJWSToken());
-
-          const id: string = uuidv4();
-          dispatch(alertsCreate(id, "TO CONTINUE, PLEASE SIGN IN"));
-        }
-      }
-    };
-
-    effectFn();
-  }, [dispatch]);
 
   const greeting =
     signedInUserProfile !== null
@@ -1315,6 +1283,7 @@ export const SignIn = () => {
       try {
         await dispatch(issueJWSToken(formData.email, formData.password));
         await dispatch(alertsCreate(id, "SIGN-IN SUCCESSFUL"));
+        await dispatch(fetchProfile());
       } catch (thunkActionError) {
         dispatch(alertsCreate(id, thunkActionError));
       }

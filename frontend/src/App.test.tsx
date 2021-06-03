@@ -2447,45 +2447,14 @@ describe(
 );
 
 describe("<Home>", () => {
-  beforeAll(() => {
-    // Enable API mocking.
-    quasiServer.listen();
-  });
-
-  beforeEach(() => {
-    quasiServer.resetHandlers();
-  });
-
-  afterAll(() => {
-    // Disable API mocking.
-    quasiServer.close();
-  });
-
-  test("tbd", async () => {
+  test("initial render (i.e. before/without any user interaction)", async () => {
     // Arrange.
-    quasiServer.use(
-      rest.get("/api/user-profile", (req, res, ctx) => {
-        return res(
-          ctx.status(401),
-          ctx.json({
-            error: "[mocked-response] Failed to authenticate you as an HTTP client",
-          })
-        );
-      })
-    );
-
-    const expiredToken =
-      "pretend-that-this-was-actually-issued-by-the-backend-but-is-no-longer-valid";
-    localStorage.setItem(JOURNAL_APP_TOKEN, expiredToken);
-
     const initState = {
       alerts: {
         ...initialStateAlerts,
       },
       auth: {
         ...initialStateAuth,
-        token: expiredToken,
-        hasValidToken: true,
         signedInUserProfile: null,
       },
       entries: {
@@ -2495,20 +2464,41 @@ describe("<Home>", () => {
     const enhancer = applyMiddleware(thunkMiddleware);
     const realStore = createStore(rootReducer, initState, enhancer);
 
-    // Act.
     const { getByText } = render(
       <Provider store={realStore}>
         <Home />
-        <Alerts />
       </Provider>
     );
 
     // Assert.
-    await waitFor(() => {
-      getByText("TO CONTINUE, PLEASE SIGN IN");
-    });
+    getByText("Welcome to MyMonthlyJournal!");
+  });
 
-    expect(localStorage.getItem(JOURNAL_APP_TOKEN)).toEqual(null);
+  test("render after a user has successfully signed in", async () => {
+    // Arrange.
+    const initState = {
+      alerts: {
+        ...initialStateAlerts,
+      },
+      auth: {
+        ...initialStateAuth,
+        signedInUserProfile: profileMock,
+      },
+      entries: {
+        ...initialStateEntries,
+      },
+    };
+    const enhancer = applyMiddleware(thunkMiddleware);
+    const realStore = createStore(rootReducer, initState, enhancer);
+
+    const { getByText } = render(
+      <Provider store={realStore}>
+        <Home />
+      </Provider>
+    );
+
+    // Assert.
+    getByText("Hello, [mocked] John Doe!");
   });
 });
 
