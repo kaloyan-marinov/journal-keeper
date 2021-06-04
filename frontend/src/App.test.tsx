@@ -74,6 +74,8 @@ import { createMemoryHistory } from "history";
 import { Router, Route } from "react-router-dom";
 import { EditEntry } from "./App";
 
+import { signOut } from "./App";
+
 describe("action creators", () => {
   test("createUserPending", () => {
     const action = createUserPending();
@@ -1372,6 +1374,30 @@ describe(
         ]);
       }
     );
+
+    test("signOut()", () => {
+      storeMock.dispatch(signOut("We have signed you out of your account."));
+
+      const dispatchedActions = storeMock.getActions();
+
+      expect(dispatchedActions.length).toEqual(2);
+
+      expect(dispatchedActions[0]).toEqual({
+        type: "auth/clearAuthSlice",
+      });
+
+      expect({
+        type: dispatchedActions[1].type,
+        payload: {
+          message: dispatchedActions[1].payload.message,
+        },
+      }).toEqual({
+        type: "alerts/create",
+        payload: {
+          message: "We have signed you out of your account.",
+        },
+      });
+    });
 
     test(
       "fetchProfile()" +
