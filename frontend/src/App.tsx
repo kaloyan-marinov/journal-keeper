@@ -400,15 +400,15 @@ export const fetchProfile = (): ThunkAction<
   };
 };
 
-/* authSlice - "auth/removeJWSToken" action creator */
-const ACTION_TYPE_REMOVE_JWS_TOKEN = "auth/removeJWSToken";
+/* authSlice - "auth/clearAuthSlice" action creator */
+const ACTION_TYPE_CLEAR_AUTH_SLICE = "auth/clearAuthSlice";
 
-interface IActionRemoveJWSToken {
-  type: typeof ACTION_TYPE_REMOVE_JWS_TOKEN;
+interface IActionClearAuthSlice {
+  type: typeof ACTION_TYPE_CLEAR_AUTH_SLICE;
 }
 
-export const removeJWSToken = (): IActionRemoveJWSToken => ({
-  type: ACTION_TYPE_REMOVE_JWS_TOKEN,
+export const clearAuthSlice = (): IActionClearAuthSlice => ({
+  type: ACTION_TYPE_CLEAR_AUTH_SLICE,
 });
 
 /* entriesSlice - "entries/fetchEntries/" action creators */
@@ -673,9 +673,9 @@ export const signOut = (message: string) => {
   When dispatched, it signs the user out
   and creates an alert.
   */
-  return (dispatch: Dispatch<IActionRemoveJWSToken | IActionAlertsCreate>) => {
+  return (dispatch: Dispatch<IActionClearAuthSlice | IActionAlertsCreate>) => {
     localStorage.removeItem(JOURNAL_APP_TOKEN);
-    dispatch(removeJWSToken());
+    dispatch(clearAuthSlice());
 
     const id: string = uuidv4();
     dispatch(alertsCreate(id, message));
@@ -732,7 +732,7 @@ export const authReducer = (
     | ActionCreateUser
     | ActionIssueJWSToken
     | ActionFetchProfile
-    | IActionRemoveJWSToken
+    | IActionClearAuthSlice
 ): IStateAuth => {
   switch (action.type) {
     case ActionTypesCreateUser.PENDING:
@@ -807,7 +807,7 @@ export const authReducer = (
       };
     }
 
-    case ACTION_TYPE_REMOVE_JWS_TOKEN:
+    case ACTION_TYPE_CLEAR_AUTH_SLICE:
       return {
         ...stateAuth,
         token: null,
@@ -961,7 +961,7 @@ const App = () => {
   const dispatch: ThunkDispatch<
     IState,
     unknown,
-    IActionRemoveJWSToken | ActionFetchProfile | IActionAlertsCreate
+    IActionClearAuthSlice | ActionFetchProfile | IActionAlertsCreate
   > = useDispatch();
 
   React.useEffect(() => {
@@ -1384,7 +1384,7 @@ export const MyMonthlyJournal = () => {
   console.log("    entriesEntities:");
   console.log(`    ${JSON.stringify(entriesEntities)}`);
 
-  const dispatch: ThunkDispatch<IState, unknown, IActionRemoveJWSToken | ActionAlerts> =
+  const dispatch: ThunkDispatch<IState, unknown, IActionClearAuthSlice | ActionAlerts> =
     useDispatch();
 
   React.useEffect(() => {
@@ -1484,7 +1484,7 @@ export const CreateEntry = () => {
     `${new Date().toISOString()} - ${__filename} - React is rendering <CreateEntry>`
   );
 
-  const dispatch: ThunkDispatch<IState, unknown, IActionRemoveJWSToken | ActionAlerts> =
+  const dispatch: ThunkDispatch<IState, unknown, IActionClearAuthSlice | ActionAlerts> =
     useDispatch();
 
   const [formData, setFormData] = React.useState({

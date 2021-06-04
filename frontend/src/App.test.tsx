@@ -54,7 +54,7 @@ import {
 } from "./App";
 import { fetchProfile } from "./App";
 
-import { removeJWSToken } from "./App";
+import { clearAuthSlice } from "./App";
 
 import {
   fetchEntriesPending,
@@ -187,11 +187,11 @@ describe("action creators", () => {
     });
   });
 
-  test("removeJWSToken", () => {
-    const action = removeJWSToken();
+  test("clearAuthSlice", () => {
+    const action = clearAuthSlice();
 
     expect(action).toEqual({
-      type: "auth/removeJWSToken",
+      type: "auth/clearAuthSlice",
     });
   });
 
@@ -761,11 +761,11 @@ describe("reducers", () => {
     });
   });
 
-  test("auth/removeJWSToken should clear state.auth.token", () => {
+  test("auth/clearAuthSlice should clear state.auth.token", () => {
     initState.auth.token = "a-jws-token-issued-by-the-backend";
     initState.auth.hasValidToken = true;
     const action = {
-      type: "auth/removeJWSToken",
+      type: "auth/clearAuthSlice",
     };
 
     const newState = rootReducer(initState, action);
