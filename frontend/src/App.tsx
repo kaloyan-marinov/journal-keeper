@@ -1834,12 +1834,38 @@ const DeleteEntry = () => {
   console.log("    entry:");
   console.log(`    ${JSON.stringify(entry)}`);
 
+  const handleClickYes = (e: React.MouseEvent<HTMLButtonElement>) => {
+    console.log("Yes");
+  };
+
+  const handleClickNo = (e: React.MouseEvent<HTMLButtonElement>) => {
+    console.log("No");
+  };
+
   return (
     <React.Fragment>
       {"<DeleteEntry>"}
       <h3>You are about to delete the following Entry:</h3>
       <hr />
       <SingleEntry timestampInUTC={entry.timestampInUTC} content={entry.content} />
+      <hr />
+      <div>Do you want to delete the selected Entry?</div>
+      <ul>
+        <li>
+          <button
+            onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleClickYes(e)}
+          >
+            Yes
+          </button>
+        </li>
+        <li>
+          <button
+            onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleClickNo(e)}
+          >
+            No
+          </button>
+        </li>
+      </ul>
     </React.Fragment>
   );
 };
