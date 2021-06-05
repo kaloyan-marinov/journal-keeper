@@ -222,7 +222,8 @@ export const createUser = (
       return Promise.resolve();
     } catch (err) {
       const responseBody = err.response.data;
-      const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
+      const responseBodyError =
+        responseBody.error || "ERROR NOT FROM BACKEND BUT FROM FRONTEND THUNK-ACTION";
       dispatch(createUserRejected(responseBodyError));
       return Promise.reject(responseBodyError);
     }
@@ -309,7 +310,8 @@ export const issueJWSToken = (
       return Promise.resolve();
     } catch (err) {
       const responseBody = err.response.data;
-      const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
+      const responseBodyError =
+        responseBody.error || "ERROR NOT FROM BACKEND BUT FROM FRONTEND THUNK-ACTION";
       dispatch(issueJWSTokenRejected(responseBodyError));
       return Promise.reject(responseBodyError);
     }
@@ -393,7 +395,8 @@ export const fetchProfile = (): ThunkAction<
       return Promise.resolve();
     } catch (err) {
       const responseBody = err.response.data;
-      const responseBodyError = responseBody.error || "ERROR NOT FROM BACKEND";
+      const responseBodyError =
+        responseBody.error || "ERROR NOT FROM BACKEND BUT FROM FRONTEND THUNK-ACTION";
       dispatch(fetchProfileRejected(responseBodyError));
       return Promise.reject(responseBodyError);
     }
@@ -487,7 +490,9 @@ export const fetchEntries = (): ThunkAction<
       dispatch(fetchEntriesFulfilled(response.data.entries));
       return Promise.resolve();
     } catch (err) {
-      const responseBodyError = err.response.data.error || "ERROR NOT FROM BACKEND";
+      const responseBodyError =
+        err.response.data.error ||
+        "ERROR NOT FROM BACKEND BUT FROM FRONTEND THUNK-ACTION";
       dispatch(fetchEntriesRejected(responseBodyError));
       return Promise.reject(err);
     }
@@ -574,7 +579,9 @@ export const createEntry = (
       dispatch(createEntryFulfilled(response.data));
       return Promise.resolve();
     } catch (err) {
-      const responseBodyError = err.response.data.error || "ERROR NOT FROM BACKEND";
+      const responseBodyError =
+        err.response.data.error ||
+        "ERROR NOT FROM BACKEND BUT FROM FRONTEND THUNK-ACTION";
       dispatch(createEntryRejected(responseBodyError));
       return Promise.reject(err);
     }
@@ -659,7 +666,9 @@ export const editEntry = (
       dispatch(editEntryFulfilled(response.data));
       return Promise.resolve();
     } catch (err) {
-      const responseBodyError = err.response.data.error || "ERROR NOT FROM BACKEND";
+      const responseBodyError =
+        err.response.data.error ||
+        "ERROR NOT FROM BACKEND BUT FROM FRONTEND THUNK-ACTION";
       dispatch(editEntryRejected(responseBodyError));
       return Promise.reject(err);
     }
@@ -1437,7 +1446,8 @@ export const MyMonthlyJournal = () => {
         } else {
           const id: string = uuidv4();
           const message: string =
-            err.response.data.error || "UNKNOWN ERROR ENCOUNTERED";
+            err.response.data.error ||
+            "ERROR NOT FROM BACKEND BUT FROM FRONTEND COMPONENT";
           dispatch(alertsCreate(id, message));
         }
       }
@@ -1553,7 +1563,8 @@ export const CreateEntry = () => {
         } else {
           const id: string = uuidv4();
           const message: string =
-            err.response.data.error || "UNKNOWN ERROR ENCOUNTERED";
+            err.response.data.error ||
+            "ERROR NOT FROM BACKEND BUT FROM FRONTEND COMPONENT";
           dispatch(alertsCreate(id, message));
         }
       }
@@ -1686,7 +1697,8 @@ export const EditEntry = () => {
         } else {
           const id: string = uuidv4();
           const message: string =
-            err.response.data.error || "UNKNOWN ERROR ENCOUNTERED";
+            err.response.data.error ||
+            "ERROR NOT FROM BACKEND BUT FROM FRONTEND COMPONENT";
           dispatch(alertsCreate(id, message));
         }
       }
