@@ -1,5 +1,5 @@
 import React from "react";
-import { Switch, Route, Link } from "react-router-dom";
+import { Switch, Route, Link, useHistory } from "react-router-dom";
 import { createStore } from "redux";
 import { useDispatch, useSelector } from "react-redux";
 import { composeWithDevTools } from "redux-devtools-extension";
@@ -670,6 +670,87 @@ export const editEntry = (
         err.response.data.error ||
         "ERROR NOT FROM BACKEND BUT FROM FRONTEND THUNK-ACTION";
       dispatch(editEntryRejected(responseBodyError));
+      return Promise.reject(err);
+    }
+  };
+};
+
+/* deleteEntry - "entries/deleteEntry/" action creators */
+enum ActionTypesDeleteEntry {
+  PENDING = "entries/deleteEntry/pending",
+  REJECTED = "entries/deleteEntry/rejected",
+  FULFILLED = "entries/deleteEntry/fulfilled",
+}
+
+interface IDeleteEntryPending {
+  type: typeof ActionTypesDeleteEntry.PENDING;
+}
+
+interface IDeleteEntryRejected {
+  type: typeof ActionTypesDeleteEntry.REJECTED;
+  error: string;
+}
+
+interface IDeleteEntryFulfilled {
+  type: typeof ActionTypesDeleteEntry.FULFILLED;
+  payload: {
+    entryId: number;
+  };
+}
+
+export const deleteEntryPending = (): IDeleteEntryPending => ({
+  type: ActionTypesDeleteEntry.PENDING,
+});
+
+export const deleteEntryRejected = (error: string): IDeleteEntryRejected => ({
+  type: ActionTypesDeleteEntry.REJECTED,
+  error,
+});
+
+export const deleteEntryFulfilled = (entryId: number): IDeleteEntryFulfilled => ({
+  type: ActionTypesDeleteEntry.FULFILLED,
+  payload: {
+    entryId,
+  },
+});
+
+type ActionDeleteEntry =
+  | IDeleteEntryPending
+  | IDeleteEntryRejected
+  | IDeleteEntryFulfilled;
+
+/* deleteEntry - "entry/deleteEntry" thunk-action creator */
+export const deleteEntry = (
+  entryId: number
+): ThunkAction<void, IState, unknown, ActionDeleteEntry> => {
+  /*
+  Create a thunk-action.
+  When dispatched, it makes the web browser issue an HTTP request
+  to the backend's endpoint for deleting a specific Entry resource.
+
+  Like all Entry resources, the targeted one must be associated with a specific User.
+  That User is uniquely specified by a JSON Web Signature token,
+  which is required to have been saved earlier (by the frontend)
+  in the HTTP-request-issuing web browser.
+  */
+
+  return async (dispatch) => {
+    const config = {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem(JOURNAL_APP_TOKEN),
+      },
+    };
+
+    dispatch(deleteEntryPending());
+    try {
+      const response = await axios.delete(`/api/entries/${entryId}`, config);
+      dispatch(deleteEntryFulfilled(entryId));
+      return Promise.resolve();
+    } catch (err) {
+      const responseBodyError =
+        err.response.data.error ||
+        "ERROR NOT FROM BACKEND BUT FROM FRONTEND THUNK-ACTION";
+      dispatch(deleteEntryRejected(responseBodyError));
       return Promise.reject(err);
     }
   };
@@ -1818,7 +1899,6 @@ const DeleteEntry = () => {
   console.log(
     `${new Date().toISOString()} - ${__filename} - React is rendering <DeleteEntry>`
   );
-
   const params: { id: string } = useParams();
   console.log(
     `${new Date().toISOString()}` +
@@ -1834,12 +1914,14 @@ const DeleteEntry = () => {
   console.log("    entry:");
   console.log(`    ${JSON.stringify(entry)}`);
 
+  const history = useHistory();
+
   const handleClickYes = (e: React.MouseEvent<HTMLButtonElement>) => {
-    console.log("Yes");
+    console.log("tbd");
   };
 
   const handleClickNo = (e: React.MouseEvent<HTMLButtonElement>) => {
-    console.log("No");
+    return history.push("/my-monthly-journal");
   };
 
   return (
