@@ -1637,6 +1637,8 @@ export const EditEntry = () => {
   );
   console.log(params);
   const entryId: number = parseInt(params.id);
+  console.log("    entryId:");
+  console.log(`    ${entryId}`);
 
   const entry: IEntry = useSelector(selectEntriesEntities)[entryId];
   console.log("    entry:");

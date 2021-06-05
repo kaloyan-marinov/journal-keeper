@@ -3248,6 +3248,52 @@ describe("<EditEntry>", () => {
       }
     );
 
+    test.only(
+      "the user fills out the form and submits it," +
+        " but the backend is _mocked_ to respond that" +
+        " the user's JWS Token is no longer valid",
+      async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.put("/api/entries/1", (req, res, ctx) => {
+            return res(
+              ctx.status(401),
+              ctx.json({
+                error: "[mocked-response] Your JWS Token is no longer valid",
+              })
+            );
+          })
+        );
+
+        const { getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Router history={history}>
+              <Alerts />
+              <Route exact path="/sign-in">
+                <SignIn />
+              </Route>
+              <Route exact path="/entries/:id/edit">
+                <EditEntry />
+              </Route>
+            </Router>
+          </Provider>
+        );
+
+        // Act.
+        console.debug("test clicking on button");
+        const button = getByRole("button");
+        fireEvent.click(button);
+
+        // Assert.
+        await waitFor(() => {
+          getByText("[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN");
+
+          console.debug("post-click state");
+          console.debug(realStore.getState());
+        });
+      }
+    );
+
     test(
       "the user fills out the form and submits it," +
         " and the backend is _mocked_ to respond that" +
