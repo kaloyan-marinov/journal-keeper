@@ -1045,6 +1045,9 @@ const App = () => {
         <PrivateRoute exact path="/entries/:id/edit">
           <EditEntry />
         </PrivateRoute>
+        <PrivateRoute exact path="/entries/:id/delete">
+          <DeleteEntry />
+        </PrivateRoute>
       </Switch>
     </React.Fragment>
   );
@@ -1463,7 +1466,14 @@ export const MyMonthlyJournal = () => {
       <div key={e.id}>
         <hr />
         <SingleEntry timestampInUTC={e.timestampInUTC} content={e.content} />
-        <Link to={`/entries/${e.id}/edit`}>Edit</Link>
+        <ul>
+          <li>
+            <Link to={`/entries/${e.id}/edit`}>Edit</Link>
+          </li>
+          <li>
+            <Link to={`/entries/${e.id}/delete`}>Delete</Link>
+          </li>
+        </ul>
       </div>
     );
   });
@@ -1771,6 +1781,36 @@ export const EditEntry = () => {
           <input type="submit" value="Edit entry" />
         </div>
       </form>
+    </React.Fragment>
+  );
+};
+
+const DeleteEntry = () => {
+  console.log(
+    `${new Date().toISOString()} - ${__filename} - React is rendering <DeleteEntry>`
+  );
+
+  const params: { id: string } = useParams();
+  console.log(
+    `${new Date().toISOString()}` +
+      ` - ${__filename}` +
+      ` - inspecting the \`params\` passed in to <EditEntry>:`
+  );
+  console.log(params);
+  const entryId: number = parseInt(params.id);
+  console.log("    entryId:");
+  console.log(`    ${entryId}`);
+
+  const entry: IEntry = useSelector(selectEntriesEntities)[entryId];
+  console.log("    entry:");
+  console.log(`    ${JSON.stringify(entry)}`);
+
+  return (
+    <React.Fragment>
+      {"<DeleteEntry>"}
+      <h3>You are about to delete the following Entry:</h3>
+      <hr />
+      <SingleEntry timestampInUTC={entry.timestampInUTC} content={entry.content} />
     </React.Fragment>
   );
 };
