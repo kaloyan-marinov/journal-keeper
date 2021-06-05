@@ -2692,6 +2692,48 @@ describe("<MyMonthlyJournal> - initial render", () => {
   );
 
   test(
+    "(<Alerts> + <MyMonthlyJournal>) a GET request is issued to /api/entries" +
+      " as part of the effect function, but the backend is _mocked_ to respond" +
+      " with an error, which is not related to authentication",
+    async () => {
+      // Arrange.
+      quasiServer.use(
+        rest.get("/api/entries", (req, res, ctx) => {
+          return res(
+            ctx.status(400),
+            ctx.json({
+              error:
+                "[mocked-response] Encountered an error," +
+                " which is not related to authentication",
+            })
+          );
+        })
+      );
+
+      const enhancer = applyMiddleware(thunkMiddleware);
+      const realStore = createStore(rootReducer, enhancer);
+
+      // Act.
+      const { getByText } = render(
+        <Provider store={realStore}>
+          <BrowserRouter>
+            <Alerts />
+            <MyMonthlyJournal />
+          </BrowserRouter>
+        </Provider>
+      );
+
+      // Assert.
+      await waitFor(() => {
+        getByText(
+          "[mocked-response] Encountered an error," +
+            " which is not related to authentication"
+        );
+      });
+    }
+  );
+
+  test(
     "a GET request is issued to /api/entries" +
       " as part of the effect function, and the backend is _mocked_ to accept" +
       " the client-provided authentication credential as valid",
@@ -2938,6 +2980,53 @@ describe(
         // Assert.
         await waitFor(() => {
           getByText("[mocked-response] Failed to create a new Entry resource");
+        });
+      }
+    );
+
+    test(
+      "the user fills out the form and submits it," +
+        " but the backend is _mocked_ to respond that" +
+        " the user's JWS Token is no longer valid",
+      async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.post("/api/entries", (req, res, ctx) => {
+            return res(
+              ctx.status(401),
+              ctx.json({
+                error: "[mocked-response] Your JWS Token is no longer valid",
+              })
+            );
+          })
+        );
+
+        const enhancer = applyMiddleware(thunkMiddleware);
+        const realStore = createStore(rootReducer, enhancer);
+
+        const { getAllByRole, getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Alerts />
+            <CreateEntry />
+          </Provider>
+        );
+
+        // Act.
+        const [localTimeInput, contentTextArea] = getAllByRole("textbox");
+        const timezoneSelect = getByRole("combobox");
+
+        fireEvent.change(localTimeInput, { target: { value: "2021-05-13 00:18" } });
+        fireEvent.change(timezoneSelect, { target: { value: "-08:00" } });
+        fireEvent.change(contentTextArea, {
+          target: { value: "some insightful content" },
+        });
+
+        const button = getByRole("button");
+        fireEvent.click(button);
+
+        // Assert.
+        await waitFor(() => {
+          getByText("[FROM <CreateEntry>'S handleSubmit] PLEASE SIGN BACK IN");
         });
       }
     );
