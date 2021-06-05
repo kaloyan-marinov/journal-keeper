@@ -74,6 +74,8 @@ import { createMemoryHistory } from "history";
 import { Router, Route } from "react-router-dom";
 import { EditEntry } from "./App";
 
+import { clearEntriesSlice } from "./App";
+
 import { signOut } from "./App";
 
 describe("action creators", () => {
@@ -320,6 +322,14 @@ describe("action creators", () => {
       payload: {
         entry,
       },
+    });
+  });
+
+  test("clearEntriesSlice", () => {
+    const action = clearEntriesSlice();
+
+    expect(action).toEqual({
+      type: "entries/clearEntriesSlice",
     });
   });
 });
@@ -1085,6 +1095,32 @@ describe("reducers", () => {
       });
     });
 
+    test("entries/clearEntriesSlice", () => {
+      initStateEntries.requestStatus = "succeeded";
+      initStateEntries.ids = [17];
+      initStateEntries.entities = {
+        17: {
+          id: 17,
+          timestampInUTC: "2020-12-01T15:17:00.000Z",
+          utcZoneOfTimestamp: "+02:00",
+          content: "[hard-coded] Then it dawned on me: there is no finish line!",
+          createdAt: "2021-04-29T05:10:56.000Z",
+          updatedAt: "2021-04-29T05:10:56.000Z",
+          userId: 1,
+        },
+      };
+      const action = clearEntriesSlice();
+
+      const newState = entriesReducer(initStateEntries, action);
+
+      expect(newState).toEqual({
+        requestStatus: "succeeded",
+        requestError: null,
+        ids: [],
+        entities: {},
+      });
+    });
+
     test(
       "an action, which this reducer doesn't specifically handle," +
         " should not modify (the corresponding slice of) the state",
@@ -1380,16 +1416,20 @@ describe(
 
       const dispatchedActions = storeMock.getActions();
 
-      expect(dispatchedActions.length).toEqual(2);
+      expect(dispatchedActions.length).toEqual(3);
 
       expect(dispatchedActions[0]).toEqual({
         type: "auth/clearAuthSlice",
       });
 
+      expect(dispatchedActions[1]).toEqual({
+        type: "entries/clearEntriesSlice",
+      });
+
       expect({
-        type: dispatchedActions[1].type,
+        type: dispatchedActions[2].type,
         payload: {
-          message: dispatchedActions[1].payload.message,
+          message: dispatchedActions[2].payload.message,
         },
       }).toEqual({
         type: "alerts/create",

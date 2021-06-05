@@ -666,16 +666,33 @@ export const editEntry = (
   };
 };
 
-/* entriesSlice - "entries/editEntry" thunk-action creator */
+/* entriesSlice - "entries/clearEntriesSlice" action creator */
+const ACTION_TYPE_CLEAR_ENTRIES_SLICE = "entries/clearEntriesSlice";
+
+interface IActionClearEntriesSlice {
+  type: typeof ACTION_TYPE_CLEAR_ENTRIES_SLICE;
+}
+
+export const clearEntriesSlice = (): IActionClearEntriesSlice => ({
+  type: ACTION_TYPE_CLEAR_ENTRIES_SLICE,
+});
+
+/* authSlice + entriesSlice - "authSlice + entriesSlice" thunk-action creator */
 export const signOut = (message: string) => {
   /*
   Create a thunk-action.
   When dispatched, it signs the user out
   and creates an alert.
   */
-  return (dispatch: Dispatch<IActionClearAuthSlice | IActionAlertsCreate>) => {
+  return (
+    dispatch: Dispatch<
+      IActionClearAuthSlice | IActionClearEntriesSlice | IActionAlertsCreate
+    >
+  ) => {
     localStorage.removeItem(JOURNAL_APP_TOKEN);
     dispatch(clearAuthSlice());
+
+    dispatch(clearEntriesSlice());
 
     const id: string = uuidv4();
     dispatch(alertsCreate(id, message));
@@ -823,7 +840,11 @@ export const authReducer = (
 /* entriesSlice - reducer */
 export const entriesReducer = (
   stateEntries: IStateEntries = initialStateEntries,
-  action: ActionFetchEntries | ActionCreateEntry | ActionEditEntry
+  action:
+    | ActionFetchEntries
+    | ActionCreateEntry
+    | ActionEditEntry
+    | IActionClearEntriesSlice
 ): IStateEntries => {
   switch (action.type) {
     case ActionTypesFetchEntries.PENDING:
@@ -917,6 +938,13 @@ export const entriesReducer = (
         entities: newEntities,
       };
     }
+
+    case ACTION_TYPE_CLEAR_ENTRIES_SLICE:
+      return {
+        ...stateEntries,
+        ids: [],
+        entities: {},
+      };
 
     default:
       return stateEntries;
