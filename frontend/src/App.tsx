@@ -1471,7 +1471,7 @@ export const MyMonthlyJournal = () => {
             <Link to={`/entries/${e.id}/edit`}>Edit</Link>
           </li>
           <li>
-            <Link to={`/entries/${e.id}/delete`}>Delete</Link>
+            <DeleteEntryLink to={`/entries/${e.id}/delete`} />
           </li>
         </ul>
       </div>
@@ -1503,6 +1503,11 @@ const SingleEntry = (props: SingleEntryProps) => {
       <p>{props.content}</p>
     </React.Fragment>
   );
+};
+
+export const DeleteEntryLink = (props: { to: string }) => {
+  const targetURL: string = props.to;
+  return <Link to={targetURL}>Delete</Link>;
 };
 
 const offsetsFromUtc = () => {
