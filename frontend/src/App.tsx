@@ -934,6 +934,7 @@ export const entriesReducer = (
     | ActionFetchEntries
     | ActionCreateEntry
     | ActionEditEntry
+    | ActionDeleteEntry
     | IActionClearEntriesSlice
 ): IStateEntries => {
   switch (action.type) {
@@ -1025,6 +1026,38 @@ export const entriesReducer = (
         ...stateEntries,
         requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
+        entities: newEntities,
+      };
+    }
+
+    case ActionTypesDeleteEntry.PENDING:
+      return {
+        ...stateEntries,
+        requestStatus: RequestStatus.LOADING,
+        requestError: null,
+      };
+
+    case ActionTypesDeleteEntry.REJECTED:
+      return {
+        ...stateEntries,
+        requestStatus: RequestStatus.FAILED,
+        requestError: action.error,
+      };
+
+    case ActionTypesDeleteEntry.FULFILLED: {
+      const entryId: number = action.payload.entryId;
+
+      const newIds: number[] = [...stateEntries.ids].filter(
+        (eId: number) => eId !== entryId
+      );
+
+      const newEntities: { [entryId: string]: IEntry } = { ...stateEntries.entities };
+      delete newEntities[entryId];
+
+      return {
+        requestStatus: RequestStatus.SUCCEEDED,
+        requestError: null,
+        ids: newIds,
         entities: newEntities,
       };
     }
@@ -1903,7 +1936,7 @@ const DeleteEntry = () => {
   console.log(
     `${new Date().toISOString()}` +
       ` - ${__filename}` +
-      ` - inspecting the \`params\` passed in to <EditEntry>:`
+      ` - inspecting the \`params\` passed in to <DeleteEntry>:`
   );
   console.log(params);
   const entryId: number = parseInt(params.id);
@@ -1918,11 +1951,25 @@ const DeleteEntry = () => {
 
   const history = useHistory();
 
+  if (entry === undefined) {
+    return (
+      <React.Fragment>
+        {"<DeleteEntry>"}
+        <p>Loading...</p>
+      </React.Fragment>
+    );
+  }
+
   const handleClickYes = async (e: React.MouseEvent<HTMLButtonElement>) => {
     const id: string = uuidv4();
     try {
+      console.log("    <DeleteEntry> - 1 - await dispatch(deleteEntry(entryId)");
       await dispatch(deleteEntry(entryId));
+      console.log(
+        `    <DeleteEntry> - 2 - dispatch(alertsCreate(id, "ENTRY DELETION SUCCESSFUL"));`
+      );
       dispatch(alertsCreate(id, "ENTRY DELETION SUCCESSFUL"));
+      console.log(`    <DeleteEntry> - 3 - history.push("/my-monthly-journal");`);
       history.push("/my-monthly-journal");
     } catch (err) {
       if (err.response.status === 401) {
