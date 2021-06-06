@@ -68,6 +68,8 @@ import { fetchEntries } from "./App";
 import { createEntryPending, createEntryRejected, createEntryFulfilled } from "./App";
 import { createEntry } from "./App";
 
+import { deleteEntryPending, deleteEntryRejected, deleteEntryFulfilled } from "./App";
+
 import { editEntryPending, editEntryRejected, editEntryFulfilled } from "./App";
 import { editEntry } from "./App";
 
@@ -322,6 +324,34 @@ describe("action creators", () => {
       type: "entries/editEntry/fulfilled",
       payload: {
         entry,
+      },
+    });
+  });
+
+  test("deleteEntryPending", () => {
+    const action = deleteEntryPending();
+
+    expect(action).toEqual({
+      type: "entries/deleteEntry/pending",
+    });
+  });
+
+  test("deleteEntryRejected", () => {
+    const action = deleteEntryRejected("entries-deleteEntry-rejected");
+
+    expect(action).toEqual({
+      type: "entries/deleteEntry/rejected",
+      error: "entries-deleteEntry-rejected",
+    });
+  });
+
+  test("deleteEntryFulfilled", () => {
+    const action = deleteEntryFulfilled(17);
+
+    expect(action).toEqual({
+      type: "entries/deleteEntry/fulfilled",
+      payload: {
+        entryId: 17,
       },
     });
   });
