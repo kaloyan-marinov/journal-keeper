@@ -189,7 +189,7 @@ export const createUser = (
   name: string,
   email: string,
   password: string
-): ThunkAction<void, IState, unknown, ActionCreateUser> => {
+): ThunkAction<Promise<any>, IState, unknown, ActionCreateUser> => {
   /*
   Create a thunk-action.
   When dispatched, it issues an HTTP request
@@ -280,7 +280,7 @@ type ActionIssueJWSToken =
 export const issueJWSToken = (
   email: string,
   password: string
-): ThunkAction<void, IState, unknown, ActionIssueJWSToken> => {
+): ThunkAction<Promise<any>, IState, unknown, ActionIssueJWSToken> => {
   /*
   Create a thunk-action.
   When dispatched, it issues an HTTP request
@@ -366,7 +366,7 @@ type ActionFetchProfile =
 
 /* authSlice - "auth/fetchProfile" thunk-action creator */
 export const fetchProfile = (): ThunkAction<
-  void,
+  Promise<any>,
   IState,
   unknown,
   ActionFetchProfile
@@ -460,7 +460,7 @@ type ActionFetchEntries =
 
 /* entriesSlice - "entries/fetchEntries" thunk-action creator */
 export const fetchEntries = (): ThunkAction<
-  void,
+  Promise<any>,
   IState,
   unknown,
   ActionFetchEntries
@@ -548,7 +548,7 @@ export const createEntry = (
   localTime: string,
   timezone: string,
   content: string
-): ThunkAction<void, IState, unknown, ActionCreateEntry> => {
+): ThunkAction<Promise<any>, IState, unknown, ActionCreateEntry> => {
   /*
   Create a thunk-action.
   When dispatched, it makes the web browser issue an HTTP request
@@ -635,7 +635,7 @@ export const editEntry = (
   localTime: string,
   timezone: string,
   content: string
-): ThunkAction<void, IState, unknown, ActionEditEntry> => {
+): ThunkAction<Promise<any>, IState, unknown, ActionEditEntry> => {
   /*
   Create a thunk-action.
   When dispatched, it makes the web browser issue an HTTP request
@@ -722,7 +722,7 @@ type ActionDeleteEntry =
 /* deleteEntry - "entry/deleteEntry" thunk-action creator */
 export const deleteEntry = (
   entryId: number
-): ThunkAction<void, IState, unknown, ActionDeleteEntry> => {
+): ThunkAction<Promise<any>, IState, unknown, ActionDeleteEntry> => {
   /*
   Create a thunk-action.
   When dispatched, it makes the web browser issue an HTTP request
@@ -1280,7 +1280,8 @@ export const SignUp = () => {
   console.log("    hasValidToken:");
   console.log(`    ${hasValidToken}`);
 
-  const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
+  const dispatch: ThunkDispatch<IState, unknown, ActionCreateUser | ActionAlerts> =
+    useDispatch();
 
   const [formData, setFormData] = React.useState({
     username: "",
@@ -1409,7 +1410,11 @@ export const SignIn = () => {
   console.log("    hasValidToken:");
   console.log(`    ${hasValidToken}`);
 
-  const dispatch: ThunkDispatch<IState, unknown, ActionAlerts> = useDispatch();
+  const dispatch: ThunkDispatch<
+    IState,
+    unknown,
+    ActionIssueJWSToken | ActionAlerts | ActionFetchProfile
+  > = useDispatch();
 
   const [formData, setFormData] = React.useState({
     email: "",
@@ -1439,7 +1444,7 @@ export const SignIn = () => {
     } else {
       try {
         await dispatch(issueJWSToken(formData.email, formData.password));
-        await dispatch(alertsCreate(id, "SIGN-IN SUCCESSFUL"));
+        dispatch(alertsCreate(id, "SIGN-IN SUCCESSFUL"));
         await dispatch(fetchProfile());
       } catch (thunkActionError) {
         dispatch(alertsCreate(id, thunkActionError));
@@ -1808,7 +1813,8 @@ export const EditEntry = () => {
   console.log("    entry:");
   console.log(`    ${JSON.stringify(entry)}`);
 
-  const dispatch = useDispatch();
+  const dispatch: ThunkDispatch<IState, unknown, ActionEditEntry | ActionAlerts> =
+    useDispatch();
 
   const [formData, setFormData] = React.useState({
     timezone: entry.utcZoneOfTimestamp,
@@ -1947,7 +1953,8 @@ const DeleteEntry = () => {
   console.log("    entry:");
   console.log(`    ${JSON.stringify(entry)}`);
 
-  const dispatch = useDispatch();
+  const dispatch: ThunkDispatch<IState, unknown, ActionDeleteEntry | ActionAlerts> =
+    useDispatch();
 
   const history = useHistory();
 
@@ -1958,10 +1965,18 @@ const DeleteEntry = () => {
         "    <DeleteEntry> - handleClickYes - await dispatch(deleteEntry(entryId)"
       );
       await dispatch(deleteEntry(entryId));
+
+      Array.from({ length: 100000 }).map((v, i) => {
+        if (i % 1000 === 0) {
+          console.log(i, i ** 2);
+        }
+      });
+
       console.log(
         `    <DeleteEntry> - handleClickYes - dispatch(alertsCreate(id, "ENTRY DELETION SUCCESSFUL"));`
       );
       dispatch(alertsCreate(id, "ENTRY DELETION SUCCESSFUL"));
+
       console.log(
         `    <DeleteEntry> - handleClickYes - history.push("/my-monthly-journal");`
       );
