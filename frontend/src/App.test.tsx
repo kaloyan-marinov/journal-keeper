@@ -68,10 +68,11 @@ import { fetchEntries } from "./App";
 import { createEntryPending, createEntryRejected, createEntryFulfilled } from "./App";
 import { createEntry } from "./App";
 
-import { deleteEntryPending, deleteEntryRejected, deleteEntryFulfilled } from "./App";
-
 import { editEntryPending, editEntryRejected, editEntryFulfilled } from "./App";
 import { editEntry } from "./App";
+
+import { deleteEntryPending, deleteEntryRejected, deleteEntryFulfilled } from "./App";
+import { deleteEntry } from "./App";
 
 import { createMemoryHistory } from "history";
 import { Router, Route } from "react-router-dom";
@@ -1267,6 +1268,10 @@ const requestHandlersToMock = [
   rest.put("/api/entries/1", (req, res, ctx) => {
     return res(ctx.status(200), ctx.json(entry1EditedMock));
   }),
+
+  rest.delete("/api/entries/1", (req, res, ctx) => {
+    return res(ctx.status(204));
+  }),
 ];
 
 /* Create an MSW "request-interception layer". */
@@ -1709,6 +1714,64 @@ describe(
             type: "entries/editEntry/fulfilled",
             payload: {
               entry: entry1EditedMock,
+            },
+          },
+        ]);
+      }
+    );
+
+    test(
+      "deleteEntry(entryId)" +
+        " + the HTTP request issued by that thunk-action is mocked to fail",
+      async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.delete("/api/entries/1", (req, res, ctx) => {
+            return res(
+              ctx.status(401),
+              ctx.json({
+                error: "[mocked-response] Failed to delete the targeted Entry resource",
+              })
+            );
+          })
+        );
+
+        // Act.
+        const deleteEntryPromise = storeMock.dispatch(deleteEntry(1));
+
+        // Assert.
+        await expect(deleteEntryPromise).rejects.toEqual(
+          new Error("Request failed with status code 401")
+        );
+
+        expect(storeMock.getActions()).toEqual([
+          {
+            type: "entries/deleteEntry/pending",
+          },
+          {
+            type: "entries/deleteEntry/rejected",
+            error: "[mocked-response] Failed to delete the targeted Entry resource",
+          },
+        ]);
+      }
+    );
+
+    test(
+      "deleteEntry(entryId)" +
+        " + the HTTP request issued by that thunk-action is mocked to succeed",
+      async () => {
+        const deleteEntryPromise = storeMock.dispatch(deleteEntry(1));
+
+        await expect(deleteEntryPromise).resolves.toEqual(undefined);
+
+        expect(storeMock.getActions()).toEqual([
+          {
+            type: "entries/deleteEntry/pending",
+          },
+          {
+            type: "entries/deleteEntry/fulfilled",
+            payload: {
+              entryId: 1,
             },
           },
         ]);
