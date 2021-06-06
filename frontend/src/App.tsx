@@ -1914,10 +1914,26 @@ const DeleteEntry = () => {
   console.log("    entry:");
   console.log(`    ${JSON.stringify(entry)}`);
 
+  const dispatch = useDispatch();
+
   const history = useHistory();
 
-  const handleClickYes = (e: React.MouseEvent<HTMLButtonElement>) => {
-    console.log("tbd");
+  const handleClickYes = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    const id: string = uuidv4();
+    try {
+      await dispatch(deleteEntry(entryId));
+      dispatch(alertsCreate(id, "ENTRY DELETION SUCCESSFUL"));
+      history.push("/my-monthly-journal");
+    } catch (err) {
+      if (err.response.status === 401) {
+        dispatch(signOut("[FROM <DeleteEntry>'s handleClickYes] PLEASE SIGN BACK IN"));
+      } else {
+        const message: string =
+          err.response.data.error ||
+          "ERROR NOT FROM BACKEND BUT FROM FRONTEND COMPONENT";
+        dispatch(alertsCreate(id, message));
+      }
+    }
   };
 
   const handleClickNo = (e: React.MouseEvent<HTMLButtonElement>) => {
