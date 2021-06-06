@@ -75,7 +75,7 @@ export const initialStateAuth: IStateAuth = {
   signedInUserProfile: null,
 };
 
-interface IEntry {
+export interface IEntry {
   id: number;
   timestampInUTC: string;
   utcZoneOfTimestamp: string;

@@ -1,6 +1,8 @@
 import { render, fireEvent, waitFor, cleanup } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 
+import { IEntry } from "./App";
+
 import {
   createUserPending,
   createUserRejected,
@@ -1123,6 +1125,71 @@ describe("reducers", () => {
             updatedAt: "2021-04-29T05:11:01.000Z",
             userId: 1,
           },
+        },
+      });
+    });
+
+    test("entries/deleteEntry/pending", () => {
+      initStateEntries.requestStatus = "succeeded";
+      initStateEntries.ids = [entry1Mock.id];
+      initStateEntries.entities = {
+        [entry1Mock.id]: entry1Mock,
+      };
+      const action = deleteEntryPending();
+
+      const newState = entriesReducer(initStateEntries, action);
+
+      expect(newState).toEqual({
+        requestStatus: "loading",
+        requestError: null,
+        ids: [entry1Mock.id],
+        entities: {
+          [entry1Mock.id]: entry1Mock,
+        },
+      });
+    });
+
+    test("entries/deleteEntry/rejected", () => {
+      initStateEntries.requestStatus = "succeeded";
+      initStateEntries.ids = [entry1Mock.id];
+      initStateEntries.entities = {
+        [entry1Mock.id]: entry1Mock,
+      };
+      const action = deleteEntryRejected("entries-deleteEntry-rejected");
+
+      const newState = entriesReducer(initStateEntries, action);
+
+      expect(newState).toEqual({
+        requestStatus: "failed",
+        requestError: "entries-deleteEntry-rejected",
+        ids: [entry1Mock.id],
+        entities: {
+          [entry1Mock.id]: entry1Mock,
+        },
+      });
+    });
+
+    test("entries/deleteEntry/fulfilled", () => {
+      initStateEntries.requestStatus = "pending";
+      initStateEntries.requestError = null;
+      initStateEntries.ids = entriesMock.map((e: IEntry) => e.id);
+      initStateEntries.entities = entriesMock.reduce(
+        (entriesObj: { [entryId: string]: IEntry }, entry: IEntry) => {
+          entriesObj[entry.id] = entry;
+          return entriesObj;
+        },
+        {}
+      );
+      const action = deleteEntryFulfilled(2);
+
+      const newState = entriesReducer(initStateEntries, action);
+
+      expect(newState).toEqual({
+        requestStatus: "succeeded",
+        requestError: null,
+        ids: [entry1Mock.id],
+        entities: {
+          [entry1Mock.id]: entry1Mock,
         },
       });
     });
