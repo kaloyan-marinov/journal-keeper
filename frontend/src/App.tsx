@@ -1951,25 +1951,20 @@ const DeleteEntry = () => {
 
   const history = useHistory();
 
-  if (entry === undefined) {
-    return (
-      <React.Fragment>
-        {"<DeleteEntry>"}
-        <p>Loading...</p>
-      </React.Fragment>
-    );
-  }
-
   const handleClickYes = async (e: React.MouseEvent<HTMLButtonElement>) => {
     const id: string = uuidv4();
     try {
-      console.log("    <DeleteEntry> - 1 - await dispatch(deleteEntry(entryId)");
+      console.log(
+        "    <DeleteEntry> - handleClickYes - await dispatch(deleteEntry(entryId)"
+      );
       await dispatch(deleteEntry(entryId));
       console.log(
-        `    <DeleteEntry> - 2 - dispatch(alertsCreate(id, "ENTRY DELETION SUCCESSFUL"));`
+        `    <DeleteEntry> - handleClickYes - dispatch(alertsCreate(id, "ENTRY DELETION SUCCESSFUL"));`
       );
       dispatch(alertsCreate(id, "ENTRY DELETION SUCCESSFUL"));
-      console.log(`    <DeleteEntry> - 3 - history.push("/my-monthly-journal");`);
+      console.log(
+        `    <DeleteEntry> - handleClickYes - history.push("/my-monthly-journal");`
+      );
       history.push("/my-monthly-journal");
     } catch (err) {
       if (err.response.status === 401) {
@@ -1987,30 +1982,41 @@ const DeleteEntry = () => {
     return history.push("/my-monthly-journal");
   };
 
+  let content;
+  if (entry !== undefined) {
+    content = (
+      <React.Fragment>
+        <h3>You are about to delete the following Entry:</h3>
+        <hr />
+        <SingleEntry timestampInUTC={entry.timestampInUTC} content={entry.content} />
+        <hr />
+        <div>Do you want to delete the selected Entry?</div>
+        <ul>
+          <li>
+            <button
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleClickYes(e)}
+            >
+              Yes
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleClickNo(e)}
+            >
+              No
+            </button>
+          </li>
+        </ul>
+      </React.Fragment>
+    );
+  } else {
+    content = <p>Loading...</p>;
+  }
+
   return (
     <React.Fragment>
       {"<DeleteEntry>"}
-      <h3>You are about to delete the following Entry:</h3>
-      <hr />
-      <SingleEntry timestampInUTC={entry.timestampInUTC} content={entry.content} />
-      <hr />
-      <div>Do you want to delete the selected Entry?</div>
-      <ul>
-        <li>
-          <button
-            onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleClickYes(e)}
-          >
-            Yes
-          </button>
-        </li>
-        <li>
-          <button
-            onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleClickNo(e)}
-          >
-            No
-          </button>
-        </li>
-      </ul>
+      {content}
     </React.Fragment>
   );
 };
