@@ -80,7 +80,7 @@ import { EditEntry } from "./App";
 import { deleteEntryPending, deleteEntryRejected, deleteEntryFulfilled } from "./App";
 import { deleteEntry } from "./App";
 
-import { DeleteEntryLink } from "./App";
+import { DeleteEntryLink, DeleteEntry } from "./App";
 
 import { clearEntriesSlice } from "./App";
 
@@ -1174,14 +1174,8 @@ describe("reducers", () => {
     test("entries/deleteEntry/fulfilled", () => {
       initStateEntries.requestStatus = "pending";
       initStateEntries.requestError = null;
-      initStateEntries.ids = entriesMock.map((e: IEntry) => e.id);
-      initStateEntries.entities = entriesMock.reduce(
-        (entriesObj: { [entryId: string]: IEntry }, entry: IEntry) => {
-          entriesObj[entry.id] = entry;
-          return entriesObj;
-        },
-        {}
-      );
+      initStateEntries.ids = entriesIdsMock;
+      initStateEntries.entities = entriesEntitiesMock;
       const action = deleteEntryFulfilled(2);
 
       const newState = entriesReducer(initStateEntries, action);
@@ -1286,6 +1280,16 @@ const entriesMock = [
     userId: 1,
   },
 ];
+
+const entriesIdsMock = entriesMock.map((e: IEntry) => e.id);
+
+const entriesEntitiesMock = entriesMock.reduce(
+  (entriesObj: { [entryId: string]: IEntry }, entry: IEntry) => {
+    entriesObj[entry.id] = entry;
+    return entriesObj;
+  },
+  {}
+);
 
 const entry1EditedMock = {
   id: 1,
@@ -3237,10 +3241,6 @@ describe("<EditEntry>", () => {
   let realStore;
 
   beforeEach(() => {
-    history = createMemoryHistory();
-    const route = "/entries/1/edit";
-    history.push(route);
-
     const initState: IState = {
       alerts: {
         ...initialStateAlerts,
@@ -3263,11 +3263,15 @@ describe("<EditEntry>", () => {
     };
     const enhancer = applyMiddleware(thunkMiddleware);
     realStore = createStore(rootReducer, initState, enhancer);
+
+    history = createMemoryHistory();
+    const route = "/entries/1/edit";
+    history.push(route);
   });
 
   describe("by itself", () => {
     test("initial render (i.e. before/without any user interaction)", () => {
-      /* Act. */
+      // Act.
       const { getByText, getAllByText, getByDisplayValue } = render(
         <Provider store={realStore}>
           <Router history={history}>
@@ -3278,7 +3282,7 @@ describe("<EditEntry>", () => {
         </Provider>
       );
 
-      /* Assert. */
+      // Assert.
       getByText("2020-12-01 15:17 (UTC +00:00)");
 
       const elementsWithTheEntryContent = getAllByText("mocked-content-of-entry-1");
@@ -3447,16 +3451,12 @@ describe("<EditEntry>", () => {
         );
 
         // Act.
-        console.debug("test clicking on button");
         const button = getByRole("button");
         fireEvent.click(button);
 
         // Assert.
         await waitFor(() => {
           getByText("[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN");
-
-          console.debug("post-click state");
-          console.debug(realStore.getState());
         });
       }
     );
@@ -3537,4 +3537,262 @@ describe("<DeleteEntryLink>", () => {
       expect(hint).toEqual(null);
     }
   );
+});
+
+describe("<DeleteEntry>", () => {
+  let history;
+  let realStore;
+
+  beforeEach(() => {
+    const initState: IState = {
+      alerts: {
+        ...initialStateAlerts,
+      },
+      auth: {
+        requestStatus: "succeeded",
+        requestError: null,
+        token: "token-issued-by-the-backend",
+        hasValidToken: true,
+        signedInUserProfile: null,
+      },
+      entries: {
+        requestStatus: "succeeded",
+        requestError: null,
+        ids: entriesIdsMock,
+        entities: entriesEntitiesMock,
+      },
+    };
+    const enhancer = applyMiddleware(thunkMiddleware);
+    realStore = createStore(rootReducer, initState, enhancer);
+
+    history = createMemoryHistory();
+    const route = "/entries/1/delete";
+    history.push(route);
+  });
+
+  describe("without the user interaction triggering any network communication", () => {
+    test("initial render (i.e. before/without any user interaction)", () => {
+      // Act.
+      const { getByText, getAllByRole, getByRole } = render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <PrivateRoute exact path="/entries/:id/delete">
+              <DeleteEntry />
+            </PrivateRoute>
+          </Router>
+        </Provider>
+      );
+
+      // Assert.
+      getByText("You are about to delete the following Entry:");
+
+      getByText("2020-12-01 15:17 (UTC +00:00)");
+      getByText(entry1Mock.content);
+
+      getByText("Do you want to delete the selected Entry?");
+      getByRole("button", { name: "Yes" });
+      getByRole("button", { name: "No" });
+    });
+
+    test("the user clicks the 'No' button, which should redirect to /my-monthly-journal", () => {
+      // Arrange.
+      const { getByRole, getByText } = render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <PrivateRoute exact path="/my-monthly-journal">
+              <MyMonthlyJournal />
+            </PrivateRoute>
+            <PrivateRoute exact path="/entries/:id/delete">
+              <DeleteEntry />
+            </PrivateRoute>
+          </Router>
+        </Provider>
+      );
+
+      const buttonNo = getByRole("button", { name: "No" });
+
+      // Act.
+      fireEvent.click(buttonNo);
+
+      // Assert.
+      getByText("Review the entries in MyMonthlyJournal!");
+
+      expect(history.location.pathname).toEqual("/my-monthly-journal");
+    });
+  });
+
+  describe("with the user interaction triggering network communication", () => {
+    beforeAll(() => {
+      // Enable API mocking.
+      quasiServer.listen();
+    });
+
+    beforeEach(() => {
+      quasiServer.resetHandlers();
+    });
+
+    afterAll(() => {
+      // Disable API mocking.
+      quasiServer.close();
+    });
+
+    test(
+      "the user clicks on the 'Yes' button," +
+        " but the backend is _mocked_ to respond that" +
+        " the user's JWS Token is no longer valid",
+      async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.delete("/api/entries/1", (req, res, ctx) => {
+            return res(
+              ctx.status(401),
+              ctx.json({
+                error: "[mocked-response] Your JWS Token is no longer valid",
+              })
+            );
+          })
+        );
+
+        const { getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Router history={history}>
+              <Alerts />
+              <Route exact path="/sign-in">
+                <SignIn />
+              </Route>
+              <PrivateRoute exact path="/entries/:id/delete">
+                <DeleteEntry />
+              </PrivateRoute>
+            </Router>
+          </Provider>
+        );
+
+        // Act.
+        const buttonYes = getByRole("button", { name: "Yes" });
+        fireEvent.click(buttonYes);
+
+        // Assert.
+        await waitFor(() => {
+          getByText("[FROM <DeleteEntry>'S handleClickYes] PLEASE SIGN BACK IN");
+        });
+
+        await waitFor(() => {
+          expect(history.location.pathname).toEqual("/sign-in");
+
+          getByText("Sign me in");
+        });
+      }
+    );
+
+    test(
+      "the user clicks on the 'Yes' button," +
+        " but the backend is _mocked_ to respond" +
+        " with an error, which is not related to authentication",
+      async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.delete("/api/entries/1", (req, res, ctx) => {
+            return res(
+              ctx.status(400),
+              ctx.json({
+                error:
+                  "[mocked-response] Encountered an error," +
+                  " which is not related to authentication",
+              })
+            );
+          })
+        );
+
+        const { getByRole, getByText } = render(
+          <Provider store={realStore}>
+            <Router history={history}>
+              <Alerts />
+              <PrivateRoute exact path="/entries/:id/delete">
+                <DeleteEntry />
+              </PrivateRoute>
+            </Router>
+          </Provider>
+        );
+
+        // Act.
+        const buttonYes = getByRole("button", { name: "Yes" });
+        fireEvent.click(buttonYes);
+
+        // Assert.
+        await waitFor(() => {
+          getByText(
+            "[mocked-response] Encountered an error, which is not related to authentication"
+          );
+        });
+      }
+    );
+
+    test(
+      "the user clicks on the 'Yes' button," +
+        " and the backend is _mocked_ to respond that" +
+        " the DELETE request was accepted as valid and processed",
+      async () => {
+        // Arrange.
+        const { getByRole, getByText, queryByText, getAllByText } = render(
+          <Provider store={realStore}>
+            <Router history={history}>
+              <PrivateRoute exact path="/my-monthly-journal">
+                <MyMonthlyJournal />
+              </PrivateRoute>
+              <PrivateRoute exact path="/entries/:id/delete">
+                <DeleteEntry />
+              </PrivateRoute>
+            </Router>
+          </Provider>
+        );
+
+        const buttonYes = getByRole("button", { name: "Yes" });
+
+        // Act.
+        fireEvent.click(buttonYes);
+
+        // Assert.
+        await waitFor(() => {
+          expect(realStore.getState().entries.ids).toEqual([2]);
+
+          getByText("Loading...");
+        });
+
+        await waitFor(() => {
+          expect(history.location.pathname).toEqual("/my-monthly-journal");
+
+          getByText("Review the entries in MyMonthlyJournal!");
+
+          const entry1Element = queryByText("mocked-content-of-entry-1");
+          expect(entry1Element).toEqual(null);
+
+          getByText("mocked-content-of-entry-2");
+        });
+
+        /*
+        Strictly speaking, the next block is not necessary.
+        What's worse, the next block appears to contradict the previous one.
+        The reason for this apparent contradiction is that:
+
+          (a) it is after the previous block
+              when React runs <MyMonthlyJournal>'s useEffect hook
+
+          (b) the useEffect hook dispatches fetchEntries(),
+              which is mocked to return not 1 but 2 Entry objects
+
+          (c) once the useEffect hook has finished running,
+              the Redux state is updated,
+              which causes <MyMonthlyJournal> to re-render and to display both Entry objects
+              (this is what the next block makes assertions about)
+        */
+        await waitFor(() => {
+          const entryElements = getAllByText(/mocked-content-of-entry-/);
+
+          expect(entryElements.length).toEqual(2);
+          expect(entryElements[0].textContent).toEqual("mocked-content-of-entry-1");
+          expect(entryElements[1].textContent).toEqual("mocked-content-of-entry-2");
+        });
+      }
+    );
+  });
 });

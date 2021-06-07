@@ -1934,7 +1934,7 @@ export const EditEntry = () => {
   );
 };
 
-const DeleteEntry = () => {
+export const DeleteEntry = () => {
   console.log(
     `${new Date().toISOString()} - ${__filename} - React is rendering <DeleteEntry>`
   );
@@ -1962,15 +1962,15 @@ const DeleteEntry = () => {
     const id: string = uuidv4();
     try {
       console.log(
-        "    <DeleteEntry> - handleClickYes - await dispatch(deleteEntry(entryId)"
+        "    <DeleteEntry> - handleClickYes - await dispatch(deleteEntry(entryId))"
       );
       await dispatch(deleteEntry(entryId));
 
-      Array.from({ length: 100000 }).map((v, i) => {
-        if (i % 1000 === 0) {
-          console.log(i, i ** 2);
-        }
-      });
+      // Array.from({ length: 100000 }).map((v, i) => {
+      //   if (i % 1000 === 0) {
+      //     console.log(i, i ** 2);
+      //   }
+      // });
 
       console.log(
         `    <DeleteEntry> - handleClickYes - dispatch(alertsCreate(id, "ENTRY DELETION SUCCESSFUL"));`
@@ -1983,7 +1983,7 @@ const DeleteEntry = () => {
       history.push("/my-monthly-journal");
     } catch (err) {
       if (err.response.status === 401) {
-        dispatch(signOut("[FROM <DeleteEntry>'s handleClickYes] PLEASE SIGN BACK IN"));
+        dispatch(signOut("[FROM <DeleteEntry>'S handleClickYes] PLEASE SIGN BACK IN"));
       } else {
         const message: string =
           err.response.data.error ||
