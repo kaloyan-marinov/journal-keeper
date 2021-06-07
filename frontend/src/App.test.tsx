@@ -73,12 +73,14 @@ import { createEntry } from "./App";
 import { editEntryPending, editEntryRejected, editEntryFulfilled } from "./App";
 import { editEntry } from "./App";
 
-import { deleteEntryPending, deleteEntryRejected, deleteEntryFulfilled } from "./App";
-import { deleteEntry } from "./App";
-
 import { createMemoryHistory } from "history";
 import { Router, Route } from "react-router-dom";
 import { EditEntry } from "./App";
+
+import { deleteEntryPending, deleteEntryRejected, deleteEntryFulfilled } from "./App";
+import { deleteEntry } from "./App";
+
+import { DeleteEntryLink } from "./App";
 
 import { clearEntriesSlice } from "./App";
 
@@ -3487,4 +3489,52 @@ describe("<EditEntry>", () => {
       }
     );
   });
+});
+
+describe("<DeleteEntryLink>", () => {
+  let history: any;
+
+  beforeEach(() => {
+    history = createMemoryHistory();
+  });
+
+  test("initial render", () => {
+    const { getByText } = render(
+      <Router history={history}>
+        <DeleteEntryLink to="/entries/17/delete" />
+      </Router>
+    );
+
+    getByText("Delete");
+  });
+
+  test(
+    "the user hovers her mouse" +
+      " first over the anchor tag, and then away from that tag",
+    () => {
+      // Arrange.
+      const { getByText, queryByText } = render(
+        <Router history={history}>
+          <DeleteEntryLink to="/entries/17/delete" />
+        </Router>
+      );
+
+      const deleteAnchor = getByText("Delete");
+
+      // Act.
+      fireEvent.mouseEnter(deleteAnchor);
+
+      // Assert.
+      getByText("(HINT: After clicking, you will be asked to confirm your choice.)");
+
+      // Act.
+      fireEvent.mouseLeave(deleteAnchor);
+
+      // Assert.
+      const hint = queryByText(
+        "(HINT: After clicking, you will be asked to confirm your choice.)"
+      );
+      expect(hint).toEqual(null);
+    }
+  );
 });
