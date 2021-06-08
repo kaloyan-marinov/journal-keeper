@@ -1183,7 +1183,7 @@ export const Alerts = () => {
 
   const dispatch = useDispatch();
 
-  const handleClickX = (id: string, e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClick = (id: string, e: React.MouseEvent<HTMLButtonElement>) => {
     dispatch(alertsRemove(id));
   };
 
@@ -1197,9 +1197,9 @@ export const Alerts = () => {
         alertsIds.map((id: string) => (
           <div key={id} style={{ color: "red" }}>
             <button
-              onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleClickX(id, e)}
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleClick(id, e)}
             >
-              X
+              Clear alert
             </button>
             {alertsEntities[id].message}
           </div>
@@ -1972,12 +1972,6 @@ export const DeleteEntry = () => {
         "    <DeleteEntry> - handleClickYes - await dispatch(deleteEntry(entryId))"
       );
       await dispatch(deleteEntry(entryId));
-
-      // Array.from({ length: 100000 }).map((v, i) => {
-      //   if (i % 1000 === 0) {
-      //     console.log(i, i ** 2);
-      //   }
-      // });
 
       console.log(
         `    <DeleteEntry> - handleClickYes - dispatch(alertsCreate(id, "ENTRY DELETION SUCCESSFUL"));`

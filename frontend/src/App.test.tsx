@@ -1,4 +1,4 @@
-import { render, fireEvent, waitFor, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 
 import { IEntry } from "./App";
@@ -3753,65 +3753,40 @@ describe("<DeleteEntry>", () => {
         " the DELETE request was accepted as valid and processed",
       async () => {
         // Arrange.
-        const { getByRole, getByText, queryByText, getAllByText } = render(
+        render(
           <Provider store={realStore}>
             <Router history={history}>
-              <PrivateRoute exact path="/my-monthly-journal">
-                <MyMonthlyJournal />
-              </PrivateRoute>
-              <PrivateRoute exact path="/entries/:id/delete">
-                <DeleteEntry />
-              </PrivateRoute>
+              <Alerts />
+              <Switch>
+                <Route exact path="/entries/:id/delete">
+                  <DeleteEntry />
+                </Route>
+              </Switch>
             </Router>
           </Provider>
         );
 
-        const buttonYes = getByRole("button", { name: "Yes" });
+        const buttonYes = screen.getByRole("button", { name: "Yes" });
 
         // Act.
         fireEvent.click(buttonYes);
 
         // Assert.
         await waitFor(() => {
-          expect(realStore.getState().entries.ids).toEqual([2]);
-
-          getByText("Loading...");
+          /*
+          As soon as the Redux store is notified
+          that the targeted Entry resource has been successfully deleted,
+          the corresponding change of the Redux state
+          causes the UI to re-render <DeleteEntry>
+          - importantly, that re-rendering takes places
+            before the UI redirects the browser to /my-monthly-journal
+          */
+          screen.getByText("Loading...");
         });
 
-        await waitFor(() => {
-          expect(history.location.pathname).toEqual("/my-monthly-journal");
+        screen.getByText("ENTRY DELETION SUCCESSFUL");
 
-          getByText("Review the entries in MyMonthlyJournal!");
-
-          const entry1Element = queryByText("mocked-content-of-entry-1");
-          expect(entry1Element).toEqual(null);
-
-          getByText("mocked-content-of-entry-2");
-        });
-
-        /*
-        Strictly speaking, the next block is not necessary.
-        What's worse, the next block appears to contradict the previous one.
-        The reason for this apparent contradiction is that:
-
-          (a) it is after the previous block
-              when React runs <MyMonthlyJournal>'s useEffect hook
-
-          (b) the useEffect hook dispatches fetchEntries(),
-              which is mocked to return not 1 but 2 Entry objects
-
-          (c) once the useEffect hook has finished running,
-              the Redux state is updated,
-              which causes <MyMonthlyJournal> to re-render and to display both Entry objects
-              (this is what the next block makes assertions about)
-        */
-        await waitFor(() => {
-          const entryElements = getAllByText(/mocked-content-of-entry-/);
-
-          expect(entryElements.length).toEqual(2);
-          expect(entryElements[0].textContent).toEqual("mocked-content-of-entry-1");
-          expect(entryElements[1].textContent).toEqual("mocked-content-of-entry-2");
-        });
+        expect(history.location.pathname).toEqual("/my-monthly-journal");
       }
     );
   });
