@@ -2730,6 +2730,8 @@ describe(
         await waitFor(() => {
           getByText("SIGN-IN SUCCESSFUL");
         });
+
+        expect(history.location.pathname).toEqual("/");
       }
     );
   }
@@ -3222,9 +3224,6 @@ describe(
               <Route exact path="/entries/create">
                 <CreateEntry />
               </Route>
-              <Route exact path="/my-monthly-journal">
-                <MyMonthlyJournal />
-              </Route>
             </Router>
           </Provider>
         );
@@ -3488,9 +3487,11 @@ describe("<EditEntry>", () => {
           <Provider store={realStore}>
             <Router history={history}>
               <Alerts />
-              <Route exact path="/entries/:id/edit">
-                <EditEntry />
-              </Route>
+              <Switch>
+                <Route exact path="/entries/:id/edit">
+                  <EditEntry />
+                </Route>
+              </Switch>
             </Router>
           </Provider>
         );
@@ -3503,6 +3504,8 @@ describe("<EditEntry>", () => {
         await waitFor(() => {
           getByText("ENTRY EDITING SUCCESSFUL");
         });
+
+        expect(history.location.pathname).toEqual("/my-monthly-journal");
       }
     );
   });

@@ -1716,9 +1716,7 @@ export const CreateEntry = () => {
         await dispatch(
           createEntry(formData.localTime, formData.timezone, formData.content)
         );
-
         dispatch(alertsCreate(id, "ENTRY CREATION SUCCESSFUL"));
-
         history.push("/my-monthly-journal");
       } catch (err) {
         if (err.response.status === 401) {
@@ -1830,6 +1828,8 @@ export const EditEntry = () => {
     content: entry.content,
   });
 
+  const history = useHistory();
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -1856,6 +1856,7 @@ export const EditEntry = () => {
           editEntry(entryId, formData.localTime, formData.timezone, formData.content)
         );
         dispatch(alertsCreate(id, "ENTRY EDITING SUCCESSFUL"));
+        history.push("/my-monthly-journal");
       } catch (err) {
         if (err.response.status === 401) {
           dispatch(signOut("[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN"));
