@@ -1688,6 +1688,9 @@ export const CreateEntry = () => {
     localTime: "",
     content: "",
   });
+
+  const history = useHistory();
+
   const handleChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -1715,6 +1718,8 @@ export const CreateEntry = () => {
         );
 
         dispatch(alertsCreate(id, "ENTRY CREATION SUCCESSFUL"));
+
+        history.push("/my-monthly-journal");
       } catch (err) {
         if (err.response.status === 401) {
           dispatch(signOut("[FROM <CreateEntry>'S handleSubmit] PLEASE SIGN BACK IN"));
@@ -1824,6 +1829,7 @@ export const EditEntry = () => {
       .format("YYYY-MM-DD HH:mm"),
     content: entry.content,
   });
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {

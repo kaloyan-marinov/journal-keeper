@@ -74,7 +74,7 @@ import { editEntryPending, editEntryRejected, editEntryFulfilled } from "./App";
 import { editEntry } from "./App";
 
 import { createMemoryHistory } from "history";
-import { Router, Route } from "react-router-dom";
+import { Router, Switch, Route } from "react-router-dom";
 import { EditEntry } from "./App";
 
 import { deleteEntryPending, deleteEntryRejected, deleteEntryFulfilled } from "./App";
@@ -2701,12 +2701,17 @@ describe(
       async () => {
         // Arrange.
         const history = createMemoryHistory();
+        history.push("/sign-in");
 
         const { getByPlaceholderText, getByRole, getByText } = render(
           <Provider store={realStore}>
             <Router history={history}>
               <Alerts />
-              <SignIn />
+              <Switch>
+                <Route exact path="/sign-in">
+                  <SignIn />
+                </Route>
+              </Switch>
             </Router>
           </Provider>
         );
@@ -3207,10 +3212,20 @@ describe(
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
 
+        const history = createMemoryHistory();
+        history.push("/entries/create");
+
         const { getAllByRole, getByRole, getByText } = render(
           <Provider store={realStore}>
             <Alerts />
-            <CreateEntry />
+            <Router history={history}>
+              <Route exact path="/entries/create">
+                <CreateEntry />
+              </Route>
+              <Route exact path="/my-monthly-journal">
+                <MyMonthlyJournal />
+              </Route>
+            </Router>
           </Provider>
         );
 
@@ -3231,6 +3246,8 @@ describe(
         await waitFor(() => {
           getByText("ENTRY CREATION SUCCESSFUL");
         });
+
+        expect(history.location.pathname).toEqual("/my-monthly-journal");
       }
     );
   }
