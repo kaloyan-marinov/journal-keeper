@@ -321,7 +321,7 @@ router.delete("/api/users/:id", basicAuth, async (ctx: Koa.Context) => {
 
 router.post("/api/tokens", basicAuth, async (ctx: Koa.Context) => {
   const payload = { userId: ctx.user.id };
-  const token = jwt.sign(payload, SECRET_KEY);
+  const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "1h" });
   ctx.body = { token };
 });
 
