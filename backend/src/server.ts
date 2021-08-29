@@ -320,9 +320,23 @@ router.delete("/api/users/:id", basicAuth, async (ctx: Koa.Context) => {
 });
 
 router.post("/api/tokens", basicAuth, async (ctx: Koa.Context) => {
+  console.log(`${new Date().toISOString()} - issuing a JWS token`);
   const payload = { userId: ctx.user.id };
-  const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "1h" });
+  const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "1m" });
   ctx.body = { token };
+});
+
+router.get("/api/user-profile", tokenAuth, async (ctx: Koa.Context) => {
+  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
+    User
+  );
+  const user: User | undefined = await usersRepository.findOne({
+    select: ["id", "username", "name", "email", "createdAt", "updatedAt"],
+    where: {
+      id: ctx.user.id,
+    },
+  });
+  ctx.body = user;
 });
 
 router.post("/api/entries", tokenAuth, async (ctx: Koa.Context) => {
@@ -466,7 +480,7 @@ if (process.env.NODE_ENV !== "test") {
         `Establishing a connection (named "${connection.name}") to the DB - successful.`
       );
 
-      const PORT: number = 3000;
+      const PORT: number = 5000;
       const server = app.listen(PORT, () => {
         console.log(`Server listening on port ${PORT}...`);
       });
