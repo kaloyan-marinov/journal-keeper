@@ -38,6 +38,12 @@ describe("PaginationHelper", () => {
     paginationHelper = new PaginationHelper(perPageStr, pageString, totalItems);
   });
 
+  test("computes OFFSET correctly", () => {
+    const offset: number = paginationHelper.offset();
+
+    expect(offset).toEqual(20);
+  });
+
   test("instantiates an object correctly", () => {
     expect(paginationHelper.perPage).toEqual(10);
     expect(paginationHelper.page).toEqual(3);

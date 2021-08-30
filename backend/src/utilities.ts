@@ -44,6 +44,10 @@ export class PaginationHelper {
     this.totalPages = Math.ceil(totalItems / this.perPage);
   }
 
+  offset(): number {
+    return (this.page - 1) * this.perPage;
+  }
+
   buildLinks(url: URL): IPaginationLinks {
     const linkToSelf: string = buildLinkWithPaginationParams(
       url,

@@ -194,17 +194,15 @@ router.get("/api/users", async (ctx: Koa.Context) => {
   const userCount: number = await usersRepository.count();
 
   const paginationHelper = new PaginationHelper(
-    ctx.query["perPage"] instanceof Array
-      ? ctx.query["perPage"][0]
-      : ctx.query["perPage"],
-    ctx.query["page"] instanceof Array ? ctx.query["page"][0] : ctx.query["page"],
+    ctx.query["perPage"] instanceof Array ? undefined : ctx.query["perPage"],
+    ctx.query["page"] instanceof Array ? undefined : ctx.query["page"],
     userCount
   );
 
   const users: User[] = await usersRepository
     .createQueryBuilder("users") // But what is "users"? It's just a regular SQL alias.
     .limit(paginationHelper.perPage)
-    .offset((paginationHelper.page - 1) * paginationHelper.perPage)
+    .offset(paginationHelper.offset())
     .getMany();
 
   const publicUsers: IPublicUser[] = users.map((u) => ({
