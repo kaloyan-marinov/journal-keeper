@@ -42,8 +42,13 @@ export class PaginationHelper {
     this.totalPages = Math.ceil(totalItems / this.perPage);
   }
 
-  buildLinks(origin: string, originalUrl: string, path: string): any {
-    const linkToSelf: string = origin + originalUrl;
+  buildLinks(origin: string, path: string): any {
+    const linkToSelf: string = buildURLWithPaginationParams(
+      origin + path,
+      this.perPage,
+      this.page
+    );
+
     const linkToNext: string | null =
       this.page < this.totalPages
         ? buildURLWithPaginationParams(origin + path, this.perPage, this.page + 1)
@@ -52,6 +57,7 @@ export class PaginationHelper {
       this.page > 1
         ? buildURLWithPaginationParams(origin + path, this.perPage, this.page - 1)
         : null;
+
     const linkToFirst: string = buildURLWithPaginationParams(
       origin + path,
       this.perPage,

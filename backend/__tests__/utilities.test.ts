@@ -34,13 +34,12 @@ describe("PaginationHelper", () => {
       " when there exist both a `next` and `prev` page of results",
     () => {
       const origin: string = "https://some-elementary-school.com";
-      const originalUrl = "/api/students";
       const path = "/api/students";
 
-      const links = paginationHelper.buildLinks(origin, originalUrl, path);
+      const links = paginationHelper.buildLinks(origin, path);
 
       expect(links).toEqual({
-        self: "https://some-elementary-school.com/api/students",
+        self: "https://some-elementary-school.com/api/students?perPage=10&page=3",
         next: "https://some-elementary-school.com/api/students?perPage=10&page=4",
         prev: "https://some-elementary-school.com/api/students?perPage=10&page=2",
         first: "https://some-elementary-school.com/api/students?perPage=10&page=1",

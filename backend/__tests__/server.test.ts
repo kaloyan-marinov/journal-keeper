@@ -232,7 +232,7 @@ describe("GET /api/users", () => {
           page: 1,
         },
         _links: {
-          self: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users`,
+          self: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
           next: null,
           prev: null,
           first: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
@@ -266,7 +266,7 @@ describe("GET /api/users", () => {
           page: 1,
         },
         _links: {
-          self: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users`,
+          self: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
           next: null,
           prev: null,
           first: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
