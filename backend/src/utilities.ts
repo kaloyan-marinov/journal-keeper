@@ -1,12 +1,11 @@
 export const buildURLWithPaginationParams = (
-  url: string,
+  url: URL,
   perPage: number,
   page: number
 ): string => {
-  const urlObject = new URL(url);
-  urlObject.searchParams.append("perPage", perPage.toString());
-  urlObject.searchParams.append("page", page.toString());
-  return urlObject.toString();
+  url.searchParams.set("perPage", perPage.toString());
+  url.searchParams.set("page", page.toString());
+  return url.toString();
 };
 
 const PER_PAGE_DEFAULT: number = 10;
@@ -42,7 +41,7 @@ export class PaginationHelper {
     this.totalPages = Math.ceil(totalItems / this.perPage);
   }
 
-  buildLinks(url: string): any {
+  buildLinks(url: URL): any {
     const linkToSelf: string = buildURLWithPaginationParams(
       url,
       this.perPage,

@@ -2,7 +2,7 @@ import { buildURLWithPaginationParams, PaginationHelper } from "../src/utilities
 
 describe("buildURLWithPaginationParams", () => {
   test("without query parameters", () => {
-    const url = "https://some-elementary-school.com/api/students";
+    const url = new URL("https://some-elementary-school.com/api/students");
     const perPage = 10;
     const page = 3;
 
@@ -14,7 +14,9 @@ describe("buildURLWithPaginationParams", () => {
   });
 
   test("with query parameters", () => {
-    const url = "https://some-elementary-school.com/api/students?perPage=50&page=2";
+    const url = new URL(
+      "https://some-elementary-school.com/api/students?perPage=50&page=2"
+    );
     const perPage = 10;
     const page = 3;
 
@@ -49,7 +51,7 @@ describe("PaginationHelper", () => {
     () => {
       const origin: string = "https://some-elementary-school.com";
       const path: string = "/api/students";
-      const url: string = origin + path;
+      const url: URL = new URL(origin + path);
 
       const links = paginationHelper.buildLinks(url);
 
