@@ -37,12 +37,7 @@ describe("PaginationHelper", () => {
       const originalUrl = "/api/students";
       const path = "/api/students";
 
-      const links = paginationHelper.buildLinks(
-        origin,
-        originalUrl,
-        path,
-        paginationHelper.totalPages
-      );
+      const links = paginationHelper.buildLinks(origin, originalUrl, path);
 
       expect(links).toEqual({
         self: "https://some-elementary-school.com/api/students",

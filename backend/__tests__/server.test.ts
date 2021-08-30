@@ -11,6 +11,8 @@ interface IIncompletePayload {
   [index: string]: string;
 }
 
+const PORT_FOR_TESTING: number = 3001;
+
 beforeEach(async () => {
   connection = await connectionPromise;
   console.log(
@@ -21,7 +23,6 @@ beforeEach(async () => {
   await connection.synchronize(dropBeforeSync);
   console.log("Synchronizing the DB schema - successful.");
 
-  const PORT_FOR_TESTING: number = 3001;
   server = app.listen(PORT_FOR_TESTING, async () => {
     console.log(`Server listening on port ${PORT_FOR_TESTING} ...`);
   });
@@ -224,7 +225,20 @@ describe("GET /api/users", () => {
       expect(response.status).toEqual(200);
       expect(response.type).toEqual("application/json");
       expect(response.body).toEqual({
-        users: [],
+        _meta: {
+          totalItems: 0,
+          perPage: 10,
+          totalPages: 0,
+          page: 1,
+        },
+        _links: {
+          self: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users`,
+          next: null,
+          prev: null,
+          first: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
+          last: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=0`,
+        },
+        items: [],
       });
     }
   );
@@ -245,7 +259,20 @@ describe("GET /api/users", () => {
       expect(response2.status).toEqual(200);
       expect(response2.type).toEqual("application/json");
       expect(response2.body).toEqual({
-        users: [{ id: 1, username: "jd" }],
+        _meta: {
+          totalItems: 1,
+          perPage: 10,
+          totalPages: 1,
+          page: 1,
+        },
+        _links: {
+          self: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users`,
+          next: null,
+          prev: null,
+          first: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
+          last: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
+        },
+        items: [{ id: 1, username: "jd" }],
       });
     }
   );

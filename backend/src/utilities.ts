@@ -19,7 +19,11 @@ export class PaginationHelper {
   page: number;
   totalPages: number;
 
-  constructor(perPageStr: string, pageStr: string, totalItems: number) {
+  constructor(
+    perPageStr: string | undefined,
+    pageStr: string | undefined,
+    totalItems: number
+  ) {
     let perPage: number =
       perPageStr === undefined ? PER_PAGE_DEFAULT : parseInt(perPageStr);
     perPage = isNaN(perPage) ? PER_PAGE_DEFAULT : perPage;
@@ -38,15 +42,10 @@ export class PaginationHelper {
     this.totalPages = Math.ceil(totalItems / this.perPage);
   }
 
-  buildLinks(
-    origin: string,
-    originalUrl: string,
-    path: string,
-    totalPages: number
-  ): any {
+  buildLinks(origin: string, originalUrl: string, path: string): any {
     const linkToSelf: string = origin + originalUrl;
     const linkToNext: string | null =
-      this.page < totalPages
+      this.page < this.totalPages
         ? buildURLWithPaginationParams(origin + path, this.perPage, this.page + 1)
         : null;
     const linkToPrev: string | null =
