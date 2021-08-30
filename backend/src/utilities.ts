@@ -1,12 +1,12 @@
-const buildURLWithPaginationParams = (
-  origin: string,
+export const buildURLWithPaginationParams = (
+  url: string,
   perPage: number,
   page: number
 ): string => {
-  const url = new URL(origin);
-  url.searchParams.append("per_page", perPage.toString());
-  url.searchParams.append("page", page.toString());
-  return URL.toString();
+  const urlObject = new URL(url);
+  urlObject.searchParams.append("perPage", perPage.toString());
+  urlObject.searchParams.append("page", page.toString());
+  return urlObject.toString();
 };
 
 const PER_PAGE_DEFAULT: number = 10;
@@ -14,11 +14,7 @@ const PER_PAGE_MAX: number = 100;
 
 const PAGE_DEFAULT: number = 1;
 
-interface PaginationInterface {
-  page: number;
-}
-
-class Pagination {
+export class PaginationHelper {
   perPage: number;
   page: number;
   totalPages: number;
