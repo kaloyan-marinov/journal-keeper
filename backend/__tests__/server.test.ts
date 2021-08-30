@@ -216,7 +216,8 @@ describe("POST /api/users", () => {
 
 describe("GET /api/users", () => {
   test(
-    "if a client issues a valid request for fetching all User resources" +
+    "if a client issues a valid request for fetching a page of User resource" +
+      " (without custom query parameters)" +
       " but there are no User resources," +
       " the server should respond with an empty list",
     async () => {
@@ -244,8 +245,9 @@ describe("GET /api/users", () => {
   );
 
   test(
-    "if a client issues a valid request for fetching all User resources," +
-      " the server should respond with public representations of all of them",
+    "if a client issues a valid request for fetching a page of User resource" +
+      " (without custom query parameters)," +
+      " the server should respond with public representations of those resources",
     async () => {
       const response1 = await request(server).post("/api/users").send({
         username: "jd",
@@ -271,6 +273,41 @@ describe("GET /api/users", () => {
           prev: null,
           first: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
           last: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
+        },
+        items: [{ id: 1, username: "jd" }],
+      });
+    }
+  );
+
+  test(
+    "if a client issues a valid request for fetching a page of User resource" +
+      " with custom query parameters," +
+      " the server should respond with public representations of those resources",
+    async () => {
+      const response1 = await request(server).post("/api/users").send({
+        username: "jd",
+        name: "John Doe",
+        email: "john.doe@protonmail.com",
+        password: "123",
+      });
+
+      const response2 = await request(server).get("/api/users?perPage=101");
+
+      expect(response2.status).toEqual(200);
+      expect(response2.type).toEqual("application/json");
+      expect(response2.body).toEqual({
+        _meta: {
+          totalItems: 1,
+          perPage: 100,
+          totalPages: 1,
+          page: 1,
+        },
+        _links: {
+          self: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=100&page=1`,
+          next: null,
+          prev: null,
+          first: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=100&page=1`,
+          last: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=100&page=1`,
         },
         items: [{ id: 1, username: "jd" }],
       });

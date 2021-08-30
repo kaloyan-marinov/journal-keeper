@@ -1,15 +1,29 @@
 import { buildURLWithPaginationParams, PaginationHelper } from "../src/utilities";
 
-test("buildURLWithPaginationParams", () => {
-  const url = "https://some-elementary-school.com/api/students";
-  const perPage = 10;
-  const page = 3;
+describe("buildURLWithPaginationParams", () => {
+  test("without query parameters", () => {
+    const url = "https://some-elementary-school.com/api/students";
+    const perPage = 10;
+    const page = 3;
 
-  const urlWithParams = buildURLWithPaginationParams(url, perPage, page);
+    const urlWithParams = buildURLWithPaginationParams(url, perPage, page);
 
-  expect(urlWithParams).toEqual(
-    "https://some-elementary-school.com/api/students?perPage=10&page=3"
-  );
+    expect(urlWithParams).toEqual(
+      "https://some-elementary-school.com/api/students?perPage=10&page=3"
+    );
+  });
+
+  test("with query parameters", () => {
+    const url = "https://some-elementary-school.com/api/students?perPage=50&page=2";
+    const perPage = 10;
+    const page = 3;
+
+    const urlWithParams = buildURLWithPaginationParams(url, perPage, page);
+
+    expect(urlWithParams).toEqual(
+      "https://some-elementary-school.com/api/students?perPage=10&page=3"
+    );
+  });
 });
 
 describe("PaginationHelper", () => {
