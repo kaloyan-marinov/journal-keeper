@@ -34,9 +34,10 @@ describe("PaginationHelper", () => {
       " when there exist both a `next` and `prev` page of results",
     () => {
       const origin: string = "https://some-elementary-school.com";
-      const path = "/api/students";
+      const path: string = "/api/students";
+      const url: string = origin + path;
 
-      const links = paginationHelper.buildLinks(origin, path);
+      const links = paginationHelper.buildLinks(url);
 
       expect(links).toEqual({
         self: "https://some-elementary-school.com/api/students?perPage=10&page=3",

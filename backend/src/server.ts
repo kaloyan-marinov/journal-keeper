@@ -211,7 +211,13 @@ router.get("/api/users", async (ctx: Koa.Context) => {
     username: u.username!,
   }));
 
-  const _links = paginationHelper.buildLinks(ctx.request.origin, ctx.request.path);
+  console.log();
+  console.log(ctx.request.origin);
+  console.log(ctx.request.path);
+  console.log(ctx.request.originalUrl);
+  console.log(ctx.request.URL.toString());
+
+  const _links = paginationHelper.buildLinks(ctx.request.URL.toString());
 
   ctx.body = {
     _meta: {
