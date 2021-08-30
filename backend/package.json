@@ -42,10 +42,14 @@
   },
   "jest": {
     "preset": "ts-jest",
-    "collectCoverage": true,
     "coverageReporters": [
       "json",
       "html"
+    ],
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!node_modules/**"
     ]
   }
 }
