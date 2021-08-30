@@ -1,12 +1,13 @@
-import { buildURLWithPaginationParams, PaginationHelper } from "../src/utilities";
+import { buildLinkWithPaginationParams, PaginationHelper } from "../src/utilities";
 
-describe("buildURLWithPaginationParams", () => {
+describe("buildLinkWithPaginationParams", () => {
+  let perPage = 10;
+  let page = 3;
+
   test("without query parameters", () => {
     const url = new URL("https://some-elementary-school.com/api/students");
-    const perPage = 10;
-    const page = 3;
 
-    const urlWithParams = buildURLWithPaginationParams(url, perPage, page);
+    const urlWithParams = buildLinkWithPaginationParams(url, perPage, page);
 
     expect(urlWithParams).toEqual(
       "https://some-elementary-school.com/api/students?perPage=10&page=3"
@@ -17,10 +18,8 @@ describe("buildURLWithPaginationParams", () => {
     const url = new URL(
       "https://some-elementary-school.com/api/students?perPage=50&page=2"
     );
-    const perPage = 10;
-    const page = 3;
 
-    const urlWithParams = buildURLWithPaginationParams(url, perPage, page);
+    const urlWithParams = buildLinkWithPaginationParams(url, perPage, page);
 
     expect(urlWithParams).toEqual(
       "https://some-elementary-school.com/api/students?perPage=10&page=3"

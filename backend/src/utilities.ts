@@ -1,11 +1,14 @@
-export const buildURLWithPaginationParams = (
+import { IPaginationLinks } from "./types";
+
+export const buildLinkWithPaginationParams = (
   url: URL,
   perPage: number,
   page: number
 ): string => {
-  url.searchParams.set("perPage", perPage.toString());
-  url.searchParams.set("page", page.toString());
-  return url.toString();
+  const changedUrl: URL = new URL(url.toString());
+  changedUrl.searchParams.set("perPage", perPage.toString());
+  changedUrl.searchParams.set("page", page.toString());
+  return changedUrl.toString();
 };
 
 const PER_PAGE_DEFAULT: number = 10;
@@ -41,8 +44,8 @@ export class PaginationHelper {
     this.totalPages = Math.ceil(totalItems / this.perPage);
   }
 
-  buildLinks(url: URL): any {
-    const linkToSelf: string = buildURLWithPaginationParams(
+  buildLinks(url: URL): IPaginationLinks {
+    const linkToSelf: string = buildLinkWithPaginationParams(
       url,
       this.perPage,
       this.page
@@ -50,15 +53,15 @@ export class PaginationHelper {
 
     const linkToNext: string | null =
       this.page < this.totalPages
-        ? buildURLWithPaginationParams(url, this.perPage, this.page + 1)
+        ? buildLinkWithPaginationParams(url, this.perPage, this.page + 1)
         : null;
     const linkToPrev: string | null =
       this.page > 1
-        ? buildURLWithPaginationParams(url, this.perPage, this.page - 1)
+        ? buildLinkWithPaginationParams(url, this.perPage, this.page - 1)
         : null;
 
-    const linkToFirst: string = buildURLWithPaginationParams(url, this.perPage, 1);
-    const linkToLast: string = buildURLWithPaginationParams(
+    const linkToFirst: string = buildLinkWithPaginationParams(url, this.perPage, 1);
+    const linkToLast: string = buildLinkWithPaginationParams(
       url,
       this.perPage,
       this.totalPages

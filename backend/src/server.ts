@@ -8,6 +8,7 @@ import { config } from "dotenv";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { PaginationHelper } from "./utilities";
+import { IPaginationLinks } from "./types";
 
 /* Define "globals". */
 interface IPublicUser {
@@ -211,7 +212,7 @@ router.get("/api/users", async (ctx: Koa.Context) => {
     username: u.username!,
   }));
 
-  const _links = paginationHelper.buildLinks(ctx.request.URL);
+  const _links: IPaginationLinks = paginationHelper.buildLinks(ctx.request.URL);
 
   ctx.body = {
     _meta: {
