@@ -448,6 +448,8 @@ describe("reducers", () => {
         entries: {
           requestStatus: "idle",
           requestError: null,
+          _meta: { ...initialStateEntries._meta },
+          _links: { ...initialStateEntries._links },
           ids: [],
           entities: {},
         },
@@ -501,6 +503,8 @@ describe("reducers", () => {
         entries: {
           requestStatus: "idle",
           requestError: null,
+          _meta: { ...initialStateEntries._meta },
+          _links: { ...initialStateEntries._links },
           ids: [],
           entities: {},
         },
@@ -537,6 +541,8 @@ describe("reducers", () => {
         entries: {
           requestStatus: "idle",
           requestError: null,
+          _meta: { ...initialStateEntries._meta },
+          _links: { ...initialStateEntries._links },
           ids: [],
           entities: {},
         },
@@ -571,6 +577,8 @@ describe("reducers", () => {
         entries: {
           requestStatus: "idle",
           requestError: null,
+          _meta: { ...initialStateEntries._meta },
+          _links: { ...initialStateEntries._links },
           ids: [],
           entities: {},
         },
@@ -605,6 +613,8 @@ describe("reducers", () => {
         entries: {
           requestStatus: "idle",
           requestError: null,
+          _meta: { ...initialStateEntries._meta },
+          _links: { ...initialStateEntries._links },
           ids: [],
           entities: {},
         },
@@ -641,6 +651,8 @@ describe("reducers", () => {
         entries: {
           requestStatus: "idle",
           requestError: null,
+          _meta: { ...initialStateEntries._meta },
+          _links: { ...initialStateEntries._links },
           ids: [],
           entities: {},
         },
@@ -675,6 +687,8 @@ describe("reducers", () => {
         entries: {
           requestStatus: "idle",
           requestError: null,
+          _meta: { ...initialStateEntries._meta },
+          _links: { ...initialStateEntries._links },
           ids: [],
           entities: {},
         },
@@ -713,6 +727,8 @@ describe("reducers", () => {
         entries: {
           requestStatus: "idle",
           requestError: null,
+          _meta: { ...initialStateEntries._meta },
+          _links: { ...initialStateEntries._links },
           ids: [],
           entities: {},
         },
@@ -742,6 +758,8 @@ describe("reducers", () => {
       entries: {
         requestStatus: "idle",
         requestError: null,
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [],
         entities: {},
       },
@@ -771,6 +789,8 @@ describe("reducers", () => {
       entries: {
         requestStatus: "idle",
         requestError: null,
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [],
         entities: {},
       },
@@ -819,6 +839,8 @@ describe("reducers", () => {
       entries: {
         requestStatus: "idle",
         requestError: null,
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [],
         entities: {},
       },
@@ -849,6 +871,8 @@ describe("reducers", () => {
       entries: {
         requestStatus: "idle",
         requestError: null,
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [],
         entities: {},
       },
@@ -905,6 +929,8 @@ describe("reducers", () => {
       expect(newStateEntries).toEqual({
         requestStatus: "loading",
         requestError: null,
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [],
         entities: {},
       });
@@ -921,6 +947,8 @@ describe("reducers", () => {
       expect(newStateEntries).toEqual({
         requestStatus: "failed",
         requestError: "entries-fetchEntries-rejected",
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [],
         entities: {},
       });
@@ -992,6 +1020,8 @@ describe("reducers", () => {
       expect(newState).toEqual({
         requestStatus: "loading",
         requestError: null,
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [],
         entities: {},
       });
@@ -1009,6 +1039,8 @@ describe("reducers", () => {
       expect(newState).toEqual({
         requestStatus: "failed",
         requestError: "entries-createEntry-rejected",
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [],
         entities: {},
       });
@@ -1048,6 +1080,8 @@ describe("reducers", () => {
       expect(newState).toEqual({
         requestStatus: "succeeded",
         requestError: null,
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [1, 17],
         entities: {
           1: {
@@ -1080,6 +1114,8 @@ describe("reducers", () => {
       expect(newState).toEqual({
         requestStatus: "loading",
         requestError: null,
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [],
         entities: {},
       });
@@ -1093,6 +1129,8 @@ describe("reducers", () => {
       expect(newState).toEqual({
         requestStatus: "failed",
         requestError: "entries-editEntry-rejected",
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [],
         entities: {},
       });
@@ -1132,6 +1170,8 @@ describe("reducers", () => {
       expect(newState).toEqual({
         requestStatus: "succeeded",
         requestError: null,
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [1],
         entities: {
           1: {
@@ -1160,6 +1200,8 @@ describe("reducers", () => {
       expect(newState).toEqual({
         requestStatus: "loading",
         requestError: null,
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [entry1Mock.id],
         entities: {
           [entry1Mock.id]: entry1Mock,
@@ -1180,6 +1222,8 @@ describe("reducers", () => {
       expect(newState).toEqual({
         requestStatus: "failed",
         requestError: "entries-deleteEntry-rejected",
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [entry1Mock.id],
         entities: {
           [entry1Mock.id]: entry1Mock,
@@ -1199,6 +1243,8 @@ describe("reducers", () => {
       expect(newState).toEqual({
         requestStatus: "succeeded",
         requestError: null,
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [entry1Mock.id],
         entities: {
           [entry1Mock.id]: entry1Mock,
@@ -1227,6 +1273,8 @@ describe("reducers", () => {
       expect(newState).toEqual({
         requestStatus: "succeeded",
         requestError: null,
+        _meta: { ...initialStateEntries._meta },
+        _links: { ...initialStateEntries._links },
         ids: [],
         entities: {},
       });
