@@ -1236,9 +1236,9 @@ describe("reducers", () => {
     test("entries/deleteEntry/fulfilled", () => {
       initStateEntries.requestStatus = "pending";
       initStateEntries.requestError = null;
-      initStateEntries.ids = entriesIdsMock;
-      initStateEntries.entities = entriesEntitiesMock;
-      const action = deleteEntryFulfilled(2);
+      initStateEntries.ids = MOCK_ENTRIES_IDS;
+      initStateEntries.entities = MOCK_ENTRIES_ENTITIES;
+      const action = deleteEntryFulfilled(MOCK_ENTRY_20.id);
 
       const newState = entriesReducer(initStateEntries, action);
 
@@ -1334,17 +1334,17 @@ const MOCK_ENTRY_1 = {
   userId: 1,
 };
 
-const MOCK_ENTRY_2 = {
-  id: 2,
+const MOCK_ENTRY_20 = {
+  id: 20,
   timestampInUTC: "2019-08-20T13:17:00.000Z",
   utcZoneOfTimestamp: "+01:00",
-  content: "mocked-content-of-entry-2",
+  content: "mocked-content-of-entry-20",
   createdAt: "2021-04-29T05:11:01.000Z",
   updatedAt: "2021-04-29T05:11:01.000Z",
   userId: 1,
 };
 
-const MOCK_ENTRIES = [MOCK_ENTRY_1, MOCK_ENTRY_2];
+const MOCK_ENTRIES = [MOCK_ENTRY_1, MOCK_ENTRY_20];
 
 const _metaMock: IPaginationMeta = {
   totalItems: MOCK_ENTRIES.length,
@@ -1361,9 +1361,9 @@ const _linksMock: IPaginationLinks = {
   last: "localhost:5000/api/entries?perPage=10&page=1",
 };
 
-const entriesIdsMock = MOCK_ENTRIES.map((e: IEntry) => e.id);
+const MOCK_ENTRIES_IDS = MOCK_ENTRIES.map((e: IEntry) => e.id);
 
-const entriesEntitiesMock = MOCK_ENTRIES.reduce(
+const MOCK_ENTRIES_ENTITIES = MOCK_ENTRIES.reduce(
   (entriesObj: { [entryId: string]: IEntry }, entry: IEntry) => {
     entriesObj[entry.id] = entry;
     return entriesObj;
@@ -1414,7 +1414,7 @@ const requestHandlersToMock = [
     const { id: entryIdStr } = req.params;
     const entryId: number = parseInt(entryIdStr);
 
-    const editedEntry = entryId !== MOCK_ENTRY_1.id ? MOCK_ENTRY_1 : MOCK_ENTRY_2;
+    const editedEntry = entryId !== MOCK_ENTRY_1.id ? MOCK_ENTRY_1 : MOCK_ENTRY_20;
 
     return res(
       ctx.status(200),
@@ -1837,11 +1837,11 @@ describe(
           editEntry(
             targetedEntryId,
             moment
-              .utc(MOCK_ENTRY_2.timestampInUTC)
-              .utcOffset(MOCK_ENTRY_2.utcZoneOfTimestamp)
+              .utc(MOCK_ENTRY_20.timestampInUTC)
+              .utcOffset(MOCK_ENTRY_20.utcZoneOfTimestamp)
               .format("YYYY-MM-DD HH:mm"),
-            MOCK_ENTRY_2.utcZoneOfTimestamp,
-            MOCK_ENTRY_2.content
+            MOCK_ENTRY_20.utcZoneOfTimestamp,
+            MOCK_ENTRY_20.content
           )
         );
 
@@ -1871,11 +1871,11 @@ describe(
           editEntry(
             targetedEntryId,
             moment
-              .utc(MOCK_ENTRY_2.timestampInUTC)
-              .utcOffset(MOCK_ENTRY_2.utcZoneOfTimestamp)
+              .utc(MOCK_ENTRY_20.timestampInUTC)
+              .utcOffset(MOCK_ENTRY_20.utcZoneOfTimestamp)
               .format("YYYY-MM-DD HH:mm"),
-            MOCK_ENTRY_2.utcZoneOfTimestamp,
-            MOCK_ENTRY_2.content
+            MOCK_ENTRY_20.utcZoneOfTimestamp,
+            MOCK_ENTRY_20.content
           )
         );
 
@@ -1889,7 +1889,7 @@ describe(
             type: "entries/editEntry/fulfilled",
             payload: {
               entry: {
-                ...MOCK_ENTRY_2,
+                ...MOCK_ENTRY_20,
                 id: targetedEntryId,
               },
             },
@@ -3052,7 +3052,7 @@ describe("<JournalEntries> - initial render", () => {
 
       await waitFor(() => {
         getByText("mocked-content-of-entry-1");
-        getByText("mocked-content-of-entry-2");
+        getByText("mocked-content-of-entry-20");
       });
 
       const editLinks = getAllByText("Edit");
@@ -3685,8 +3685,8 @@ describe("<DeleteEntry>", () => {
         requestError: null,
         _meta: _metaMock,
         _links: _linksMock,
-        ids: entriesIdsMock,
-        entities: entriesEntitiesMock,
+        ids: MOCK_ENTRIES_IDS,
+        entities: MOCK_ENTRIES_ENTITIES,
       },
     };
     const enhancer = applyMiddleware(thunkMiddleware);
