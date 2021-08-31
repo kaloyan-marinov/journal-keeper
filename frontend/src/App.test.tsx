@@ -85,6 +85,7 @@ import { DeleteEntryLink, DeleteEntry } from "./App";
 import { clearEntriesSlice } from "./App";
 
 import { signOut } from "./App";
+import { URL_FOR_FIRST_PAGE_OF_EXAMPLES } from "./constants";
 
 describe("action creators", () => {
   test("createUserPending", () => {
@@ -1654,7 +1655,9 @@ describe(
         );
 
         // Act.
-        const fetchEntriesPromise = storeMock.dispatch(fetchEntries());
+        const fetchEntriesPromise = storeMock.dispatch(
+          fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES)
+        );
 
         // Assert.
         await expect(fetchEntriesPromise).rejects.toEqual(
@@ -1676,7 +1679,9 @@ describe(
       "fetchEntries()" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
-        const fetchEntriesPromise = storeMock.dispatch(fetchEntries());
+        const fetchEntriesPromise = storeMock.dispatch(
+          fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES)
+        );
 
         await expect(fetchEntriesPromise).resolves.toEqual(undefined);
         expect(storeMock.getActions()).toEqual([

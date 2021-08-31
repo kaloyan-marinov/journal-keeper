@@ -20,6 +20,7 @@ import moment from "moment";
 
 import { Redirect } from "react-router-dom";
 import { IEntry, IPaginationLinks, IPaginationMeta } from "./types";
+import { URL_FOR_FIRST_PAGE_OF_EXAMPLES } from "./constants";
 
 /*
 Specify all slices of the Redux state,
@@ -79,6 +80,8 @@ export const initialStateAuth: IStateAuth = {
 export interface IStateEntries {
   requestStatus: RequestStatus;
   requestError: string | null;
+  _meta: IPaginationMeta;
+  _links: IPaginationLinks;
   ids: number[];
   entities: {
     [entryId: string]: IEntry;
@@ -88,6 +91,19 @@ export interface IStateEntries {
 export const initialStateEntries: IStateEntries = {
   requestStatus: RequestStatus.IDLE,
   requestError: null,
+  _meta: {
+    totalItems: null,
+    perPage: null,
+    totalPages: null,
+    page: null,
+  },
+  _links: {
+    self: null,
+    next: null,
+    prev: null,
+    first: null,
+    last: null,
+  },
   ids: [],
   entities: {},
 };
@@ -458,12 +474,9 @@ type ActionFetchEntries =
   | IFetchEntriesFulfilled;
 
 /* entriesSlice - "entries/fetchEntries" thunk-action creator */
-export const fetchEntries = (): ThunkAction<
-  Promise<any>,
-  IState,
-  unknown,
-  ActionFetchEntries
-> => {
+export const fetchEntries = (
+  urlForOnePageOfEntries: string
+): ThunkAction<Promise<any>, IState, unknown, ActionFetchEntries> => {
   /*
   Create a thunk-action.
   When dispatched, it makes the web browser issue an HTTP request
@@ -485,7 +498,7 @@ export const fetchEntries = (): ThunkAction<
 
     dispatch(fetchEntriesPending());
     try {
-      const response = await axios.get("/api/entries", config);
+      const response = await axios.get(urlForOnePageOfEntries, config);
       dispatch(
         fetchEntriesFulfilled(
           response.data._meta,
@@ -958,6 +971,8 @@ export const entriesReducer = (
       };
 
     case ActionTypesFetchEntries.FULFILLED: {
+      const _meta: IPaginationMeta = action.payload._meta;
+      const _links: IPaginationLinks = action.payload._links;
       const entries: IEntry[] = action.payload.entries;
 
       const ids: number[] = entries.map((e: IEntry) => e.id);
@@ -972,6 +987,8 @@ export const entriesReducer = (
       return {
         requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
+        _meta,
+        _links,
         ids,
         entities,
       };
@@ -992,16 +1009,28 @@ export const entriesReducer = (
       };
 
     case ActionTypesCreateEntry.FULFILLED: {
+      const newMeta: IPaginationMeta = {
+        ...initialStateEntries._meta,
+        totalItems:
+          stateEntries._meta.totalItems !== null
+            ? stateEntries._meta.totalItems + 1
+            : null,
+      };
+
+      const newLinks: IPaginationLinks = {
+        ...initialStateEntries._links,
+      };
+
       const entry: IEntry = action.payload.entry;
-
       const newIds: number[] = [...stateEntries.ids, entry.id];
-
       const newEntities: { [entryId: string]: IEntry } = { ...stateEntries.entities };
       newEntities[entry.id] = entry;
 
       return {
         requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
+        _meta: newMeta,
+        _links: newLinks,
         ids: newIds,
         entities: newEntities,
       };
@@ -1050,6 +1079,11 @@ export const entriesReducer = (
       };
 
     case ActionTypesDeleteEntry.FULFILLED: {
+      /*
+      TODO: before executing this merge request,
+            rename `entryId` to `idOfDeletedEntry`
+            (thus mimicking the naming in the VocabTreasury project)
+      */
       const entryId: number = action.payload.entryId;
 
       const newIds: number[] = [...stateEntries.ids].filter(
@@ -1060,6 +1094,7 @@ export const entriesReducer = (
       delete newEntities[entryId];
 
       return {
+        ...stateEntries,
         requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
         ids: newIds,
@@ -1107,6 +1142,8 @@ const selectAuthRequestStatus = (state: IState) => state.auth.requestStatus;
 const selectHasValidToken = (state: IState) => state.auth.hasValidToken;
 const selectSignedInUserProfile = (state: IState) => state.auth.signedInUserProfile;
 
+const selectEntriesMeta = (state: IState) => state.entries._meta;
+const selectEntriesLinks = (state: IState) => state.entries._links;
 const selectEntriesIds = (state: IState) => state.entries.ids;
 const selectEntriesEntities = (state: IState) => state.entries.entities;
 
@@ -1564,7 +1601,7 @@ export const MyMonthlyJournal = () => {
       );
 
       try {
-        await dispatch(fetchEntries());
+        await dispatch(fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES));
       } catch (err) {
         if (err.response.status === 401) {
           dispatch(

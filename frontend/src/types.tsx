@@ -9,10 +9,10 @@ export interface IEntry {
 }
 
 export interface IPaginationMeta {
-  totalItems: number;
-  perPage: number;
-  totalPages: number;
-  page: number;
+  totalItems: number | null;
+  perPage: number | null;
+  totalPages: number | null;
+  page: number | null;
 }
 
 export interface IPaginationLinks {
