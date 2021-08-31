@@ -1371,16 +1371,6 @@ const entriesEntitiesMock = MOCK_ENTRIES.reduce(
   {}
 );
 
-const entry1EditedMock = {
-  id: 1,
-  timestampInUTC: "2000-01-01 01:00",
-  utcZoneOfTimestamp: "+02:00",
-  content: "mocked-content-of-entry-1-has-been-edited",
-  createdAt: "2000-01-02 01:00",
-  updatedAt: "2000-01-03 01:00",
-  userId: 1,
-};
-
 const requestHandlersToMock = [
   rest.post("/api/users", (req, res, ctx) => {
     return res(
@@ -1829,8 +1819,10 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to fail",
       async () => {
         // Arrange.
+        const targetedEntryId: number = 1;
+
         quasiServer.use(
-          rest.put(`/api/entries/1`, (req, res, ctx) => {
+          rest.put(`/api/entries/${targetedEntryId}`, (req, res, ctx) => {
             return res(
               ctx.status(400),
               ctx.json({
@@ -1843,10 +1835,13 @@ describe(
         // Act.
         const editEntryPromise = storeMock.dispatch(
           editEntry(
-            1,
-            entry1EditedMock.localTime,
-            entry1EditedMock.timezone,
-            entry1EditedMock.content
+            targetedEntryId,
+            moment
+              .utc(MOCK_ENTRY_2.timestampInUTC)
+              .utcOffset(MOCK_ENTRY_2.utcZoneOfTimestamp)
+              .format("YYYY-MM-DD HH:mm"),
+            MOCK_ENTRY_2.utcZoneOfTimestamp,
+            MOCK_ENTRY_2.content
           )
         );
 
