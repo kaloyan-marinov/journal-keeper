@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 
-import { IEntry } from "./App";
+import { IEntry, IPaginationLinks, IPaginationMeta } from "./types";
 
 import {
   createUserPending,
@@ -225,7 +225,20 @@ describe("action creators", () => {
   });
 
   test("fetchEntriesFulfilled", () => {
-    const entries = [
+    const _meta: IPaginationMeta = {
+      totalItems: 2,
+      perPage: 10,
+      totalPages: 1,
+      page: 1,
+    };
+    const _links: IPaginationLinks = {
+      self: "localhost:5000/api/entries?perPage=10&page=1",
+      next: null,
+      prev: null,
+      first: "localhost:5000/api/entries?perPage=10&page=1",
+      last: "localhost:5000/api/entries?perPage=10&page=1",
+    };
+    const items: IEntry[] = [
       {
         id: 1,
         timestampInUTC: "2020-12-01T15:17:00.000Z",
@@ -247,12 +260,14 @@ describe("action creators", () => {
       },
     ];
 
-    const action = fetchEntriesFulfilled(entries);
+    const action = fetchEntriesFulfilled(_meta, _links, items);
 
     expect(action).toEqual({
       type: "entries/fetchEntries/fulfilled",
       payload: {
-        entries,
+        _meta,
+        _links,
+        entries: items,
       },
     });
   });
@@ -1281,6 +1296,21 @@ const entriesMock = [
   },
 ];
 
+const _metaMock: IPaginationMeta = {
+  totalItems: entriesMock.length,
+  perPage: 10,
+  totalPages: 1,
+  page: 1,
+};
+
+const _linksMock: IPaginationLinks = {
+  self: "localhost:5000/api/entries?perPage=10&page=1",
+  next: null,
+  prev: null,
+  first: "localhost:5000/api/entries?perPage=10&page=1",
+  last: "localhost:5000/api/entries?perPage=10&page=1",
+};
+
 const entriesIdsMock = entriesMock.map((e: IEntry) => e.id);
 
 const entriesEntitiesMock = entriesMock.reduce(
@@ -1329,7 +1359,9 @@ const requestHandlersToMock = [
     return res(
       ctx.status(200),
       ctx.json({
-        entries: entriesMock,
+        _meta: _metaMock,
+        _links: _linksMock,
+        items: entriesMock,
       })
     );
   }),
@@ -1654,6 +1686,8 @@ describe(
           {
             type: "entries/fetchEntries/fulfilled",
             payload: {
+              _meta: _metaMock,
+              _links: _linksMock,
               entries: entriesMock,
             },
           },

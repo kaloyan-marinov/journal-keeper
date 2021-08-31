@@ -19,6 +19,7 @@ import { useParams } from "react-router-dom";
 import moment from "moment";
 
 import { Redirect } from "react-router-dom";
+import { IEntry, IPaginationLinks, IPaginationMeta } from "./types";
 
 /*
 Specify all slices of the Redux state,
@@ -74,16 +75,6 @@ export const initialStateAuth: IStateAuth = {
   hasValidToken: null,
   signedInUserProfile: null,
 };
-
-export interface IEntry {
-  id: number;
-  timestampInUTC: string;
-  utcZoneOfTimestamp: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  userId: number;
-}
 
 export interface IStateEntries {
   requestStatus: RequestStatus;
@@ -433,6 +424,8 @@ interface IFetchEntriesRejected {
 interface IFetchEntriesFulfilled {
   type: typeof ActionTypesFetchEntries.FULFILLED;
   payload: {
+    _meta: IPaginationMeta;
+    _links: IPaginationLinks;
     entries: IEntry[];
   };
 }
@@ -446,10 +439,16 @@ export const fetchEntriesRejected = (error: string): IFetchEntriesRejected => ({
   error,
 });
 
-export const fetchEntriesFulfilled = (entries: IEntry[]): IFetchEntriesFulfilled => ({
+export const fetchEntriesFulfilled = (
+  _meta: IPaginationMeta,
+  _links: IPaginationLinks,
+  items: IEntry[]
+): IFetchEntriesFulfilled => ({
   type: ActionTypesFetchEntries.FULFILLED,
   payload: {
-    entries,
+    _meta,
+    _links,
+    entries: items,
   },
 });
 
@@ -487,7 +486,13 @@ export const fetchEntries = (): ThunkAction<
     dispatch(fetchEntriesPending());
     try {
       const response = await axios.get("/api/entries", config);
-      dispatch(fetchEntriesFulfilled(response.data.entries));
+      dispatch(
+        fetchEntriesFulfilled(
+          response.data._meta,
+          response.data._links,
+          response.data.items
+        )
+      );
       return Promise.resolve();
     } catch (err) {
       const responseBodyError =
