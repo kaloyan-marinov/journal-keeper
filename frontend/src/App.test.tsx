@@ -16,7 +16,7 @@ import App, {
   Home,
   SignUp,
   SignIn,
-  MyMonthlyJournal,
+  JournalEntries,
   CreateEntry,
 } from "./App";
 
@@ -2003,7 +2003,7 @@ describe("<App>", () => {
       getByText("Sign In");
       getByText("Sign Up");
 
-      getByText("Welcome to MyMonthlyJournal!");
+      getByText("Welcome to JournalEntries!");
     });
   });
 
@@ -2023,7 +2023,7 @@ describe("<App>", () => {
     // Assert.
     await waitFor(() => {
       getByText("Home");
-      getByText("MyMonthlyJournal");
+      getByText("JournalEntries");
       getByText("Sign Out");
     });
   });
@@ -2137,9 +2137,9 @@ describe("<App>", () => {
   test(
     "if a user signs in" +
       " and goes on to manually change the URL in her browser's address bar" +
-      " to /my-monthly-journal ," +
+      " to /journal-entries ," +
       " the frontend application should display only the following navigation links:" +
-      " 'Home', 'MyMonthlyJournal', and 'Sign Out'",
+      " 'Home', 'JournalEntries', and 'Sign Out'",
     async () => {
       // Arrange.
       const realStore = createStore(rootReducer, initState, enhancer);
@@ -2160,10 +2160,10 @@ describe("<App>", () => {
       // - unamount React trees that were mounted with render
       cleanup();
 
-      // - navigate to the /my-monthly-journal URL,
+      // - navigate to the /journal-entries URL,
       //   and mount the application's entire React tree
-      history.push("/my-monthly-journal");
-      const { getByText: getByTextFromMyMonthlyJournalURL } = render(
+      history.push("/journal-entries");
+      const { getByText: getByTextFromJournalEntriesURL } = render(
         <Provider store={realStore}>
           <Router history={history}>
             <App />
@@ -2173,9 +2173,9 @@ describe("<App>", () => {
 
       // Assert.
       await waitFor(() => {
-        getByTextFromMyMonthlyJournalURL("Home");
-        getByTextFromMyMonthlyJournalURL("Sign Out");
-        getByTextFromMyMonthlyJournalURL("MyMonthlyJournal");
+        getByTextFromJournalEntriesURL("Home");
+        getByTextFromJournalEntriesURL("Sign Out");
+        getByTextFromJournalEntriesURL("JournalEntries");
       });
     }
   );
@@ -2183,14 +2183,14 @@ describe("<App>", () => {
   test(
     "if a user hasn't signed in" +
       " but manually changes the URL in her browser's address bar" +
-      " to /my-monthly-journal ," +
+      " to /journal-entries ," +
       " the frontend application should redirect the user to /sign-in",
     async () => {
       // Arrange.
       const realStore = createStore(rootReducer, initState, enhancer);
 
       // Act.
-      history.push("/my-monthly-journal");
+      history.push("/journal-entries");
 
       const { queryAllByText } = render(
         <Provider store={realStore}>
@@ -2202,7 +2202,7 @@ describe("<App>", () => {
 
       // Assert.
       await waitFor(() => {
-        const elements = queryAllByText("Review the entries in MyMonthlyJournal!");
+        const elements = queryAllByText("Review JournalEntries!");
         expect(elements.length).toEqual(0);
       });
     }
@@ -2849,7 +2849,7 @@ describe("<Home>", () => {
     );
 
     // Assert.
-    getByText("Welcome to MyMonthlyJournal!");
+    getByText("Welcome to JournalEntries!");
   });
 
   test("render after a user has successfully signed in", async () => {
@@ -2880,7 +2880,7 @@ describe("<Home>", () => {
   });
 });
 
-describe("<MyMonthlyJournal> - initial render", () => {
+describe("<JournalEntries> - initial render", () => {
   beforeAll(() => {
     // Enable API mocking.
     quasiServer.listen();
@@ -2896,7 +2896,7 @@ describe("<MyMonthlyJournal> - initial render", () => {
   });
 
   test(
-    "(<Alerts> + <MyMonthlyJournal>) a GET request is issued to /api/entries" +
+    "(<Alerts> + <JournalEntries>) a GET request is issued to /api/entries" +
       " as part of the effect function, but the backend is _mocked_ to reject" +
       " the client-provided authentication credential as invalid",
     async () => {
@@ -2939,7 +2939,7 @@ describe("<MyMonthlyJournal> - initial render", () => {
         <Provider store={realStore}>
           <BrowserRouter>
             <Alerts />
-            <MyMonthlyJournal />
+            <JournalEntries />
           </BrowserRouter>
         </Provider>
       );
@@ -2947,13 +2947,13 @@ describe("<MyMonthlyJournal> - initial render", () => {
       // Assert.
       await waitFor(() => {
         getByRole("button");
-        getByText("[FROM <MyMonthlyJournal>'S useEffect HOOK] PLEASE SIGN BACK IN");
+        getByText("[FROM <JournalEntries>'S useEffect HOOK] PLEASE SIGN BACK IN");
       });
     }
   );
 
   test(
-    "(<Alerts> + <MyMonthlyJournal>) a GET request is issued to /api/entries" +
+    "(<Alerts> + <JournalEntries>) a GET request is issued to /api/entries" +
       " as part of the effect function, but the backend is _mocked_ to respond" +
       " with an error, which is not related to authentication",
     async () => {
@@ -2979,7 +2979,7 @@ describe("<MyMonthlyJournal> - initial render", () => {
         <Provider store={realStore}>
           <BrowserRouter>
             <Alerts />
-            <MyMonthlyJournal />
+            <JournalEntries />
           </BrowserRouter>
         </Provider>
       );
@@ -3024,12 +3024,12 @@ describe("<MyMonthlyJournal> - initial render", () => {
       const { getByText, getAllByText } = render(
         <Provider store={realStore}>
           <BrowserRouter>
-            <MyMonthlyJournal />
+            <JournalEntries />
           </BrowserRouter>
         </Provider>
       );
 
-      getByText("Review the entries in MyMonthlyJournal!");
+      getByText("Review JournalEntries!");
       getByText("Create a new entry");
 
       await waitFor(() => {
@@ -3333,7 +3333,7 @@ describe(
           getByText("ENTRY CREATION SUCCESSFUL");
         });
 
-        expect(history.location.pathname).toEqual("/my-monthly-journal");
+        expect(history.location.pathname).toEqual("/journal-entries");
       }
     );
   }
@@ -3592,7 +3592,7 @@ describe("<EditEntry>", () => {
           getByText("ENTRY EDITING SUCCESSFUL");
         });
 
-        expect(history.location.pathname).toEqual("/my-monthly-journal");
+        expect(history.location.pathname).toEqual("/journal-entries");
       }
     );
   });
@@ -3701,13 +3701,13 @@ describe("<DeleteEntry>", () => {
       getByRole("button", { name: "No" });
     });
 
-    test("the user clicks the 'No' button, which should redirect to /my-monthly-journal", () => {
+    test("the user clicks the 'No' button, which should redirect to /journal-entries", () => {
       // Arrange.
       const { getByRole, getByText } = render(
         <Provider store={realStore}>
           <Router history={history}>
-            <PrivateRoute exact path="/my-monthly-journal">
-              <MyMonthlyJournal />
+            <PrivateRoute exact path="/journal-entries">
+              <JournalEntries />
             </PrivateRoute>
             <PrivateRoute exact path="/entries/:id/delete">
               <DeleteEntry />
@@ -3722,9 +3722,9 @@ describe("<DeleteEntry>", () => {
       fireEvent.click(buttonNo);
 
       // Assert.
-      getByText("Review the entries in MyMonthlyJournal!");
+      getByText("Review JournalEntries!");
 
-      expect(history.location.pathname).toEqual("/my-monthly-journal");
+      expect(history.location.pathname).toEqual("/journal-entries");
     });
   });
 
@@ -3866,14 +3866,14 @@ describe("<DeleteEntry>", () => {
           the corresponding change of the Redux state
           causes the UI to re-render <DeleteEntry>
           - importantly, that re-rendering takes places
-            before the UI redirects the browser to /my-monthly-journal
+            before the UI redirects the browser to /journal-entries
           */
           screen.getByText("Loading...");
         });
 
         screen.getByText("ENTRY DELETION SUCCESSFUL");
 
-        expect(history.location.pathname).toEqual("/my-monthly-journal");
+        expect(history.location.pathname).toEqual("/journal-entries");
       }
     );
   });

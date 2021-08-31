@@ -1192,8 +1192,8 @@ const App = () => {
         <Route exact path="/sign-in">
           <SignIn />
         </Route>
-        <PrivateRoute exact path="/my-monthly-journal">
-          <MyMonthlyJournal />
+        <PrivateRoute exact path="/journal-entries">
+          <JournalEntries />
         </PrivateRoute>
         <PrivateRoute exact path="/entries/create">
           <CreateEntry />
@@ -1263,7 +1263,7 @@ export const Home = () => {
   const greeting =
     signedInUserProfile !== null
       ? `Hello, ${signedInUserProfile.name}!`
-      : "Welcome to MyMonthlyJournal!";
+      : "Welcome to JournalEntries!";
 
   return (
     <React.Fragment>
@@ -1297,8 +1297,7 @@ export const NavigationBar = () => {
     </React.Fragment>
   ) : (
     <React.Fragment>
-      <Link to="/">Home</Link> | <Link to="/my-monthly-journal">MyMonthlyJournal</Link>{" "}
-      |{" "}
+      <Link to="/">Home</Link> | <Link to="/journal-entries">JournalEntries</Link> |{" "}
       <a href="#!" onClick={() => handleClick()}>
         Sign Out
       </a>
@@ -1570,10 +1569,10 @@ export const PrivateRoute = (props: any) => {
   }
 };
 
-export const MyMonthlyJournal = () => {
+export const JournalEntries = () => {
   console.log(
     `${new Date().toISOString()} - ${__filename}` +
-      ` - React is rendering <MyMonthlyJournal>`
+      ` - React is rendering <JournalEntries>`
   );
 
   const entriesIds: number[] = useSelector(selectEntriesIds);
@@ -1592,12 +1591,12 @@ export const MyMonthlyJournal = () => {
     console.log(
       `${new Date().toISOString()}` +
         ` - ${__filename}` +
-        ` - React is running <MyMonthlyJournal>'s useEffect hook`
+        ` - React is running <JournalEntries>'s useEffect hook`
     );
 
     const effectFn = async () => {
       console.log(
-        "    <MyMonthlyJournal>'s useEffect hook is dispatching fetchEntries()"
+        "    <JournalEntries>'s useEffect hook is dispatching fetchEntries()"
       );
 
       try {
@@ -1605,7 +1604,7 @@ export const MyMonthlyJournal = () => {
       } catch (err) {
         if (err.response.status === 401) {
           dispatch(
-            signOut("[FROM <MyMonthlyJournal>'S useEffect HOOK] PLEASE SIGN BACK IN")
+            signOut("[FROM <JournalEntries>'S useEffect HOOK] PLEASE SIGN BACK IN")
           );
         } else {
           const id: string = uuidv4();
@@ -1626,7 +1625,7 @@ export const MyMonthlyJournal = () => {
     return (
       <div key={e.id}>
         <hr />
-        <SingleEntry timestampInUTC={e.timestampInUTC} content={e.content} />
+        <SingleJournalEntry timestampInUTC={e.timestampInUTC} content={e.content} />
         <ul>
           <li>
             <Link to={`/entries/${e.id}/edit`}>Edit</Link>
@@ -1641,23 +1640,23 @@ export const MyMonthlyJournal = () => {
 
   return (
     <React.Fragment>
-      {"<MyMonthlyJournal>"}
-      <div>Review the entries in MyMonthlyJournal!</div>
+      {"<JournalEntries>"}
+      <div>Review JournalEntries!</div>
       <Link to="/entries/create">Create a new entry</Link>
       {entries}
     </React.Fragment>
   );
 };
 
-type SingleEntryProps = {
+type SingleJournalEntryProps = {
   timestampInUTC: string;
   content: string;
 };
 
-const SingleEntry = (props: SingleEntryProps) => {
+const SingleJournalEntry = (props: SingleJournalEntryProps) => {
   return (
     <React.Fragment>
-      {"<SingleEntry>"}
+      {"<SingleJournalEntry>"}
       <h3>
         {moment.utc(props.timestampInUTC).format("YYYY-MM-DD HH:mm")} (UTC +00:00)
       </h3>
@@ -1759,7 +1758,7 @@ export const CreateEntry = () => {
           createEntry(formData.localTime, formData.timezone, formData.content)
         );
         dispatch(alertsCreate(id, "ENTRY CREATION SUCCESSFUL"));
-        history.push("/my-monthly-journal");
+        history.push("/journal-entries");
       } catch (err) {
         if (err.response.status === 401) {
           dispatch(signOut("[FROM <CreateEntry>'S handleSubmit] PLEASE SIGN BACK IN"));
@@ -1898,7 +1897,7 @@ export const EditEntry = () => {
           editEntry(entryId, formData.localTime, formData.timezone, formData.content)
         );
         dispatch(alertsCreate(id, "ENTRY EDITING SUCCESSFUL"));
-        history.push("/my-monthly-journal");
+        history.push("/journal-entries");
       } catch (err) {
         if (err.response.status === 401) {
           dispatch(signOut("[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN"));
@@ -1924,7 +1923,10 @@ export const EditEntry = () => {
       {"<EditEntry>"}
       <h3>You are about to edit the following Entry:</h3>
       <hr />
-      <SingleEntry timestampInUTC={entry.timestampInUTC} content={entry.content} />
+      <SingleJournalEntry
+        timestampInUTC={entry.timestampInUTC}
+        content={entry.content}
+      />
       <hr />
       <form
         name="edit-entry-form"
@@ -2021,9 +2023,9 @@ export const DeleteEntry = () => {
       dispatch(alertsCreate(id, "ENTRY DELETION SUCCESSFUL"));
 
       console.log(
-        `    <DeleteEntry> - handleClickYes - history.push("/my-monthly-journal");`
+        `    <DeleteEntry> - handleClickYes - history.push("/journal-entries");`
       );
-      history.push("/my-monthly-journal");
+      history.push("/journal-entries");
     } catch (err) {
       if (err.response.status === 401) {
         dispatch(signOut("[FROM <DeleteEntry>'S handleClickYes] PLEASE SIGN BACK IN"));
@@ -2037,7 +2039,7 @@ export const DeleteEntry = () => {
   };
 
   const handleClickNo = (e: React.MouseEvent<HTMLButtonElement>) => {
-    return history.push("/my-monthly-journal");
+    return history.push("/journal-entries");
   };
 
   let content;
@@ -2046,7 +2048,10 @@ export const DeleteEntry = () => {
       <React.Fragment>
         <h3>You are about to delete the following Entry:</h3>
         <hr />
-        <SingleEntry timestampInUTC={entry.timestampInUTC} content={entry.content} />
+        <SingleJournalEntry
+          timestampInUTC={entry.timestampInUTC}
+          content={entry.content}
+        />
         <hr />
         <div>Do you want to delete the selected Entry?</div>
         <ul>
