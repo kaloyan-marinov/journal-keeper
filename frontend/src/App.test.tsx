@@ -87,6 +87,8 @@ import { clearEntriesSlice } from "./App";
 import { signOut } from "./App";
 import { URL_FOR_FIRST_PAGE_OF_EXAMPLES } from "./constants";
 
+import moment from "moment";
+
 describe("action creators", () => {
   test("createUserPending", () => {
     const action = createUserPending();
@@ -1418,8 +1420,19 @@ const requestHandlersToMock = [
     return res(ctx.status(200), ctx.json(MOCK_ENTRY_1));
   }),
 
-  rest.put("/api/entries/1", (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(entry1EditedMock));
+  rest.put("/api/entries/:id", (req, res, ctx) => {
+    const { id: entryIdStr } = req.params;
+    const entryId: number = parseInt(entryIdStr);
+
+    const editedEntry = entryId !== MOCK_ENTRY_1.id ? MOCK_ENTRY_1 : MOCK_ENTRY_2;
+
+    return res(
+      ctx.status(200),
+      ctx.json({
+        ...editedEntry,
+        id: entryId,
+      })
+    );
   }),
 
   rest.delete("/api/entries/1", (req, res, ctx) => {
@@ -1858,12 +1871,16 @@ describe(
       "editEntry(entryId, ...)" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
+        const targetedEntryId: number = 1;
         const editEntryPromise = storeMock.dispatch(
           editEntry(
-            1,
-            entry1EditedMock.localTime,
-            entry1EditedMock.timezone,
-            entry1EditedMock.content
+            targetedEntryId,
+            moment
+              .utc(MOCK_ENTRY_2.timestampInUTC)
+              .utcOffset(MOCK_ENTRY_2.utcZoneOfTimestamp)
+              .format("YYYY-MM-DD HH:mm"),
+            MOCK_ENTRY_2.utcZoneOfTimestamp,
+            MOCK_ENTRY_2.content
           )
         );
 
@@ -1876,7 +1893,10 @@ describe(
           {
             type: "entries/editEntry/fulfilled",
             payload: {
-              entry: entry1EditedMock,
+              entry: {
+                ...MOCK_ENTRY_2,
+                id: targetedEntryId,
+              },
             },
           },
         ]);
