@@ -3665,6 +3665,8 @@ describe("<DeleteEntry>", () => {
       entries: {
         requestStatus: "succeeded",
         requestError: null,
+        _meta: _metaMock,
+        _links: _linksMock,
         ids: entriesIdsMock,
         entities: entriesEntitiesMock,
       },

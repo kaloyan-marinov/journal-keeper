@@ -233,11 +233,11 @@ describe("GET /api/users", () => {
           page: 1,
         },
         _links: {
-          self: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
+          self: `/api/users?perPage=10&page=1`,
           next: null,
           prev: null,
-          first: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
-          last: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=0`,
+          first: `/api/users?perPage=10&page=1`,
+          last: `/api/users?perPage=10&page=0`,
         },
         items: [],
       });
@@ -268,11 +268,11 @@ describe("GET /api/users", () => {
           page: 1,
         },
         _links: {
-          self: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
+          self: `/api/users?perPage=10&page=1`,
           next: null,
           prev: null,
-          first: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
-          last: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
+          first: `/api/users?perPage=10&page=1`,
+          last: `/api/users?perPage=10&page=1`,
         },
         items: [{ id: 1, username: "jd" }],
       });
@@ -303,11 +303,11 @@ describe("GET /api/users", () => {
           page: 1,
         },
         _links: {
-          self: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=100&page=1`,
+          self: `/api/users?perPage=100&page=1`,
           next: null,
           prev: null,
-          first: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=100&page=1`,
-          last: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=100&page=1`,
+          first: `/api/users?perPage=100&page=1`,
+          last: `/api/users?perPage=100&page=1`,
         },
         items: [{ id: 1, username: "jd" }],
       });
