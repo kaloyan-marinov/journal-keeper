@@ -1,7 +1,13 @@
 import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 
-import { IEntry, IPaginationLinks, IPaginationMeta } from "./types";
+import {
+  IEntry,
+  IPaginationLinks,
+  IPaginationMeta,
+  IStateEntries,
+  IState,
+} from "./types";
 
 import {
   createUserPending,
@@ -10,15 +16,7 @@ import {
   rootReducer,
   PrivateRoute,
 } from "./App";
-import App, {
-  JOURNAL_APP_TOKEN,
-  Alerts,
-  Home,
-  SignUp,
-  SignIn,
-  JournalEntries,
-  CreateEntry,
-} from "./App";
+import App, { Alerts, Home, SignUp, SignIn, JournalEntries, CreateEntry } from "./App";
 
 import { Provider } from "react-redux";
 import { store } from "./App";
@@ -32,13 +30,6 @@ import { setupServer } from "msw/node";
 
 import configureMockStore, { MockStoreEnhanced } from "redux-mock-store";
 import thunkMiddleware from "redux-thunk";
-import {
-  initialStateAlerts,
-  initialStateAuth,
-  IState,
-  initialStateEntries,
-  IStateEntries,
-} from "./App";
 import { createUser } from "./App";
 
 import { applyMiddleware } from "redux";
@@ -85,7 +76,13 @@ import { DeleteEntryLink, DeleteEntry } from "./App";
 import { clearEntriesSlice } from "./App";
 
 import { signOut } from "./App";
-import { URL_FOR_FIRST_PAGE_OF_EXAMPLES } from "./constants";
+import {
+  initialStateAlerts,
+  JOURNAL_APP_TOKEN,
+  initialStateAuth,
+  initialStateEntries,
+  URL_FOR_FIRST_PAGE_OF_EXAMPLES,
+} from "./constants";
 
 import moment from "moment";
 

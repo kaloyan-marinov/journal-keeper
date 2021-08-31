@@ -19,100 +19,25 @@ import { useParams } from "react-router-dom";
 import moment from "moment";
 
 import { Redirect } from "react-router-dom";
-import { IEntry, IPaginationLinks, IPaginationMeta } from "./types";
-import { URL_FOR_FIRST_PAGE_OF_EXAMPLES } from "./constants";
-
-/*
-Specify all slices of the Redux state,
-along with an initial value for each slice.
-*/
-interface IAlert {
-  id: string;
-  message: string;
-}
-
-interface IStateAlerts {
-  ids: string[];
-  entities: {
-    [alertId: string]: IAlert;
-  };
-}
-
-export const initialStateAlerts: IStateAlerts = {
-  ids: [],
-  entities: {},
-};
-
-enum RequestStatus {
-  IDLE = "idle",
-  LOADING = "loading",
-  FAILED = "failed",
-  SUCCEEDED = "succeeded",
-}
-
-export interface IProfile {
-  id: number;
-  username: string;
-  name: string;
-  email: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface IStateAuth {
-  requestStatus: RequestStatus;
-  requestError: string | null;
-  token: string | null;
-  hasValidToken: boolean | null;
-  signedInUserProfile: IProfile | null;
-}
-
-export const JOURNAL_APP_TOKEN = "token-4-journal-app";
-
-export const initialStateAuth: IStateAuth = {
-  requestStatus: RequestStatus.IDLE,
-  requestError: null,
-  token: localStorage.getItem(JOURNAL_APP_TOKEN),
-  hasValidToken: null,
-  signedInUserProfile: null,
-};
-
-export interface IStateEntries {
-  requestStatus: RequestStatus;
-  requestError: string | null;
-  _meta: IPaginationMeta;
-  _links: IPaginationLinks;
-  ids: number[];
-  entities: {
-    [entryId: string]: IEntry;
-  };
-}
-
-export const initialStateEntries: IStateEntries = {
-  requestStatus: RequestStatus.IDLE,
-  requestError: null,
-  _meta: {
-    totalItems: null,
-    perPage: null,
-    totalPages: null,
-    page: null,
-  },
-  _links: {
-    self: null,
-    next: null,
-    prev: null,
-    first: null,
-    last: null,
-  },
-  ids: [],
-  entities: {},
-};
-
-export interface IState {
-  alerts: IStateAlerts;
-  auth: IStateAuth;
-  entries: IStateEntries;
-}
+import {
+  IAlert,
+  IEntry,
+  IPaginationLinks,
+  IPaginationMeta,
+  IProfile,
+  IState,
+  IStateAlerts,
+  IStateAuth,
+  IStateEntries,
+  RequestStatus,
+} from "./types";
+import {
+  initialStateAlerts,
+  initialStateAuth,
+  initialStateEntries,
+  JOURNAL_APP_TOKEN,
+  URL_FOR_FIRST_PAGE_OF_EXAMPLES,
+} from "./constants";
 
 /* alertsSlice - "alerts/" action creators */
 enum ActionTypesAlerts {
