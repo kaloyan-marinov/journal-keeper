@@ -1332,18 +1332,17 @@ const MOCK_ENTRY_1 = {
   userId: 1,
 };
 
-const MOCK_ENTRIES = [
-  MOCK_ENTRY_1,
-  {
-    id: 2,
-    timestampInUTC: "2019-08-20T13:17:00.000Z",
-    utcZoneOfTimestamp: "+01:00",
-    content: "mocked-content-of-entry-2",
-    createdAt: "2021-04-29T05:11:01.000Z",
-    updatedAt: "2021-04-29T05:11:01.000Z",
-    userId: 1,
-  },
-];
+const MOCK_ENTRY_2 = {
+  id: 2,
+  timestampInUTC: "2019-08-20T13:17:00.000Z",
+  utcZoneOfTimestamp: "+01:00",
+  content: "mocked-content-of-entry-2",
+  createdAt: "2021-04-29T05:11:01.000Z",
+  updatedAt: "2021-04-29T05:11:01.000Z",
+  userId: 1,
+};
+
+const MOCK_ENTRIES = [MOCK_ENTRY_1, MOCK_ENTRY_2];
 
 const _metaMock: IPaginationMeta = {
   totalItems: MOCK_ENTRIES.length,
