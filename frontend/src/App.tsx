@@ -1575,6 +1575,8 @@ export const JournalEntries = () => {
       ` - React is rendering <JournalEntries>`
   );
 
+  const entriesMeta: IPaginationMeta = useSelector(selectEntriesMeta);
+  const entriesLinks: IPaginationLinks = useSelector(selectEntriesLinks);
   const entriesIds: number[] = useSelector(selectEntriesIds);
   console.log("    entriesIds:");
   console.log(`    ${JSON.stringify(entriesIds)}`);
@@ -1638,11 +1640,50 @@ export const JournalEntries = () => {
     );
   });
 
+  let paginationControllingButtons: JSX.Element;
+  if (entriesMeta.page === null) {
+    paginationControllingButtons = (
+      <div>Building pagination-controlling buttons...</div>
+    );
+  } else {
+    const paginationCtrlBtnPrev: JSX.Element =
+      entriesLinks.prev !== null ? (
+        <button>Previous page</button>
+      ) : (
+        <button disabled>Previous page</button>
+      );
+
+    const paginationCtrlBtnNext: JSX.Element =
+      entriesLinks.next !== null ? (
+        <button>Next page</button>
+      ) : (
+        <button disabled>Next page</button>
+      );
+
+    const paginationCtrlBtnFirst: JSX.Element = <button>First page: 1</button>;
+
+    const paginationCtrlBtnLast: JSX.Element = (
+      <button>Last page: {entriesMeta.totalPages} </button>
+    );
+
+    paginationControllingButtons = (
+      <React.Fragment>
+        <div>
+          {paginationCtrlBtnFirst} {paginationCtrlBtnPrev}{" "}
+          <span style={{ color: "red" }}>Current page: {entriesMeta.page}</span>{" "}
+          {paginationCtrlBtnNext} {paginationCtrlBtnLast}
+        </div>
+      </React.Fragment>
+    );
+  }
+
   return (
     <React.Fragment>
       {"<JournalEntries>"}
-      <div>Review JournalEntries!</div>
       <Link to="/entries/create">Create a new entry</Link>
+      <hr />
+      <div>Review JournalEntries!</div>
+      {paginationControllingButtons}
       {entries}
     </React.Fragment>
   );
