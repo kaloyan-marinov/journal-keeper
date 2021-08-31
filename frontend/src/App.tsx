@@ -1685,32 +1685,38 @@ export const JournalEntries = () => {
         <button disabled>Next page</button>
       );
 
-    const paginationCtrlBtnFirst: JSX.Element = (
-      <button
-        onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
-          setEntriesUrl(entriesLinks.first!)
-        }
-      >
-        First page: 1
-      </button>
-    );
+    const paginationCtrlBtnFirst: JSX.Element =
+      entriesLinks.first !== null && entriesLinks.first !== entriesLinks.self ? (
+        <button
+          onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
+            setEntriesUrl(entriesLinks.first!)
+          }
+        >
+          First page: 1
+        </button>
+      ) : (
+        <button disabled>First page: 1</button>
+      );
 
-    const paginationCtrlBtnLast: JSX.Element = (
-      <button
-        onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
-          setEntriesUrl(entriesLinks.last!)
-        }
-      >
-        Last page: {entriesMeta.totalPages}{" "}
-      </button>
-    );
+    const paginationCtrlBtnLast: JSX.Element =
+      entriesLinks.last !== null && entriesLinks.last !== entriesLinks.self ? (
+        <button
+          onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
+            setEntriesUrl(entriesLinks.last!)
+          }
+        >
+          Last page: {entriesMeta.totalPages}
+        </button>
+      ) : (
+        <button disabled>Last page: {entriesMeta.totalPages}</button>
+      );
 
     paginationControllingButtons = (
       <React.Fragment>
         <div>
           {paginationCtrlBtnFirst} {paginationCtrlBtnPrev}{" "}
           <span style={{ color: "red" }}>Current page: {entriesMeta.page}</span>{" "}
-          {paginationCtrlBtnNext} {paginationCtrlBtnLast}
+          {paginationCtrlBtnNext} {paginationCtrlBtnLast}{" "}
         </div>
       </React.Fragment>
     );
@@ -1719,7 +1725,9 @@ export const JournalEntries = () => {
   return (
     <React.Fragment>
       {"<JournalEntries>"}
-      <Link to="/entries/create">Create a new entry</Link>
+      <p>
+        <Link to="/entries/create">Create a new entry</Link>
+      </p>
       <hr />
       <div>Review JournalEntries!</div>
       {paginationControllingButtons}
