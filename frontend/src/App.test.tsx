@@ -1189,9 +1189,9 @@ describe("reducers", () => {
 
     test("entries/deleteEntry/pending", () => {
       initStateEntries.requestStatus = "succeeded";
-      initStateEntries.ids = [entry1Mock.id];
+      initStateEntries.ids = [MOCK_ENTRY_1.id];
       initStateEntries.entities = {
-        [entry1Mock.id]: entry1Mock,
+        [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
       };
       const action = deleteEntryPending();
 
@@ -1202,18 +1202,18 @@ describe("reducers", () => {
         requestError: null,
         _meta: { ...initialStateEntries._meta },
         _links: { ...initialStateEntries._links },
-        ids: [entry1Mock.id],
+        ids: [MOCK_ENTRY_1.id],
         entities: {
-          [entry1Mock.id]: entry1Mock,
+          [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
         },
       });
     });
 
     test("entries/deleteEntry/rejected", () => {
       initStateEntries.requestStatus = "succeeded";
-      initStateEntries.ids = [entry1Mock.id];
+      initStateEntries.ids = [MOCK_ENTRY_1.id];
       initStateEntries.entities = {
-        [entry1Mock.id]: entry1Mock,
+        [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
       };
       const action = deleteEntryRejected("entries-deleteEntry-rejected");
 
@@ -1224,9 +1224,9 @@ describe("reducers", () => {
         requestError: "entries-deleteEntry-rejected",
         _meta: { ...initialStateEntries._meta },
         _links: { ...initialStateEntries._links },
-        ids: [entry1Mock.id],
+        ids: [MOCK_ENTRY_1.id],
         entities: {
-          [entry1Mock.id]: entry1Mock,
+          [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
         },
       });
     });
@@ -1245,9 +1245,9 @@ describe("reducers", () => {
         requestError: null,
         _meta: { ...initialStateEntries._meta },
         _links: { ...initialStateEntries._links },
-        ids: [entry1Mock.id],
+        ids: [MOCK_ENTRY_1.id],
         entities: {
-          [entry1Mock.id]: entry1Mock,
+          [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
         },
       });
     });
@@ -1322,7 +1322,7 @@ const profileMock = {
   updatedAt: "[mocked] 2021-05-23T11:10:34.000Z",
 };
 
-const entry1Mock = {
+const MOCK_ENTRY_1 = {
   id: 1,
   timestampInUTC: "2020-12-01T15:17:00.000Z",
   utcZoneOfTimestamp: "+02:00",
@@ -1332,8 +1332,8 @@ const entry1Mock = {
   userId: 1,
 };
 
-const entriesMock = [
-  entry1Mock,
+const MOCK_ENTRIES = [
+  MOCK_ENTRY_1,
   {
     id: 2,
     timestampInUTC: "2019-08-20T13:17:00.000Z",
@@ -1346,7 +1346,7 @@ const entriesMock = [
 ];
 
 const _metaMock: IPaginationMeta = {
-  totalItems: entriesMock.length,
+  totalItems: MOCK_ENTRIES.length,
   perPage: 10,
   totalPages: 1,
   page: 1,
@@ -1360,9 +1360,9 @@ const _linksMock: IPaginationLinks = {
   last: "localhost:5000/api/entries?perPage=10&page=1",
 };
 
-const entriesIdsMock = entriesMock.map((e: IEntry) => e.id);
+const entriesIdsMock = MOCK_ENTRIES.map((e: IEntry) => e.id);
 
-const entriesEntitiesMock = entriesMock.reduce(
+const entriesEntitiesMock = MOCK_ENTRIES.reduce(
   (entriesObj: { [entryId: string]: IEntry }, entry: IEntry) => {
     entriesObj[entry.id] = entry;
     return entriesObj;
@@ -1410,13 +1410,13 @@ const requestHandlersToMock = [
       ctx.json({
         _meta: _metaMock,
         _links: _linksMock,
-        items: entriesMock,
+        items: MOCK_ENTRIES,
       })
     );
   }),
 
   rest.post("/api/entries", (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(entry1Mock));
+    return res(ctx.status(200), ctx.json(MOCK_ENTRY_1));
   }),
 
   rest.put("/api/entries/1", (req, res, ctx) => {
@@ -1741,7 +1741,7 @@ describe(
             payload: {
               _meta: _metaMock,
               _links: _linksMock,
-              entries: entriesMock,
+              entries: MOCK_ENTRIES,
             },
           },
         ]);
@@ -1766,7 +1766,7 @@ describe(
 
         // Act.
         const createEntryPromise = storeMock.dispatch(
-          createEntry("bad-localTime", entry1Mock.timezone, entry1Mock.content)
+          createEntry("bad-localTime", MOCK_ENTRY_1.timezone, MOCK_ENTRY_1.content)
         );
 
         // Assert.
@@ -1790,7 +1790,11 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         const createEntryPromise = storeMock.dispatch(
-          createEntry(entry1Mock.localTime, entry1Mock.timezone, entry1Mock.content)
+          createEntry(
+            MOCK_ENTRY_1.localTime,
+            MOCK_ENTRY_1.timezone,
+            MOCK_ENTRY_1.content
+          )
         );
 
         await expect(createEntryPromise).resolves.toEqual(undefined);
@@ -1801,7 +1805,7 @@ describe(
           {
             type: "entries/createEntry/fulfilled",
             payload: {
-              entry: entry1Mock,
+              entry: MOCK_ENTRY_1,
             },
           },
         ]);
@@ -3358,9 +3362,9 @@ describe("<EditEntry>", () => {
       entries: {
         requestStatus: "succeeded",
         requestError: null,
-        ids: [entry1Mock.id],
+        ids: [MOCK_ENTRY_1.id],
         entities: {
-          [entry1Mock.id]: entry1Mock,
+          [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
         },
       },
     };
@@ -3696,7 +3700,7 @@ describe("<DeleteEntry>", () => {
       getByText("You are about to delete the following Entry:");
 
       getByText("2020-12-01 15:17 (UTC +00:00)");
-      getByText(entry1Mock.content);
+      getByText(MOCK_ENTRY_1.content);
 
       getByText("Do you want to delete the selected Entry?");
       getByRole("button", { name: "Yes" });
