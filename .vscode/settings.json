@@ -15,5 +15,9 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true
-  }
+  },
+
+  "editor.acceptSuggestionOnEnter": "off",
+
+  "editor.acceptSuggestionOnCommitCharacter": false,
 }
