@@ -1116,7 +1116,7 @@ describe("GET /api/entries", () => {
       expect(response.status).toEqual(200);
 
       const responseBody = {
-        entries: response.body.entries.map((entry: Entry) => {
+        entries: response.body.items.map((entry: Entry) => {
           const { id, timestampInUTC, utcZoneOfTimestamp, content, userId } = entry;
           return { id, timestampInUTC, utcZoneOfTimestamp, content, userId };
         }),
@@ -1671,7 +1671,7 @@ describe("DELETE /api/entries/:id", () => {
       const response2 = await request(server)
         .get("/api/entries")
         .set("Authorization", "Bearer " + token1);
-      expect(response2.body.entries.length).toEqual(1);
+      expect(response2.body._meta.totalItems).toEqual(1);
     }
   );
 
@@ -1694,7 +1694,7 @@ describe("DELETE /api/entries/:id", () => {
       const response2 = await request(server)
         .get("/api/entries")
         .set("Authorization", "Bearer " + token2);
-      expect(response2.body.entries.length).toEqual(1);
+      expect(response2.body._meta.totalItems).toEqual(1);
     }
   );
 
