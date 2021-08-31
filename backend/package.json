@@ -23,6 +23,7 @@
     "@types/koa-router": "^7.4.1",
     "@types/supertest": "^2.0.11",
     "jest": "^26.6.3",
+    "jest-watch-typeahead": "^0.6.4",
     "nodemon": "^2.0.7",
     "supertest": "^6.1.3",
     "ts-jest": "^26.5.4",
@@ -42,10 +43,18 @@
   },
   "jest": {
     "preset": "ts-jest",
-    "collectCoverage": true,
     "coverageReporters": [
       "json",
       "html"
+    ],
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!node_modules/**"
+    ],
+    "watchPlugins": [
+      "jest-watch-typeahead/filename",
+      "jest-watch-typeahead/testname"
     ]
   }
 }

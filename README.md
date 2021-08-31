@@ -136,7 +136,7 @@
       -X POST \
       -H "Content-Type: application/json" \
       -d '{"username": "jd", "name": "John Doe", "email": "john.doe@protonmail.com", "password": "123"}' \
-      localhost:3000/api/users \
+      localhost:5000/api/users \
       | json_pp
 
       ...
@@ -158,7 +158,7 @@
       ```
       $ curl \
       -v \
-      localhost:3000/api/users \
+      localhost:5000/api/users \
       | json_pp
 
       ...
@@ -186,7 +186,7 @@
       -X POST \
       -H "Content-Type: application/json" \
       -d '{"username": "ms", "name": "Mary Smith", "email": "mary.smith@protonmail.com", "password": "456"}' \
-      localhost:3000/api/users \
+      localhost:5000/api/users \
       | json_pp
 
       ...
@@ -208,7 +208,7 @@
       ```
       $ curl \
       -v \
-      localhost:3000/api/users \
+      localhost:5000/api/users \
       | json_pp
       
       ...
@@ -239,7 +239,7 @@
          -v \
          -X POST \
          -u john.doe@protonmail.com:123 \
-         localhost:3000/api/tokens \
+         localhost:5000/api/tokens \
          | json_pp
 
       $ export T1=<the-value-of-the-returned JWS-token>
@@ -250,7 +250,7 @@
          -v \
          -X POST \
          -u mary.smith@protonmail.com:456 \
-         localhost:3000/api/tokens \
+         localhost:5000/api/tokens \
          | json_pp
 
       $ export T2=<the-value-of-the-returned JWS-token>
@@ -263,7 +263,7 @@
          -H "Authorization: Bearer ${T1}" \
          -H "Content-Type: application/json" \
          -d '{"timezone": "+02:00", "localTime": "2020-12-01 17:17", "content": "Then it dawned on me: there is no finish line!"}' \
-         localhost:3000/api/entries \
+         localhost:5000/api/entries \
          | json_pp
       ```
 
@@ -274,7 +274,7 @@
          -H "Authorization: Bearer ${T2}" \
          -H "Content-Type: application/json" \
          -d '{"timezone": "+01:00", "localTime": "2019-08-20 14:17", "content": "Mallorca has beautiful sunny beaches!"}' \
-         localhost:3000/api/entries \
+         localhost:5000/api/entries \
          | json_pp
       ```
 
@@ -282,7 +282,7 @@
       $ curl \
          -v \
          -H "Authorization: Bearer ${T1}" \
-         localhost:3000/api/entries \
+         localhost:5000/api/entries \
          | json_pp
       
       ...
@@ -312,7 +312,7 @@
       $ curl \
          -v \
          -H "Authorization: Bearer ${T2}" \
-         localhost:3000/api/entries \
+         localhost:5000/api/entries \
          | json_pp
       
       ...

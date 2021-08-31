@@ -7,6 +7,8 @@ import { User, Entry } from "./entities";
 import { config } from "dotenv";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import { PaginationHelper } from "./utilities";
+import { IPaginationLinks } from "./types";
 
 /* Define "globals". */
 interface IPublicUser {
@@ -56,9 +58,8 @@ const basicAuth = async (ctx: Koa.Context, next: () => Promise<any>) => {
   const [email, password] = authCredsDecoded.split(":");
 
   // Validate the authentication credentials.
-  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
-    User
-  );
+  const usersRepository: Repository<User> =
+    getConnection(connectionName).getRepository(User);
   const user: User | undefined = await usersRepository.findOne({ email });
   let isValidationSuccessful: boolean = false;
   if (user !== undefined) {
@@ -108,9 +109,8 @@ const tokenAuth = async (ctx: Koa.Context, next: () => Promise<any>) => {
     return;
   }
 
-  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
-    User
-  );
+  const usersRepository: Repository<User> =
+    getConnection(connectionName).getRepository(User);
   const user: User | undefined = await usersRepository.findOne({
     id: parseInt(jwtPayload.userId),
   });
@@ -152,9 +152,8 @@ router.post("/api/users", async (ctx: Koa.Context) => {
   }
   const { username, name, email, password } = ctx.request.body;
 
-  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
-    User
-  );
+  const usersRepository: Repository<User> =
+    getConnection(connectionName).getRepository(User);
   let duplicateUser: User | undefined;
   duplicateUser = await usersRepository.findOne({ username });
   if (duplicateUser !== undefined) {
@@ -190,24 +189,45 @@ router.post("/api/users", async (ctx: Koa.Context) => {
 });
 
 router.get("/api/users", async (ctx: Koa.Context) => {
-  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
-    User
+  const usersRepository: Repository<User> =
+    getConnection(connectionName).getRepository(User);
+  const userCount: number = await usersRepository.count();
+
+  const paginationHelper = new PaginationHelper(
+    ctx.query["perPage"] instanceof Array ? undefined : ctx.query["perPage"],
+    ctx.query["page"] instanceof Array ? undefined : ctx.query["page"],
+    userCount
   );
-  const users: User[] = await usersRepository.find();
+
+  const users: User[] = await usersRepository
+    .createQueryBuilder("users") // But what is "users"? It's just a regular SQL alias.
+    .limit(paginationHelper.perPage)
+    .offset(paginationHelper.offset())
+    .getMany();
 
   const publicUsers: IPublicUser[] = users.map((u) => ({
     id: u.id!,
     username: u.username!,
   }));
 
-  ctx.body = { users: publicUsers };
+  const _links: IPaginationLinks = paginationHelper.buildLinks(ctx.request.URL);
+
+  ctx.body = {
+    _meta: {
+      totalItems: userCount,
+      perPage: paginationHelper.perPage,
+      totalPages: paginationHelper.totalPages,
+      page: paginationHelper.page,
+    },
+    _links,
+    items: publicUsers,
+  };
 });
 
 router.get("/api/users/:id", async (ctx: Koa.Context) => {
   const userId: number = parseInt(ctx.params.id);
-  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
-    User
-  );
+  const usersRepository: Repository<User> =
+    getConnection(connectionName).getRepository(User);
   const user: User | undefined = await usersRepository.findOne({ id: userId });
 
   if (user === undefined) {
@@ -247,9 +267,8 @@ router.put("/api/users/:id", basicAuth, async (ctx: Koa.Context) => {
   // with the information within the request's body.
   const { username, name, email, password } = ctx.request.body;
 
-  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
-    User
-  );
+  const usersRepository: Repository<User> =
+    getConnection(connectionName).getRepository(User);
   let duplicateUser: User | undefined;
 
   if (username !== undefined) {
@@ -311,9 +330,8 @@ router.delete("/api/users/:id", basicAuth, async (ctx: Koa.Context) => {
     return;
   }
 
-  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
-    User
-  );
+  const usersRepository: Repository<User> =
+    getConnection(connectionName).getRepository(User);
   await usersRepository.delete({ id: userId });
 
   ctx.status = 204;
@@ -327,9 +345,8 @@ router.post("/api/tokens", basicAuth, async (ctx: Koa.Context) => {
 });
 
 router.get("/api/user-profile", tokenAuth, async (ctx: Koa.Context) => {
-  const usersRepository: Repository<User> = getConnection(connectionName).getRepository(
-    User
-  );
+  const usersRepository: Repository<User> =
+    getConnection(connectionName).getRepository(User);
   const user: User | undefined = await usersRepository.findOne({
     select: ["id", "username", "name", "email", "createdAt", "updatedAt"],
     where: {
@@ -365,9 +382,8 @@ router.post("/api/entries", tokenAuth, async (ctx: Koa.Context) => {
   entry.timestampInUTC = localTime + timezone;
   entry.content = content;
   entry.userId = ctx.user.id;
-  const entriesRepository: Repository<Entry> = getConnection(
-    connectionName
-  ).getRepository(Entry);
+  const entriesRepository: Repository<Entry> =
+    getConnection(connectionName).getRepository(Entry);
   await entriesRepository.save(entry);
 
   ctx.status = 201;
@@ -376,18 +392,16 @@ router.post("/api/entries", tokenAuth, async (ctx: Koa.Context) => {
 });
 
 router.get("/api/entries", tokenAuth, async (ctx: Koa.Context) => {
-  const entriesRepository: Repository<Entry> = getConnection(
-    connectionName
-  ).getRepository(Entry);
+  const entriesRepository: Repository<Entry> =
+    getConnection(connectionName).getRepository(Entry);
   const entries: Entry[] = await entriesRepository.find({ userId: ctx.user.id });
   ctx.body = { entries };
 });
 
 router.get("/api/entries/:id", tokenAuth, async (ctx: Koa.Context) => {
   const entryId: number = parseInt(ctx.params.id);
-  const entriesRepository: Repository<Entry> = getConnection(
-    connectionName
-  ).getRepository(Entry);
+  const entriesRepository: Repository<Entry> =
+    getConnection(connectionName).getRepository(Entry);
   const entry: Entry | undefined = await entriesRepository.findOne({ id: entryId });
 
   if (entry === undefined || entry.userId !== ctx.user.id) {
@@ -403,9 +417,8 @@ router.get("/api/entries/:id", tokenAuth, async (ctx: Koa.Context) => {
 
 router.put("/api/entries/:id", tokenAuth, async (ctx: Koa.Context) => {
   const entryId: number = parseInt(ctx.params.id);
-  const entriesRepository: Repository<Entry> = getConnection(
-    connectionName
-  ).getRepository(Entry);
+  const entriesRepository: Repository<Entry> =
+    getConnection(connectionName).getRepository(Entry);
   const entry: Entry | undefined = await entriesRepository.findOne({ id: entryId });
 
   if (entry === undefined || entry.userId !== ctx.user.id) {
@@ -447,9 +460,8 @@ router.put("/api/entries/:id", tokenAuth, async (ctx: Koa.Context) => {
 
 router.delete("/api/entries/:id", tokenAuth, async (ctx: Koa.Context) => {
   const entryId: number = parseInt(ctx.params.id);
-  const entriesRepository: Repository<Entry> = getConnection(
-    connectionName
-  ).getRepository(Entry);
+  const entriesRepository: Repository<Entry> =
+    getConnection(connectionName).getRepository(Entry);
   const entry: Entry | undefined = await entriesRepository.findOne({ id: entryId });
 
   if (entry === undefined || entry.userId !== ctx.user.id) {

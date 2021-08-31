@@ -9,10 +9,15 @@
   // Enable per-language
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2
   },
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true
-  }
+  },
+
+  "editor.acceptSuggestionOnEnter": "off",
+
+  "editor.acceptSuggestionOnCommitCharacter": false,
 }
