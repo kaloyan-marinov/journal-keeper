@@ -1262,7 +1262,7 @@ const MOCK_ENTRY_10 = {
   id: 10,
   timestampInUTC: "2020-12-01T15:17:00.000Z",
   utcZoneOfTimestamp: "+02:00",
-  content: "mocked-content-of-entry-1",
+  content: "mocked-content-of-entry-10",
   createdAt: "2021-04-29T05:10:56.000Z",
   updatedAt: "2021-04-29T05:10:56.000Z",
   userId: 1,
@@ -1277,6 +1277,11 @@ const MOCK_ENTRY_20 = {
   updatedAt: "2021-04-29T05:11:01.000Z",
   userId: 1,
 };
+
+const MOCK_ENTRY_20_LOCAL_TIME = moment
+  .utc(MOCK_ENTRY_20.timestampInUTC)
+  .utcOffset(MOCK_ENTRY_20.utcZoneOfTimestamp)
+  .format("YYYY-MM-DD HH:mm");
 
 const MOCK_ENTRIES = [MOCK_ENTRY_10, MOCK_ENTRY_20];
 
@@ -1753,10 +1758,8 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to fail",
       async () => {
         // Arrange.
-        const targetedEntryId: number = 1;
-
         quasiServer.use(
-          rest.put(`/api/entries/${targetedEntryId}`, (req, res, ctx) => {
+          rest.put("/api/entries/:id", (req, res, ctx) => {
             return res(
               ctx.status(400),
               ctx.json({
@@ -1766,14 +1769,13 @@ describe(
           })
         );
 
+        const targetedEntryId: number = 1;
+
         // Act.
         const editEntryPromise = storeMock.dispatch(
           editEntry(
             targetedEntryId,
-            moment
-              .utc(MOCK_ENTRY_20.timestampInUTC)
-              .utcOffset(MOCK_ENTRY_20.utcZoneOfTimestamp)
-              .format("YYYY-MM-DD HH:mm"),
+            MOCK_ENTRY_20_LOCAL_TIME,
             MOCK_ENTRY_20.utcZoneOfTimestamp,
             MOCK_ENTRY_20.content
           )
@@ -1804,10 +1806,7 @@ describe(
         const editEntryPromise = storeMock.dispatch(
           editEntry(
             targetedEntryId,
-            moment
-              .utc(MOCK_ENTRY_20.timestampInUTC)
-              .utcOffset(MOCK_ENTRY_20.utcZoneOfTimestamp)
-              .format("YYYY-MM-DD HH:mm"),
+            MOCK_ENTRY_20_LOCAL_TIME,
             MOCK_ENTRY_20.utcZoneOfTimestamp,
             MOCK_ENTRY_20.content
           )
@@ -1837,10 +1836,8 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to fail",
       async () => {
         // Arrange.
-        const targetedEntryId: number = MOCK_ENTRY_10.id;
-
         quasiServer.use(
-          rest.delete(`/api/entries/${targetedEntryId}`, (req, res, ctx) => {
+          rest.delete("/api/entries/:id", (req, res, ctx) => {
             return res(
               ctx.status(401),
               ctx.json({
@@ -1849,6 +1846,8 @@ describe(
             );
           })
         );
+
+        const targetedEntryId: number = MOCK_ENTRY_10.id;
 
         // Act.
         const deleteEntryPromise = storeMock.dispatch(deleteEntry(targetedEntryId));
@@ -2991,7 +2990,7 @@ describe("<JournalEntries> - initial render", () => {
       screen.getByText("Create a new entry");
 
       await waitFor(() => {
-        screen.getByText("mocked-content-of-entry-1");
+        screen.getByText("mocked-content-of-entry-10");
         screen.getByText("mocked-content-of-entry-20");
       });
 
@@ -3346,7 +3345,7 @@ describe("<EditEntry>", () => {
       screen.getByText("2020-12-01 15:17 (UTC +00:00)");
 
       const elementsWithTheEntryContent = screen.getAllByText(
-        "mocked-content-of-entry-1"
+        "mocked-content-of-entry-10"
       );
       expect(elementsWithTheEntryContent.length).toEqual(2);
 
@@ -3449,7 +3448,7 @@ describe("<EditEntry>", () => {
       async () => {
         // Arrange.
         quasiServer.use(
-          rest.put(`/api/entries/${MOCK_ENTRY_10.id}`, (req, res, ctx) => {
+          rest.put("/api/entries/:id", (req, res, ctx) => {
             return res(
               ctx.status(400),
               ctx.json({
@@ -3490,7 +3489,7 @@ describe("<EditEntry>", () => {
       async () => {
         // Arrange.
         quasiServer.use(
-          rest.put(`/api/entries/${MOCK_ENTRY_10.id}`, (req, res, ctx) => {
+          rest.put("/api/entries/:id", (req, res, ctx) => {
             return res(
               ctx.status(401),
               ctx.json({
@@ -3715,7 +3714,7 @@ describe("<DeleteEntry>", () => {
       async () => {
         // Arrange.
         quasiServer.use(
-          rest.delete(`/api/entries/${MOCK_ENTRY_10.id}`, (req, res, ctx) => {
+          rest.delete("/api/entries/:id", (req, res, ctx) => {
             return res(
               ctx.status(401),
               ctx.json({
@@ -3763,7 +3762,7 @@ describe("<DeleteEntry>", () => {
       async () => {
         // Arrange.
         quasiServer.use(
-          rest.delete(`/api/entries/${MOCK_ENTRY_10.id}`, (req, res, ctx) => {
+          rest.delete("/api/entries/:id", (req, res, ctx) => {
             return res(
               ctx.status(400),
               ctx.json({
