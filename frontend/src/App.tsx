@@ -1584,57 +1584,50 @@ export const JournalEntries = () => {
           the "Non-null Assertion Operator (Postfix !)" is described on
           https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#strictnullchecks-on
     */
-    const paginationCtrlBtnPrev: JSX.Element =
-      entriesLinks.prev !== null ? (
-        <button
-          onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
-            setEntriesUrl(entriesLinks.prev!)
-          }
-        >
-          Previous page
-        </button>
-      ) : (
-        <button disabled>Previous page</button>
-      );
+    const paginationCtrlBtnPrev: JSX.Element = (
+      <button
+        disabled={entriesLinks.prev === null}
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
+          setEntriesUrl(entriesLinks.prev!)
+        }
+      >
+        Previous page
+      </button>
+    );
+    const paginationCtrlBtnNext: JSX.Element = (
+      <button
+        disabled={entriesLinks.next === null}
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
+          setEntriesUrl(entriesLinks.next!)
+        }
+      >
+        Next page
+      </button>
+    );
 
-    const paginationCtrlBtnNext: JSX.Element =
-      entriesLinks.next !== null ? (
-        <button
-          onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
-            setEntriesUrl(entriesLinks.next!)
-          }
-        >
-          Next page
-        </button>
-      ) : (
-        <button disabled>Next page</button>
-      );
+    const paginationCtrlBtnFirst: JSX.Element = (
+      <button
+        disabled={
+          entriesLinks.first === null || entriesLinks.self === entriesLinks.first
+        }
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
+          setEntriesUrl(entriesLinks.first!)
+        }
+      >
+        First page: 1
+      </button>
+    );
 
-    const paginationCtrlBtnFirst: JSX.Element =
-      entriesLinks.first !== null && entriesLinks.first !== entriesLinks.self ? (
-        <button
-          onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
-            setEntriesUrl(entriesLinks.first!)
-          }
-        >
-          First page: 1
-        </button>
-      ) : (
-        <button disabled>First page: 1</button>
-      );
-
-    const paginationCtrlBtnLast: JSX.Element =
-      entriesLinks.last !== null && entriesLinks.last !== entriesLinks.self ? (
-        <button
-          onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
-            setEntriesUrl(entriesLinks.last!)
-          }
-        >
-          Last page: {entriesMeta.totalPages}
-        </button>
-      ) : (
-        <button disabled>Last page: {entriesMeta.totalPages}</button>
-      );
+    const paginationCtrlBtnLast: JSX.Element = (
+      <button
+        disabled={entriesLinks.last === null || entriesLinks.self === entriesLinks.last}
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
+          setEntriesUrl(entriesLinks.last!)
+        }
+      >
+        Last page: {entriesMeta.totalPages}
+      </button>
+    );
 
     paginationControllingButtons = (
       <React.Fragment>
