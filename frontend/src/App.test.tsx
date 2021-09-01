@@ -7,6 +7,7 @@ import {
   IPaginationMeta,
   IStateEntries,
   IState,
+  RequestStatus,
 } from "./types";
 
 import {
@@ -402,338 +403,281 @@ describe("reducers", () => {
     };
   });
 
-  test(
-    "alerts/create should add an alert to" +
-      " both state.alerts.ids and state.alerts.entities",
-    () => {
-      initState.alerts.ids = ["id-17"];
-      initState.alerts.entities = {
+  test("alerts/create", () => {
+    initState.alerts.ids = ["id-17"];
+    initState.alerts.entities = {
+      "id-17": {
+        id: "id-17",
+        message: "the-undertaken-action-is-illegitimate",
+      },
+    };
+    const action = {
+      type: "alerts/create",
+      payload: {
+        id: "id-34",
+        message: "once-again-the-undertaken-action-is-illegitimate",
+      },
+    };
+
+    const newState = rootReducer(initState, action);
+
+    expect(newState).toEqual({
+      alerts: {
+        ids: ["id-34", "id-17"],
+        entities: {
+          "id-34": {
+            id: "id-34",
+            message: "once-again-the-undertaken-action-is-illegitimate",
+          },
+          "id-17": {
+            id: "id-17",
+            message: "the-undertaken-action-is-illegitimate",
+          },
+        },
+      },
+      auth: {
+        ...initialStateAuth,
+      },
+      entries: {
+        ...initialStateEntries,
+      },
+    });
+  });
+
+  test("alerts/remove", () => {
+    initState.alerts = {
+      ids: ["id-17", "id-34"],
+      entities: {
         "id-17": {
           id: "id-17",
           message: "the-undertaken-action-is-illegitimate",
         },
-      };
-      const action = {
-        type: "alerts/create",
-        payload: {
+        "id-34": {
           id: "id-34",
           message: "once-again-the-undertaken-action-is-illegitimate",
         },
-      };
+      },
+    };
+    const action = {
+      type: "alerts/remove",
+      payload: {
+        id: "id-34",
+      },
+    };
 
-      const newState = rootReducer(initState, action);
+    const newState = rootReducer(initState, action);
 
-      expect(newState).toEqual({
-        alerts: {
-          ids: ["id-34", "id-17"],
-          entities: {
-            "id-34": {
-              id: "id-34",
-              message: "once-again-the-undertaken-action-is-illegitimate",
-            },
-            "id-17": {
-              id: "id-17",
-              message: "the-undertaken-action-is-illegitimate",
-            },
-          },
-        },
-        auth: {
-          requestStatus: "idle",
-          requestError: null,
-          token: null,
-          hasValidToken: null,
-          signedInUserProfile: null,
-        },
-        entries: {
-          requestStatus: "idle",
-          requestError: null,
-          _meta: { ...initialStateEntries._meta },
-          _links: { ...initialStateEntries._links },
-          ids: [],
-          entities: {},
-        },
-      });
-    }
-  );
-
-  test(
-    "alerts/remove should remove an alert from" +
-      " both state.alerts.ids and state.alerts.entities",
-    () => {
-      initState.alerts = {
-        ids: ["id-17", "id-34"],
+    expect(newState).toEqual({
+      alerts: {
+        ids: ["id-17"],
         entities: {
           "id-17": {
             id: "id-17",
             message: "the-undertaken-action-is-illegitimate",
           },
-          "id-34": {
-            id: "id-34",
-            message: "once-again-the-undertaken-action-is-illegitimate",
-          },
         },
-      };
-      const action = {
-        type: "alerts/remove",
-        payload: {
-          id: "id-34",
-        },
-      };
+      },
+      auth: {
+        ...initialStateAuth,
+      },
+      entries: {
+        ...initialStateEntries,
+      },
+    });
+  });
 
-      const newState = rootReducer(initState, action);
+  test("auth/createUser/pending", () => {
+    initState = {
+      ...store.getState(),
+      auth: {
+        ...store.getState().auth,
+        requestStatus: RequestStatus.FAILED,
+        requestError: "The previous attempt to create a User resource didn't succeed",
+      },
+    };
+    const action = {
+      type: "auth/createUser/pending",
+    };
 
-      expect(newState).toEqual({
-        alerts: {
-          ids: ["id-17"],
-          entities: {
-            "id-17": {
-              id: "id-17",
-              message: "the-undertaken-action-is-illegitimate",
-            },
-          },
-        },
-        auth: {
-          requestStatus: "idle",
-          requestError: null,
-          token: null,
-          hasValidToken: null,
-          signedInUserProfile: null,
-        },
-        entries: {
-          requestStatus: "idle",
-          requestError: null,
-          _meta: { ...initialStateEntries._meta },
-          _links: { ...initialStateEntries._links },
-          ids: [],
-          entities: {},
-        },
-      });
-    }
-  );
+    const newState = rootReducer(initState, action);
 
-  test(
-    "auth/createUser/pending should" +
-      " update state.auth.requestStatus to 'loading'" +
-      " and clear state.auth.requestError",
-    () => {
-      initState.auth.requestStatus = "failed";
-      initState.auth.requestError =
-        "The previous attempt to create a User resource didn't succeed";
-      const action = {
-        type: "auth/createUser/pending",
-      };
+    expect(newState).toEqual({
+      alerts: {
+        ...initialStateAlerts,
+      },
+      auth: {
+        requestStatus: "loading",
+        requestError: null,
+        token: null,
+        hasValidToken: null,
+        signedInUserProfile: null,
+      },
+      entries: {
+        ...initialStateEntries,
+      },
+    });
+  });
 
-      const newState = rootReducer(initState, action);
+  test("auth/createUser/rejected", () => {
+    initState = {
+      ...store.getState(),
+      auth: {
+        ...store.getState().auth,
+        requestStatus: RequestStatus.LOADING,
+      },
+    };
+    const action = {
+      type: "auth/createUser/rejected",
+      error: "auth-createUser-rejected",
+    };
 
-      expect(newState).toEqual({
-        alerts: {
-          entities: {},
-          ids: [],
-        },
-        auth: {
-          requestStatus: "loading",
-          requestError: null,
-          token: null,
-          hasValidToken: null,
-          signedInUserProfile: null,
-        },
-        entries: {
-          requestStatus: "idle",
-          requestError: null,
-          _meta: { ...initialStateEntries._meta },
-          _links: { ...initialStateEntries._links },
-          ids: [],
-          entities: {},
-        },
-      });
-    }
-  );
+    const newState = rootReducer(initState, action);
 
-  test(
-    "auth/createUser/rejected should update" +
-      " both state.auth.requestStatus and state.auth.requestError",
-    () => {
-      initState.auth.requestStatus = "pending";
-      const action = {
-        type: "auth/createUser/rejected",
-        error: "auth-createUser-rejected",
-      };
+    expect(newState).toEqual({
+      alerts: {
+        ...initialStateAlerts,
+      },
+      auth: {
+        requestStatus: "failed",
+        requestError: "auth-createUser-rejected",
+        token: null,
+        hasValidToken: null,
+        signedInUserProfile: null,
+      },
+      entries: {
+        ...initialStateEntries,
+      },
+    });
+  });
 
-      const newState = rootReducer(initState, action);
+  test("auth/createUser/fulfilled", () => {
+    initState = {
+      ...store.getState(),
+      auth: {
+        ...store.getState().auth,
+        requestStatus: RequestStatus.LOADING,
+      },
+    };
+    const action = {
+      type: "auth/createUser/fulfilled",
+    };
 
-      expect(newState).toEqual({
-        alerts: {
-          entities: {},
-          ids: [],
-        },
-        auth: {
-          requestStatus: "failed",
-          requestError: "auth-createUser-rejected",
-          token: null,
-          hasValidToken: null,
-          signedInUserProfile: null,
-        },
-        entries: {
-          requestStatus: "idle",
-          requestError: null,
-          _meta: { ...initialStateEntries._meta },
-          _links: { ...initialStateEntries._links },
-          ids: [],
-          entities: {},
-        },
-      });
-    }
-  );
+    const newState = rootReducer(initState, action);
 
-  test(
-    "auth/createUser/fulfilled should" +
-      " update state.auth.requestStatus to 'succeeded'" +
-      " and clear state.auth.requestError",
-    () => {
-      initState.auth.requestStatus = "pending";
-      const action = {
-        type: "auth/createUser/fulfilled",
-      };
+    expect(newState).toEqual({
+      alerts: {
+        ...initialStateAlerts,
+      },
+      auth: {
+        requestStatus: "succeeded",
+        requestError: null,
+        token: null,
+        hasValidToken: null,
+        signedInUserProfile: null,
+      },
+      entries: {
+        ...initialStateEntries,
+      },
+    });
+  });
 
-      const newState = rootReducer(initState, action);
+  test("auth/issueJWSToken/pending", () => {
+    initState = {
+      ...store.getState(),
+      auth: {
+        ...store.getState().auth,
+        requestStatus: RequestStatus.FAILED,
+        requestError: "The previous attempt to issue a JWS token didn't succeed",
+      },
+    };
+    const action = {
+      type: "auth/issueJWSToken/pending",
+    };
 
-      expect(newState).toEqual({
-        alerts: {
-          entities: {},
-          ids: [],
-        },
-        auth: {
-          requestStatus: "succeeded",
-          requestError: null,
-          token: null,
-          hasValidToken: null,
-          signedInUserProfile: null,
-        },
-        entries: {
-          requestStatus: "idle",
-          requestError: null,
-          _meta: { ...initialStateEntries._meta },
-          _links: { ...initialStateEntries._links },
-          ids: [],
-          entities: {},
-        },
-      });
-    }
-  );
+    const newState = rootReducer(initState, action);
 
-  test(
-    "auth/issueJWSToken/pending should" +
-      " update state.auth.requestStatus to 'loading'" +
-      " and clear state.auth.requestError",
-    () => {
-      initState.auth.requestStatus = "failed";
-      initState.auth.requestError =
-        "The previous attempt to issue a JWS token didn't succeed";
-      const action = {
-        type: "auth/issueJWSToken/pending",
-      };
+    expect(newState).toEqual({
+      alerts: {
+        ...initialStateAlerts,
+      },
+      auth: {
+        requestStatus: "loading",
+        requestError: null,
+        token: null,
+        hasValidToken: null,
+        signedInUserProfile: null,
+      },
+      entries: {
+        ...initialStateEntries,
+      },
+    });
+  });
 
-      const newState = rootReducer(initState, action);
+  test("auth/issueJWSToken/rejected", () => {
+    initState = {
+      ...store.getState(),
+      auth: {
+        ...store.getState().auth,
+        requestStatus: RequestStatus.LOADING,
+      },
+    };
+    const action = {
+      type: "auth/issueJWSToken/rejected",
+      error: "auth-issueJWSToken-rejected",
+    };
 
-      expect(newState).toEqual({
-        alerts: {
-          entities: {},
-          ids: [],
-        },
-        auth: {
-          requestStatus: "loading",
-          requestError: null,
-          token: null,
-          hasValidToken: null,
-          signedInUserProfile: null,
-        },
-        entries: {
-          requestStatus: "idle",
-          requestError: null,
-          _meta: { ...initialStateEntries._meta },
-          _links: { ...initialStateEntries._links },
-          ids: [],
-          entities: {},
-        },
-      });
-    }
-  );
+    const newState = rootReducer(initState, action);
 
-  test(
-    "auth/issueJWSToken/rejected should update" +
-      " both state.auth.requestStatus and state.auth.requestError",
-    () => {
-      initState.auth.requestStatus = "pending";
-      const action = {
-        type: "auth/issueJWSToken/rejected",
-        error: "auth-issueJWSToken-rejected",
-      };
+    expect(newState).toEqual({
+      alerts: {
+        ...initialStateAlerts,
+      },
+      auth: {
+        requestStatus: "failed",
+        requestError: "auth-issueJWSToken-rejected",
+        token: null,
+        hasValidToken: false,
+        signedInUserProfile: null,
+      },
+      entries: {
+        ...initialStateEntries,
+      },
+    });
+  });
 
-      const newState = rootReducer(initState, action);
+  test("auth/issueJWSToken/fulfilled", () => {
+    initState = {
+      ...store.getState(),
+      auth: {
+        ...store.getState().auth,
+        requestStatus: RequestStatus.LOADING,
+      },
+    };
+    const action = {
+      type: "auth/issueJWSToken/fulfilled",
+      payload: {
+        token: "a-jws-token-issued-by-the-backend",
+      },
+    };
 
-      expect(newState).toEqual({
-        alerts: {
-          entities: {},
-          ids: [],
-        },
-        auth: {
-          requestStatus: "failed",
-          requestError: "auth-issueJWSToken-rejected",
-          token: null,
-          hasValidToken: false,
-          signedInUserProfile: null,
-        },
-        entries: {
-          requestStatus: "idle",
-          requestError: null,
-          _meta: { ...initialStateEntries._meta },
-          _links: { ...initialStateEntries._links },
-          ids: [],
-          entities: {},
-        },
-      });
-    }
-  );
+    const newState = rootReducer(initState, action);
 
-  test(
-    "auth/issueJWSToken/fulfilled should" +
-      " update state.auth.requestStatus to 'succeeded'," +
-      " clear state.auth.requestError," +
-      " and set state.auth.token",
-    () => {
-      initState.auth.requestStatus = "pending";
-      const action = {
-        type: "auth/issueJWSToken/fulfilled",
-        payload: {
-          token: "a-jws-token-issued-by-the-backend",
-        },
-      };
-
-      const newState = rootReducer(initState, action);
-
-      expect(newState).toEqual({
-        alerts: {
-          entities: {},
-          ids: [],
-        },
-        auth: {
-          requestStatus: "succeeded",
-          requestError: null,
-          token: "a-jws-token-issued-by-the-backend",
-          hasValidToken: true,
-          signedInUserProfile: null,
-        },
-        entries: {
-          requestStatus: "idle",
-          requestError: null,
-          _meta: { ...initialStateEntries._meta },
-          _links: { ...initialStateEntries._links },
-          ids: [],
-          entities: {},
-        },
-      });
-    }
-  );
+    expect(newState).toEqual({
+      alerts: {
+        ...initialStateAlerts,
+      },
+      auth: {
+        requestStatus: "succeeded",
+        requestError: null,
+        token: "a-jws-token-issued-by-the-backend",
+        hasValidToken: true,
+        signedInUserProfile: null,
+      },
+      entries: {
+        ...initialStateEntries,
+      },
+    });
+  });
 
   test("auth/fetchProfile/pending", () => {
     const action = {
@@ -744,8 +688,7 @@ describe("reducers", () => {
 
     expect(newState).toEqual({
       alerts: {
-        entities: {},
-        ids: [],
+        ...initialStateAlerts,
       },
       auth: {
         requestStatus: "loading",
@@ -755,12 +698,7 @@ describe("reducers", () => {
         signedInUserProfile: null,
       },
       entries: {
-        requestStatus: "idle",
-        requestError: null,
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [],
-        entities: {},
+        ...initialStateEntries,
       },
     });
   });
@@ -775,8 +713,7 @@ describe("reducers", () => {
 
     expect(newState).toEqual({
       alerts: {
-        entities: {},
-        ids: [],
+        ...initialStateAlerts,
       },
       auth: {
         requestStatus: "failed",
@@ -786,20 +723,21 @@ describe("reducers", () => {
         signedInUserProfile: null,
       },
       entries: {
-        requestStatus: "idle",
-        requestError: null,
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [],
-        entities: {},
+        ...initialStateEntries,
       },
     });
   });
 
   test("auth/fetchProfile/fulfilled", () => {
-    initState.auth.requestStatus = "pending";
-    initState.auth.requestError = null;
-    initState.auth.token = "a-jws-token-issued-by-the-backend";
+    initState = {
+      ...store.getState(),
+      auth: {
+        ...store.getState().auth,
+        requestStatus: RequestStatus.LOADING,
+        requestError: null,
+        token: "a-jws-token-issued-by-the-backend",
+      },
+    };
     const action = {
       type: "auth/fetchProfile/fulfilled",
       payload: {
@@ -818,8 +756,7 @@ describe("reducers", () => {
 
     expect(newState).toEqual({
       alerts: {
-        entities: {},
-        ids: [],
+        ...initialStateAlerts,
       },
       auth: {
         requestStatus: "succeeded",
@@ -836,17 +773,12 @@ describe("reducers", () => {
         },
       },
       entries: {
-        requestStatus: "idle",
-        requestError: null,
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [],
-        entities: {},
+        ...initialStateEntries,
       },
     });
   });
 
-  test("auth/clearAuthSlice should clear state.auth.token", () => {
+  test("auth/clearAuthSlice", () => {
     initState.auth.token = "a-jws-token-issued-by-the-backend";
     initState.auth.hasValidToken = true;
     const action = {
@@ -857,8 +789,7 @@ describe("reducers", () => {
 
     expect(newState).toEqual({
       alerts: {
-        entities: {},
-        ids: [],
+        ...initialStateAlerts,
       },
       auth: {
         requestStatus: "idle",
@@ -868,12 +799,7 @@ describe("reducers", () => {
         signedInUserProfile: null,
       },
       entries: {
-        requestStatus: "idle",
-        requestError: null,
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [],
-        entities: {},
+        ...initialStateEntries,
       },
     });
   });
@@ -882,7 +808,7 @@ describe("reducers", () => {
     "an action, which the rootReducer doesn't specifically handle," +
       " should not modify the state",
     () => {
-      const initState = {
+      const initState: IState = {
         alerts: {
           ids: ["id-17"],
           entities: {
@@ -893,7 +819,8 @@ describe("reducers", () => {
           },
         },
         auth: {
-          requestStatus: "original-status",
+          ...initialStateAuth,
+          requestStatus: RequestStatus.FAILED,
           requestError: "original-error",
           token: null,
         },
@@ -1027,7 +954,10 @@ describe("reducers", () => {
     });
 
     test("entries/createEntry/rejected", () => {
-      initStateEntries.requestStatus = "pending";
+      initStateEntries = {
+        ...initialStateEntries,
+        requestStatus: RequestStatus.LOADING,
+      };
       const action = {
         type: "entries/createEntry/rejected",
         error: "entries-createEntry-rejected",
@@ -1046,17 +976,20 @@ describe("reducers", () => {
     });
 
     test("entries/createEntry/fulfilled", () => {
-      initStateEntries.requestStatus = "pending";
-      initStateEntries.ids = [1];
-      initStateEntries.entities = {
-        1: {
-          id: 1,
-          timestampInUTC: "2020-12-01T15:17:00.000Z",
-          utcZoneOfTimestamp: "+02:00",
-          content: "[hard-coded] Then it dawned on me: there is no finish line!",
-          createdAt: "2021-04-29T05:10:56.000Z",
-          updatedAt: "2021-04-29T05:10:56.000Z",
-          userId: 1,
+      initStateEntries = {
+        ...initialStateEntries,
+        requestStatus: RequestStatus.LOADING,
+        ids: [1],
+        entities: {
+          1: {
+            id: 1,
+            timestampInUTC: "2020-12-01T15:17:00.000Z",
+            utcZoneOfTimestamp: "+02:00",
+            content: "[hard-coded] Then it dawned on me: there is no finish line!",
+            createdAt: "2021-04-29T05:10:56.000Z",
+            updatedAt: "2021-04-29T05:10:56.000Z",
+            userId: 1,
+          },
         },
       };
       const action = {
@@ -1136,17 +1069,20 @@ describe("reducers", () => {
     });
 
     test("entries/editEntry/fulfilled", () => {
-      initStateEntries.requestStatus = "pending";
-      initStateEntries.ids = [1];
-      initStateEntries.entities = {
-        1: {
-          id: 1,
-          timestampInUTC: "2020-12-01T15:17:00.000Z",
-          utcZoneOfTimestamp: "+02:00",
-          content: "[hard-coded] Then it dawned on me: there is no finish line!",
-          createdAt: "2021-04-29T05:10:56.000Z",
-          updatedAt: "2021-04-29T05:10:56.000Z",
-          userId: 1,
+      initStateEntries = {
+        ...initialStateEntries,
+        requestStatus: RequestStatus.LOADING,
+        ids: [1],
+        entities: {
+          1: {
+            id: 1,
+            timestampInUTC: "2020-12-01T15:17:00.000Z",
+            utcZoneOfTimestamp: "+02:00",
+            content: "[hard-coded] Then it dawned on me: there is no finish line!",
+            createdAt: "2021-04-29T05:10:56.000Z",
+            updatedAt: "2021-04-29T05:10:56.000Z",
+            userId: 1,
+          },
         },
       };
       const action = {
@@ -1187,10 +1123,13 @@ describe("reducers", () => {
     });
 
     test("entries/deleteEntry/pending", () => {
-      initStateEntries.requestStatus = "succeeded";
-      initStateEntries.ids = [MOCK_ENTRY_1.id];
-      initStateEntries.entities = {
-        [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
+      initStateEntries = {
+        ...initialStateEntries,
+        requestStatus: RequestStatus.SUCCEEDED,
+        ids: [MOCK_ENTRY_1.id],
+        entities: {
+          [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
+        },
       };
       const action = deleteEntryPending();
 
@@ -1209,10 +1148,13 @@ describe("reducers", () => {
     });
 
     test("entries/deleteEntry/rejected", () => {
-      initStateEntries.requestStatus = "succeeded";
-      initStateEntries.ids = [MOCK_ENTRY_1.id];
-      initStateEntries.entities = {
-        [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
+      initStateEntries = {
+        ...initialStateEntries,
+        requestStatus: RequestStatus.SUCCEEDED,
+        ids: [MOCK_ENTRY_1.id],
+        entities: {
+          [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
+        },
       };
       const action = deleteEntryRejected("entries-deleteEntry-rejected");
 
@@ -1231,10 +1173,12 @@ describe("reducers", () => {
     });
 
     test("entries/deleteEntry/fulfilled", () => {
-      initStateEntries.requestStatus = "pending";
-      initStateEntries.requestError = null;
-      initStateEntries.ids = MOCK_ENTRIES_IDS;
-      initStateEntries.entities = MOCK_ENTRIES_ENTITIES;
+      initStateEntries = {
+        ...initialStateEntries,
+        requestStatus: RequestStatus.LOADING,
+        ids: MOCK_ENTRIES_IDS,
+        entities: MOCK_ENTRIES_ENTITIES,
+      };
       const action = deleteEntryFulfilled(MOCK_ENTRY_20.id);
 
       const newState = entriesReducer(initStateEntries, action);
@@ -1252,18 +1196,11 @@ describe("reducers", () => {
     });
 
     test("entries/clearEntriesSlice", () => {
-      initStateEntries.requestStatus = "succeeded";
-      initStateEntries.ids = [17];
-      initStateEntries.entities = {
-        17: {
-          id: 17,
-          timestampInUTC: "2020-12-01T15:17:00.000Z",
-          utcZoneOfTimestamp: "+02:00",
-          content: "[hard-coded] Then it dawned on me: there is no finish line!",
-          createdAt: "2021-04-29T05:10:56.000Z",
-          updatedAt: "2021-04-29T05:10:56.000Z",
-          userId: 1,
-        },
+      initStateEntries = {
+        ...initialStateEntries,
+        requestStatus: RequestStatus.SUCCEEDED,
+        ids: MOCK_ENTRIES_IDS,
+        entities: MOCK_ENTRIES_ENTITIES,
       };
       const action = clearEntriesSlice();
 
@@ -3364,15 +3301,14 @@ describe("<EditEntry>", () => {
         ...initialStateAlerts,
       },
       auth: {
-        requestStatus: "succeeded",
-        requestError: null,
+        ...initialStateAuth,
+        requestStatus: RequestStatus.SUCCEEDED,
         token: "token-issued-by-the-backend",
         hasValidToken: true,
-        signedInUserProfile: null,
       },
       entries: {
-        requestStatus: "succeeded",
-        requestError: null,
+        ...initialStateEntries,
+        requestStatus: RequestStatus.SUCCEEDED,
         ids: [MOCK_ENTRY_1.id],
         entities: {
           [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
@@ -3671,14 +3607,14 @@ describe("<DeleteEntry>", () => {
         ...initialStateAlerts,
       },
       auth: {
-        requestStatus: "succeeded",
+        requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
         token: "token-issued-by-the-backend",
         hasValidToken: true,
         signedInUserProfile: null,
       },
       entries: {
-        requestStatus: "succeeded",
+        requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
         _meta: _metaMock,
         _links: _linksMock,
