@@ -1126,9 +1126,9 @@ describe("reducers", () => {
       initStateEntries = {
         ...initialStateEntries,
         requestStatus: RequestStatus.SUCCEEDED,
-        ids: [MOCK_ENTRY_1.id],
+        ids: [MOCK_ENTRY_10.id],
         entities: {
-          [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
+          [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
         },
       };
       const action = deleteEntryPending();
@@ -1140,9 +1140,9 @@ describe("reducers", () => {
         requestError: null,
         _meta: { ...initialStateEntries._meta },
         _links: { ...initialStateEntries._links },
-        ids: [MOCK_ENTRY_1.id],
+        ids: [MOCK_ENTRY_10.id],
         entities: {
-          [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
+          [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
         },
       });
     });
@@ -1151,9 +1151,9 @@ describe("reducers", () => {
       initStateEntries = {
         ...initialStateEntries,
         requestStatus: RequestStatus.SUCCEEDED,
-        ids: [MOCK_ENTRY_1.id],
+        ids: [MOCK_ENTRY_10.id],
         entities: {
-          [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
+          [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
         },
       };
       const action = deleteEntryRejected("entries-deleteEntry-rejected");
@@ -1165,9 +1165,9 @@ describe("reducers", () => {
         requestError: "entries-deleteEntry-rejected",
         _meta: { ...initialStateEntries._meta },
         _links: { ...initialStateEntries._links },
-        ids: [MOCK_ENTRY_1.id],
+        ids: [MOCK_ENTRY_10.id],
         entities: {
-          [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
+          [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
         },
       });
     });
@@ -1188,9 +1188,9 @@ describe("reducers", () => {
         requestError: null,
         _meta: { ...initialStateEntries._meta },
         _links: { ...initialStateEntries._links },
-        ids: [MOCK_ENTRY_1.id],
+        ids: [MOCK_ENTRY_10.id],
         entities: {
-          [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
+          [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
         },
       });
     });
@@ -1258,8 +1258,8 @@ const profileMock = {
   updatedAt: "[mocked] 2021-05-23T11:10:34.000Z",
 };
 
-const MOCK_ENTRY_1 = {
-  id: 1,
+const MOCK_ENTRY_10 = {
+  id: 10,
   timestampInUTC: "2020-12-01T15:17:00.000Z",
   utcZoneOfTimestamp: "+02:00",
   content: "mocked-content-of-entry-1",
@@ -1278,7 +1278,7 @@ const MOCK_ENTRY_20 = {
   userId: 1,
 };
 
-const MOCK_ENTRIES = [MOCK_ENTRY_1, MOCK_ENTRY_20];
+const MOCK_ENTRIES = [MOCK_ENTRY_10, MOCK_ENTRY_20];
 
 const _metaMock: IPaginationMeta = {
   totalItems: MOCK_ENTRIES.length,
@@ -1341,14 +1341,14 @@ const requestHandlersToMock = [
   }),
 
   rest.post("/api/entries", (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(MOCK_ENTRY_1));
+    return res(ctx.status(200), ctx.json(MOCK_ENTRY_10));
   }),
 
   rest.put("/api/entries/:id", (req, res, ctx) => {
     const { id: entryIdStr } = req.params;
     const entryId: number = parseInt(entryIdStr);
 
-    const editedEntry = entryId !== MOCK_ENTRY_1.id ? MOCK_ENTRY_1 : MOCK_ENTRY_20;
+    const editedEntry = entryId !== MOCK_ENTRY_10.id ? MOCK_ENTRY_10 : MOCK_ENTRY_20;
 
     return res(
       ctx.status(200),
@@ -1359,7 +1359,7 @@ const requestHandlersToMock = [
     );
   }),
 
-  rest.delete("/api/entries/1", (req, res, ctx) => {
+  rest.delete("/api/entries/:id", (req, res, ctx) => {
     return res(ctx.status(204));
   }),
 ];
@@ -1702,7 +1702,7 @@ describe(
 
         // Act.
         const createEntryPromise = storeMock.dispatch(
-          createEntry("bad-localTime", MOCK_ENTRY_1.timezone, MOCK_ENTRY_1.content)
+          createEntry("bad-localTime", MOCK_ENTRY_10.timezone, MOCK_ENTRY_10.content)
         );
 
         // Assert.
@@ -1727,9 +1727,9 @@ describe(
       async () => {
         const createEntryPromise = storeMock.dispatch(
           createEntry(
-            MOCK_ENTRY_1.localTime,
-            MOCK_ENTRY_1.timezone,
-            MOCK_ENTRY_1.content
+            MOCK_ENTRY_10.localTime,
+            MOCK_ENTRY_10.timezone,
+            MOCK_ENTRY_10.content
           )
         );
 
@@ -1741,7 +1741,7 @@ describe(
           {
             type: "entries/createEntry/fulfilled",
             payload: {
-              entry: MOCK_ENTRY_1,
+              entry: MOCK_ENTRY_10,
             },
           },
         ]);
@@ -1800,7 +1800,7 @@ describe(
       "editEntry(entryId, ...)" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
-        const targetedEntryId: number = 1;
+        const targetedEntryId: number = MOCK_ENTRY_10.id;
         const editEntryPromise = storeMock.dispatch(
           editEntry(
             targetedEntryId,
@@ -1837,8 +1837,10 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to fail",
       async () => {
         // Arrange.
+        const targetedEntryId: number = MOCK_ENTRY_10.id;
+
         quasiServer.use(
-          rest.delete("/api/entries/1", (req, res, ctx) => {
+          rest.delete(`/api/entries/${targetedEntryId}`, (req, res, ctx) => {
             return res(
               ctx.status(401),
               ctx.json({
@@ -1849,7 +1851,7 @@ describe(
         );
 
         // Act.
-        const deleteEntryPromise = storeMock.dispatch(deleteEntry(1));
+        const deleteEntryPromise = storeMock.dispatch(deleteEntry(targetedEntryId));
 
         // Assert.
         await expect(deleteEntryPromise).rejects.toEqual(
@@ -1872,7 +1874,9 @@ describe(
       "deleteEntry(entryId)" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
-        const deleteEntryPromise = storeMock.dispatch(deleteEntry(1));
+        const targetedEntryId: number = MOCK_ENTRY_10.id;
+
+        const deleteEntryPromise = storeMock.dispatch(deleteEntry(targetedEntryId));
 
         await expect(deleteEntryPromise).resolves.toEqual(undefined);
 
@@ -1883,7 +1887,7 @@ describe(
           {
             type: "entries/deleteEntry/fulfilled",
             payload: {
-              entryId: 1,
+              entryId: targetedEntryId,
             },
           },
         ]);
@@ -1942,7 +1946,7 @@ describe("<App>", () => {
     );
 
     const realStore = createStore(rootReducer, enhancer);
-    const { getByText } = render(
+    render(
       <Provider store={realStore}>
         <Router history={history}>
           <App />
@@ -1951,11 +1955,11 @@ describe("<App>", () => {
     );
 
     await waitFor(() => {
-      getByText("Home");
-      getByText("Sign In");
-      getByText("Sign Up");
+      screen.getByText("Home");
+      screen.getByText("Sign In");
+      screen.getByText("Sign Up");
 
-      getByText("Welcome to JournalEntries!");
+      screen.getByText("Welcome to JournalEntries!");
     });
   });
 
@@ -1964,7 +1968,7 @@ describe("<App>", () => {
     const realStore = createStore(rootReducer, initState, enhancer);
 
     // Act.
-    const { getByText } = render(
+    render(
       <Provider store={realStore}>
         <Router history={history}>
           <App />
@@ -1974,16 +1978,16 @@ describe("<App>", () => {
 
     // Assert.
     await waitFor(() => {
-      getByText("Home");
-      getByText("JournalEntries");
-      getByText("Sign Out");
+      screen.getByText("Home");
+      screen.getByText("JournalEntries");
+      screen.getByText("Sign Out");
     });
   });
 
   test("after the user has signed in, the user clicks on 'Sign Out'", async () => {
     // Arrange.
     const realStore = createStore(rootReducer, initState, enhancer);
-    const { getByText } = render(
+    render(
       <Provider store={realStore}>
         <Router history={history}>
           <App />
@@ -1993,17 +1997,17 @@ describe("<App>", () => {
 
     // Act.
     await waitFor(() => {
-      const signOutAnchor = getByText("Sign Out");
+      const signOutAnchor: HTMLElement = screen.getByText("Sign Out");
       fireEvent.click(signOutAnchor);
     });
 
     // Assert.
     await waitFor(() => {
-      getByText("Home");
-      getByText("Sign In");
-      getByText("Sign Up");
+      screen.getByText("Home");
+      screen.getByText("Sign In");
+      screen.getByText("Sign Up");
 
-      getByText("SIGN-OUT SUCCESSFUL");
+      screen.getByText("SIGN-OUT SUCCESSFUL");
     });
   });
 
@@ -2020,7 +2024,7 @@ describe("<App>", () => {
       initState.auth.hasValidToken = true;
 
       const realStore = createStore(rootReducer, initState, enhancer);
-      const { getByText } = render(
+      render(
         <Provider store={realStore}>
           <Router history={history}>
             <App />
@@ -2030,7 +2034,7 @@ describe("<App>", () => {
 
       // Act.
       await waitFor(() => {
-        const signOutAnchor = getByText("Sign Out");
+        const signOutAnchor: HTMLElement = screen.getByText("Sign Out");
         fireEvent.click(signOutAnchor);
       });
 
@@ -2069,7 +2073,7 @@ describe("<App>", () => {
       );
 
       // Act.
-      const { getByText } = render(
+      render(
         <Provider store={realStore}>
           <Router history={history}>
             <App />
@@ -2079,9 +2083,9 @@ describe("<App>", () => {
 
       // Assert.
       await waitFor(() => {
-        getByText("Home");
-        getByText("Sign In");
-        getByText("Sign Up");
+        screen.getByText("Home");
+        screen.getByText("Sign In");
+        screen.getByText("Sign Up");
       });
     }
   );
@@ -2144,7 +2148,7 @@ describe("<App>", () => {
       // Act.
       history.push("/journal-entries");
 
-      const { queryAllByText } = render(
+      render(
         <Provider store={realStore}>
           <Router history={history}>
             <App />
@@ -2154,7 +2158,7 @@ describe("<App>", () => {
 
       // Assert.
       await waitFor(() => {
-        const elements = queryAllByText("Review JournalEntries!");
+        const elements = screen.queryAllByText("Review JournalEntries!");
         expect(elements.length).toEqual(0);
       });
     }
@@ -2163,13 +2167,13 @@ describe("<App>", () => {
 
 describe("<Alerts>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
-    const { getByText } = render(
+    render(
       <Provider store={store}>
         <Alerts />
       </Provider>
     );
 
-    getByText("<Alerts>");
+    screen.getByText("<Alerts>");
   });
 
   test(
@@ -2177,7 +2181,7 @@ describe("<Alerts>", () => {
       " - illustration of how to assert that" +
       " a function (or other block of code) will throw an error",
     () => {
-      const { getByText } = render(
+      render(
         <Provider store={store}>
           <Alerts />
         </Provider>
@@ -2216,10 +2220,10 @@ describe("<Alerts>", () => {
 
       /*
       // This won't work:
-      expect(getByText("some non-existent alert text")).toThrowError();
+      expect(screen.getByText("some non-existent alert text")).toThrowError();
       */
       // This works:
-      expect(() => getByText("some non-existent alert text")).toThrowError();
+      expect(() => screen.getByText("some non-existent alert text")).toThrowError();
     }
   );
 
@@ -2227,7 +2231,7 @@ describe("<Alerts>", () => {
     "the user clicks on the 'X' button," +
       " which is associated with a particular alert message",
     () => {
-      const initState = {
+      const initState: IState = {
         alerts: {
           ids: ["a-id-0", "a-id-1"],
           entities: {
@@ -2243,66 +2247,66 @@ describe("<Alerts>", () => {
         },
         auth: {
           ...initialStateAuth,
-          requestStatus: "n/a",
-          requestError: "n/a",
         },
         entries: {
           ...initialStateEntries,
         },
       };
       const storeWithAlerts = createStore(rootReducer, initState);
-      const { getAllByRole, getByText } = render(
+      render(
         <Provider store={storeWithAlerts}>
           <Alerts />
         </Provider>
       );
 
-      const buttons = getAllByRole("button");
+      const buttons = screen.getAllByRole("button");
       fireEvent.click(buttons[0]);
 
       expect(() => {
         // Use a regex to match a substring:
-        getByText(/Alert Message #0/);
+        screen.getByText(/Alert Message #0/);
       }).toThrowError();
       // Again, use a regex to match a substring:
-      getByText(/Alert Message #1/);
+      screen.getByText(/Alert Message #1/);
     }
   );
 });
 
 describe("<SignUp>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
-    const { getByText, getAllByRole, getByPlaceholderText } = render(
+    render(
       <Provider store={store}>
         <SignUp />
       </Provider>
     );
 
-    getByText("Create a new account!");
+    screen.getByText("Create a new account!");
 
-    const forms = getAllByRole("form");
+    const forms = screen.getAllByRole("form");
     expect(forms.length).toEqual(1);
 
-    getByPlaceholderText("Choose a username...");
-    getByPlaceholderText("Enter your name...");
-    getByPlaceholderText("Enter your email address...");
-    getByPlaceholderText("Choose a password...");
-    getByPlaceholderText("Repeat the chosen password...");
-    getByText("Create an account for me");
+    screen.getByPlaceholderText("Choose a username...");
+    screen.getByPlaceholderText("Enter your name...");
+    screen.getByPlaceholderText("Enter your email address...");
+    screen.getByPlaceholderText("Choose a password...");
+    screen.getByPlaceholderText("Repeat the chosen password...");
+    screen.getByText("Create an account for me");
   });
 
   test("the user fills out the form (without submitting it)", () => {
-    const { getByPlaceholderText, getByDisplayValue } = render(
+    render(
       <Provider store={store}>
         <SignUp />
       </Provider>
     );
 
-    const usernameInput = getByPlaceholderText("Choose a username...");
-    const nameInput = getByPlaceholderText("Enter your name...");
-    const emailInput = getByPlaceholderText("Enter your email address...");
-    const passwordInput = getByPlaceholderText("Choose a password...");
-    const repeatPasswordInput = getByPlaceholderText("Repeat the chosen password...");
+    const usernameInput = screen.getByPlaceholderText("Choose a username...");
+    const nameInput = screen.getByPlaceholderText("Enter your name...");
+    const emailInput = screen.getByPlaceholderText("Enter your email address...");
+    const passwordInput = screen.getByPlaceholderText("Choose a password...");
+    const repeatPasswordInput = screen.getByPlaceholderText(
+      "Repeat the chosen password..."
+    );
 
     fireEvent.change(usernameInput, { target: { value: "[f-e] jd" } });
     fireEvent.change(nameInput, { target: { value: "[f-e] John Doe" } });
@@ -2312,11 +2316,11 @@ describe("<SignUp>", () => {
     fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
     fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 456" } });
 
-    getByDisplayValue("[f-e] jd");
-    getByDisplayValue("[f-e] John Doe");
-    getByDisplayValue("[f-e] john.doe@protonmail.com");
-    getByDisplayValue("[f-e] 123");
-    getByDisplayValue("[f-e] 456");
+    screen.getByDisplayValue("[f-e] jd");
+    screen.getByDisplayValue("[f-e] John Doe");
+    screen.getByDisplayValue("[f-e] john.doe@protonmail.com");
+    screen.getByDisplayValue("[f-e] 123");
+    screen.getByDisplayValue("[f-e] 456");
   });
 });
 
@@ -2332,7 +2336,7 @@ describe(
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
 
-        const { getByPlaceholderText, getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Alerts />
             <SignUp />
@@ -2340,10 +2344,10 @@ describe(
         );
 
         // Act.
-        const usernameInput = getByPlaceholderText("Choose a username...");
-        const nameInput = getByPlaceholderText("Enter your name...");
-        const emailInput = getByPlaceholderText("Enter your email address...");
-        const repeatPasswordInput = getByPlaceholderText(
+        const usernameInput = screen.getByPlaceholderText("Choose a username...");
+        const nameInput = screen.getByPlaceholderText("Enter your name...");
+        const emailInput = screen.getByPlaceholderText("Enter your email address...");
+        const repeatPasswordInput = screen.getByPlaceholderText(
           "Repeat the chosen password..."
         );
 
@@ -2354,11 +2358,11 @@ describe(
         });
         fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 123" } });
 
-        const button = getByRole("button");
+        const button = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
-        getByText("YOU MUST FILL OUT ALL FORM FIELDS");
+        screen.getByText("YOU MUST FILL OUT ALL FORM FIELDS");
       }
     );
 
@@ -2370,7 +2374,7 @@ describe(
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
 
-        const { getByPlaceholderText, getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Alerts />
             <SignUp />
@@ -2378,11 +2382,11 @@ describe(
         );
 
         // Act.
-        const usernameInput = getByPlaceholderText("Choose a username...");
-        const nameInput = getByPlaceholderText("Enter your name...");
-        const emailInput = getByPlaceholderText("Enter your email address...");
-        const passwordInput = getByPlaceholderText("Choose a password...");
-        const repeatPasswordInput = getByPlaceholderText(
+        const usernameInput = screen.getByPlaceholderText("Choose a username...");
+        const nameInput = screen.getByPlaceholderText("Enter your name...");
+        const emailInput = screen.getByPlaceholderText("Enter your email address...");
+        const passwordInput = screen.getByPlaceholderText("Choose a password...");
+        const repeatPasswordInput = screen.getByPlaceholderText(
           "Repeat the chosen password..."
         );
 
@@ -2394,11 +2398,11 @@ describe(
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
         fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 456" } });
 
-        const button = getByRole("button");
+        const button = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
-        getByText(/THE PROVIDED PASSWORDS DON'T MATCH/);
+        screen.getByText(/THE PROVIDED PASSWORDS DON'T MATCH/);
       }
     );
   }
@@ -2442,7 +2446,7 @@ describe(
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
 
-        const { getByPlaceholderText, getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Alerts />
             <SignUp />
@@ -2450,11 +2454,11 @@ describe(
         );
 
         // Act.
-        const usernameInput = getByPlaceholderText("Choose a username...");
-        const nameInput = getByPlaceholderText("Enter your name...");
-        const emailInput = getByPlaceholderText("Enter your email address...");
-        const passwordInput = getByPlaceholderText("Choose a password...");
-        const repeatPasswordInput = getByPlaceholderText(
+        const usernameInput = screen.getByPlaceholderText("Choose a username...");
+        const nameInput = screen.getByPlaceholderText("Enter your name...");
+        const emailInput = screen.getByPlaceholderText("Enter your email address...");
+        const passwordInput = screen.getByPlaceholderText("Choose a password...");
+        const repeatPasswordInput = screen.getByPlaceholderText(
           "Repeat the chosen password..."
         );
 
@@ -2466,7 +2470,7 @@ describe(
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
         fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 123" } });
 
-        const button = getByRole("button");
+        const button = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
@@ -2492,7 +2496,7 @@ describe(
         */
         // This causes the test to PASS:
         await waitFor(() => {
-          getByText("[mocked-response] Failed to create a new User resource");
+          screen.getByText("[mocked-response] Failed to create a new User resource");
         });
       }
     );
@@ -2506,7 +2510,7 @@ describe(
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
 
-        const { getByPlaceholderText, getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Alerts />
             <SignUp />
@@ -2514,11 +2518,11 @@ describe(
         );
 
         // Act.
-        const usernameInput = getByPlaceholderText("Choose a username...");
-        const nameInput = getByPlaceholderText("Enter your name...");
-        const emailInput = getByPlaceholderText("Enter your email address...");
-        const passwordInput = getByPlaceholderText("Choose a password...");
-        const repeatPasswordInput = getByPlaceholderText(
+        const usernameInput = screen.getByPlaceholderText("Choose a username...");
+        const nameInput = screen.getByPlaceholderText("Enter your name...");
+        const emailInput = screen.getByPlaceholderText("Enter your email address...");
+        const passwordInput = screen.getByPlaceholderText("Choose a password...");
+        const repeatPasswordInput = screen.getByPlaceholderText(
           "Repeat the chosen password..."
         );
 
@@ -2530,12 +2534,12 @@ describe(
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
         fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 123" } });
 
-        const button = getByRole("button");
+        const button = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
         await waitFor(() => {
-          getByText("REGISTRATION SUCCESSFUL");
+          screen.getByText("REGISTRATION SUCCESSFUL");
         });
       }
     );
@@ -2574,7 +2578,7 @@ describe("<SignUp> + <Home>", () => {
       // Act.
       history.push("/sign-up");
 
-      const { getByText } = render(
+      render(
         <Provider store={realStore}>
           <Router history={history}>
             <Route exact path="/sign-up">
@@ -2588,44 +2592,44 @@ describe("<SignUp> + <Home>", () => {
       );
 
       // Assert.
-      getByText("Hello, [mocked] John Doe!");
+      screen.getByText("Hello, [mocked] John Doe!");
     }
   );
 });
 
 describe("<SignIn>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
-    const { getByText, getAllByRole, getByPlaceholderText } = render(
+    render(
       <Provider store={store}>
         <SignIn />
       </Provider>
     );
 
-    getByText("Log in to your account!");
+    screen.getByText("Log in to your account!");
 
-    const forms = getAllByRole("form");
+    const forms = screen.getAllByRole("form");
     expect(forms.length).toEqual(1);
 
-    getByPlaceholderText("Enter your email...");
-    getByPlaceholderText("Enter your password...");
-    getByText("Sign me in");
+    screen.getByPlaceholderText("Enter your email...");
+    screen.getByPlaceholderText("Enter your password...");
+    screen.getByText("Sign me in");
   });
 
   test("the user fills out the form (without submitting it)", () => {
-    const { getByPlaceholderText, getByDisplayValue } = render(
+    render(
       <Provider store={store}>
         <SignIn />
       </Provider>
     );
 
-    const emailInput = getByPlaceholderText("Enter your email...");
-    const passwordInput = getByPlaceholderText("Enter your password...");
+    const emailInput = screen.getByPlaceholderText("Enter your email...");
+    const passwordInput = screen.getByPlaceholderText("Enter your password...");
 
     fireEvent.change(emailInput, { target: { value: "[f-e] jd" } });
     fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
 
-    getByDisplayValue("[f-e] jd");
-    getByDisplayValue("[f-e] 123");
+    screen.getByDisplayValue("[f-e] jd");
+    screen.getByDisplayValue("[f-e] 123");
   });
 });
 
@@ -2641,7 +2645,7 @@ describe(
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
 
-        const { getByPlaceholderText, getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Alerts />
             <SignIn />
@@ -2649,17 +2653,17 @@ describe(
         );
 
         // Act.
-        const emailInput = getByPlaceholderText("Enter your email...");
-        const passwordInput = getByPlaceholderText("Enter your password...");
+        const emailInput = screen.getByPlaceholderText("Enter your email...");
+        const passwordInput = screen.getByPlaceholderText("Enter your password...");
 
         fireEvent.change(emailInput, { target: { value: "" } });
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
 
-        const button = getByRole("button");
+        const button = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
-        getByText("YOU MUST FILL OUT ALL FORM FIELDS");
+        screen.getByText("YOU MUST FILL OUT ALL FORM FIELDS");
       }
     );
   }
@@ -2707,7 +2711,7 @@ describe(
           })
         );
 
-        const { getByPlaceholderText, getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Alerts />
             <SignIn />
@@ -2715,18 +2719,18 @@ describe(
         );
 
         // Act.
-        const emailInput = getByPlaceholderText("Enter your email...");
-        const passwordInput = getByPlaceholderText("Enter your password...");
+        const emailInput = screen.getByPlaceholderText("Enter your email...");
+        const passwordInput = screen.getByPlaceholderText("Enter your password...");
 
         fireEvent.change(emailInput, { target: { value: "[f-e] jd" } });
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
 
-        const button = getByRole("button");
+        const button = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
         await waitFor(() => {
-          getByText(
+          screen.getByText(
             "[mocked response] Authenticaiton failed - incorrect email and/or password"
           );
         });
@@ -2742,7 +2746,7 @@ describe(
         const history = createMemoryHistory();
         history.push("/sign-in");
 
-        const { getByPlaceholderText, getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Router history={history}>
               <Alerts />
@@ -2756,18 +2760,18 @@ describe(
         );
 
         // Act.
-        const emailInput = getByPlaceholderText("Enter your email...");
-        const passwordInput = getByPlaceholderText("Enter your password...");
+        const emailInput = screen.getByPlaceholderText("Enter your email...");
+        const passwordInput = screen.getByPlaceholderText("Enter your password...");
 
         fireEvent.change(emailInput, { target: { value: "[f-e] jd" } });
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
 
-        const button = getByRole("button");
+        const button = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
         await waitFor(() => {
-          getByText("SIGN-IN SUCCESSFUL");
+          screen.getByText("SIGN-IN SUCCESSFUL");
         });
 
         expect(history.location.pathname).toEqual("/");
@@ -2794,14 +2798,14 @@ describe("<Home>", () => {
     const enhancer = applyMiddleware(thunkMiddleware);
     const realStore = createStore(rootReducer, initState, enhancer);
 
-    const { getByText } = render(
+    render(
       <Provider store={realStore}>
         <Home />
       </Provider>
     );
 
     // Assert.
-    getByText("Welcome to JournalEntries!");
+    screen.getByText("Welcome to JournalEntries!");
   });
 
   test("render after a user has successfully signed in", async () => {
@@ -2821,14 +2825,14 @@ describe("<Home>", () => {
     const enhancer = applyMiddleware(thunkMiddleware);
     const realStore = createStore(rootReducer, initState, enhancer);
 
-    const { getByText } = render(
+    render(
       <Provider store={realStore}>
         <Home />
       </Provider>
     );
 
     // Assert.
-    getByText("Hello, [mocked] John Doe!");
+    screen.getByText("Hello, [mocked] John Doe!");
   });
 });
 
@@ -2887,7 +2891,7 @@ describe("<JournalEntries> - initial render", () => {
       const realStore = createStore(rootReducer, initState, enhancer);
 
       // Act.
-      const { getByText, getByRole } = render(
+      render(
         <Provider store={realStore}>
           <BrowserRouter>
             <Alerts />
@@ -2898,8 +2902,10 @@ describe("<JournalEntries> - initial render", () => {
 
       // Assert.
       await waitFor(() => {
-        getByRole("button");
-        getByText("[FROM <JournalEntries>'S useEffect HOOK] PLEASE SIGN BACK IN");
+        screen.getByRole("button");
+        screen.getByText(
+          "[FROM <JournalEntries>'S useEffect HOOK] PLEASE SIGN BACK IN"
+        );
       });
     }
   );
@@ -2927,7 +2933,7 @@ describe("<JournalEntries> - initial render", () => {
       const realStore = createStore(rootReducer, enhancer);
 
       // Act.
-      const { getByText } = render(
+      render(
         <Provider store={realStore}>
           <BrowserRouter>
             <Alerts />
@@ -2938,7 +2944,7 @@ describe("<JournalEntries> - initial render", () => {
 
       // Assert.
       await waitFor(() => {
-        getByText(
+        screen.getByText(
           "[mocked-response] Encountered an error," +
             " which is not related to authentication"
         );
@@ -2973,7 +2979,7 @@ describe("<JournalEntries> - initial render", () => {
       const enhancer = applyMiddleware(thunkMiddleware);
       const realStore = createStore(rootReducer, initState, enhancer);
 
-      const { getByText, getAllByText } = render(
+      render(
         <Provider store={realStore}>
           <BrowserRouter>
             <JournalEntries />
@@ -2981,15 +2987,15 @@ describe("<JournalEntries> - initial render", () => {
         </Provider>
       );
 
-      getByText("Review JournalEntries!");
-      getByText("Create a new entry");
+      screen.getByText("Review JournalEntries!");
+      screen.getByText("Create a new entry");
 
       await waitFor(() => {
-        getByText("mocked-content-of-entry-1");
-        getByText("mocked-content-of-entry-20");
+        screen.getByText("mocked-content-of-entry-1");
+        screen.getByText("mocked-content-of-entry-20");
       });
 
-      const editLinks = getAllByText("Edit");
+      const editLinks = screen.getAllByText("Edit");
       expect(editLinks.length).toEqual(2);
     }
   );
@@ -2997,38 +3003,38 @@ describe("<JournalEntries> - initial render", () => {
 
 describe("<CreateEntry>", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
-    const { getAllByRole, getByText, getByPlaceholderText } = render(
+    render(
       <Provider store={store}>
         <CreateEntry />
       </Provider>
     );
 
-    const textboxes = getAllByRole("textbox");
+    const textboxes = screen.getAllByRole("textbox");
     expect(textboxes.length).toEqual(2);
 
-    getByText("You are about to create a new Entry:");
+    screen.getByText("You are about to create a new Entry:");
 
-    getByText("Specify your current local time:");
-    getByPlaceholderText("YYYY-MM-DD HH:MM");
+    screen.getByText("Specify your current local time:");
+    screen.getByPlaceholderText("YYYY-MM-DD HH:MM");
 
-    getByText("Specify the time zone that you are currently in:");
+    screen.getByText("Specify the time zone that you are currently in:");
 
-    getByText("Type up the content of your new Entry:");
+    screen.getByText("Type up the content of your new Entry:");
 
-    getByText("Create entry");
+    screen.getByText("Create entry");
   });
 
   test("the user fills out the form (without submitting it)", () => {
     // Arrange.
-    const { getAllByRole, getByRole, getByDisplayValue, getByText } = render(
+    render(
       <Provider store={store}>
         <CreateEntry />
       </Provider>
     );
 
     // Act.
-    const [localTimeInput, contentTextArea] = getAllByRole("textbox");
-    const timezoneSelect = getByRole("combobox");
+    const [localTimeInput, contentTextArea] = screen.getAllByRole("textbox");
+    const timezoneSelect = screen.getByRole("combobox");
 
     fireEvent.change(localTimeInput, { target: { value: "2021-05-13 00:18" } });
     fireEvent.change(contentTextArea, {
@@ -3060,7 +3066,7 @@ describe("<CreateEntry>", () => {
         _but_ its error message will not indicate the actual "display value" of the
         <input> tag
     */
-    getByDisplayValue("2021-05-13 00:18");
+    screen.getByDisplayValue("2021-05-13 00:18");
     /*
     Replacing the next statement's "-08:00" with "-07:00" causes this test to crash
     and prints out an error message.
@@ -3068,7 +3074,7 @@ describe("<CreateEntry>", () => {
     TODO: find out whether the error message can be forced to indicate
           which `<option>` tag is actually `selected`
     */
-    getByDisplayValue("-08:00");
+    screen.getByDisplayValue("-08:00");
     /*
     The next statement (implicitly but also effectively) makes an assertion
     about the "text content" of one <textarea> tag.
@@ -3084,7 +3090,7 @@ describe("<CreateEntry>", () => {
         and if the string within the next statement remains unchanged,
         the encompassing test will fail
     */
-    getByText(
+    screen.getByText(
       "'The genius can do many things. But he does only one thing at a time.'" +
         " - Matthew McConaughey"
     );
@@ -3103,7 +3109,7 @@ describe(
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
 
-        const { getAllByRole, getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Alerts />
             <CreateEntry />
@@ -3111,7 +3117,7 @@ describe(
         );
 
         // Act.
-        const [localTimeInput, contentTextArea] = getAllByRole("textbox");
+        const [localTimeInput, contentTextArea] = screen.getAllByRole("textbox");
 
         fireEvent.change(localTimeInput, { target: { value: "2021-05-13 00:18" } });
         fireEvent.change(contentTextArea, {
@@ -3122,11 +3128,11 @@ describe(
           },
         });
 
-        const button = getByRole("button");
+        const button = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
-        getByText("YOU MUST FILL OUT ALL FORM FIELDS");
+        screen.getByText("YOU MUST FILL OUT ALL FORM FIELDS");
       }
     );
   }
@@ -3170,7 +3176,7 @@ describe(
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
 
-        const { getAllByRole, getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Alerts />
             <CreateEntry />
@@ -3178,8 +3184,8 @@ describe(
         );
 
         // Act.
-        const [localTimeInput, contentTextArea] = getAllByRole("textbox");
-        const timezoneSelect = getByRole("combobox");
+        const [localTimeInput, contentTextArea] = screen.getAllByRole("textbox");
+        const timezoneSelect = screen.getByRole("combobox");
 
         fireEvent.change(localTimeInput, { target: { value: "2021-05-13 00:18" } });
         fireEvent.change(timezoneSelect, { target: { value: "-08:00" } });
@@ -3187,12 +3193,12 @@ describe(
           target: { value: "some insightful content" },
         });
 
-        const button = getByRole("button");
+        const button = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
         await waitFor(() => {
-          getByText("[mocked-response] Failed to create a new Entry resource");
+          screen.getByText("[mocked-response] Failed to create a new Entry resource");
         });
       }
     );
@@ -3217,7 +3223,7 @@ describe(
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
 
-        const { getAllByRole, getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Alerts />
             <CreateEntry />
@@ -3225,8 +3231,8 @@ describe(
         );
 
         // Act.
-        const [localTimeInput, contentTextArea] = getAllByRole("textbox");
-        const timezoneSelect = getByRole("combobox");
+        const [localTimeInput, contentTextArea] = screen.getAllByRole("textbox");
+        const timezoneSelect = screen.getByRole("combobox");
 
         fireEvent.change(localTimeInput, { target: { value: "2021-05-13 00:18" } });
         fireEvent.change(timezoneSelect, { target: { value: "-08:00" } });
@@ -3234,12 +3240,12 @@ describe(
           target: { value: "some insightful content" },
         });
 
-        const button = getByRole("button");
+        const button = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
         await waitFor(() => {
-          getByText("[FROM <CreateEntry>'S handleSubmit] PLEASE SIGN BACK IN");
+          screen.getByText("[FROM <CreateEntry>'S handleSubmit] PLEASE SIGN BACK IN");
         });
       }
     );
@@ -3256,7 +3262,7 @@ describe(
         const history = createMemoryHistory();
         history.push("/entries/create");
 
-        const { getAllByRole, getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Alerts />
             <Router history={history}>
@@ -3268,8 +3274,8 @@ describe(
         );
 
         // Act.
-        const [localTimeInput, contentTextArea] = getAllByRole("textbox");
-        const timezoneSelect = getByRole("combobox");
+        const [localTimeInput, contentTextArea] = screen.getAllByRole("textbox");
+        const timezoneSelect = screen.getByRole("combobox");
 
         fireEvent.change(localTimeInput, { target: { value: "2021-05-13 00:18" } });
         fireEvent.change(timezoneSelect, { target: { value: "-08:00" } });
@@ -3277,12 +3283,12 @@ describe(
           target: { value: "some insightful content " },
         });
 
-        const button = getByRole("button");
+        const button = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
         await waitFor(() => {
-          getByText("ENTRY CREATION SUCCESSFUL");
+          screen.getByText("ENTRY CREATION SUCCESSFUL");
         });
 
         expect(history.location.pathname).toEqual("/journal-entries");
@@ -3309,9 +3315,9 @@ describe("<EditEntry>", () => {
       entries: {
         ...initialStateEntries,
         requestStatus: RequestStatus.SUCCEEDED,
-        ids: [MOCK_ENTRY_1.id],
+        ids: [MOCK_ENTRY_10.id],
         entities: {
-          [MOCK_ENTRY_1.id]: MOCK_ENTRY_1,
+          [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
         },
       },
     };
@@ -3319,14 +3325,14 @@ describe("<EditEntry>", () => {
     realStore = createStore(rootReducer, initState, enhancer);
 
     history = createMemoryHistory();
-    const route = "/entries/1/edit";
+    const route = `/entries/${MOCK_ENTRY_10.id}/edit`;
     history.push(route);
   });
 
   describe("by itself", () => {
     test("initial render (i.e. before/without any user interaction)", () => {
       // Act.
-      const { getByText, getAllByText, getByDisplayValue } = render(
+      render(
         <Provider store={realStore}>
           <Router history={history}>
             <Route exact path="/entries/:id/edit">
@@ -3337,18 +3343,20 @@ describe("<EditEntry>", () => {
       );
 
       // Assert.
-      getByText("2020-12-01 15:17 (UTC +00:00)");
+      screen.getByText("2020-12-01 15:17 (UTC +00:00)");
 
-      const elementsWithTheEntryContent = getAllByText("mocked-content-of-entry-1");
+      const elementsWithTheEntryContent = screen.getAllByText(
+        "mocked-content-of-entry-1"
+      );
       expect(elementsWithTheEntryContent.length).toEqual(2);
 
-      getByDisplayValue("2020-12-01 17:17");
-      getByDisplayValue("+02:00");
+      screen.getByDisplayValue("2020-12-01 17:17");
+      screen.getByDisplayValue("+02:00");
     });
 
     test("the user fills out the form (without submitting it)", () => {
       // Arrange.
-      const { getAllByRole, getByRole, getByDisplayValue } = render(
+      render(
         <Provider store={realStore}>
           <Router history={history}>
             <Route exact path="/entries/:id/edit">
@@ -3365,8 +3373,8 @@ describe("<EditEntry>", () => {
       acts upon and makes assertions about rendered HTML elements
       in the same order as they are rendered on the DOM.
       */
-      const [localTimeInput, contentTextArea] = getAllByRole("textbox");
-      const timezoneSelect = getByRole("combobox");
+      const [localTimeInput, contentTextArea] = screen.getAllByRole("textbox");
+      const timezoneSelect = screen.getByRole("combobox");
 
       fireEvent.change(localTimeInput, { target: { value: "1999-01-01 03:00" } });
       fireEvent.change(timezoneSelect, { target: { value: "+01:00" } });
@@ -3377,9 +3385,9 @@ describe("<EditEntry>", () => {
       });
 
       // Assert.
-      getByDisplayValue("1999-01-01 03:00");
-      getByDisplayValue("+01:00");
-      getByDisplayValue(
+      screen.getByDisplayValue("1999-01-01 03:00");
+      screen.getByDisplayValue("+01:00");
+      screen.getByDisplayValue(
         "This is an Entry resource, all of whose details have been edited."
       );
     });
@@ -3394,7 +3402,7 @@ describe("<EditEntry>", () => {
           " (by failing to fill out all required fields) and submits it",
         () => {
           // Arrange.
-          const { getByRole, getByText } = render(
+          render(
             <Provider store={realStore}>
               <Router history={history}>
                 <Alerts />
@@ -3406,14 +3414,14 @@ describe("<EditEntry>", () => {
           );
 
           // Act.
-          const timezoneSelect = getByRole("combobox");
+          const timezoneSelect = screen.getByRole("combobox");
           fireEvent.change(timezoneSelect, { target: { value: "" } });
 
-          const button = getByRole("button");
+          const button = screen.getByRole("button");
           fireEvent.click(button);
 
           // Assert.
-          getByText("YOU MUST FILL OUT ALL FORM FIELDS");
+          screen.getByText("YOU MUST FILL OUT ALL FORM FIELDS");
         }
       );
     }
@@ -3441,7 +3449,7 @@ describe("<EditEntry>", () => {
       async () => {
         // Arrange.
         quasiServer.use(
-          rest.put("/api/entries/1", (req, res, ctx) => {
+          rest.put(`/api/entries/${MOCK_ENTRY_10.id}`, (req, res, ctx) => {
             return res(
               ctx.status(400),
               ctx.json({
@@ -3451,7 +3459,7 @@ describe("<EditEntry>", () => {
           })
         );
 
-        const { getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Router history={history}>
               <Alerts />
@@ -3463,12 +3471,14 @@ describe("<EditEntry>", () => {
         );
 
         // Act.
-        const button = getByRole("button");
+        const button = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
         await waitFor(() => {
-          getByText("[mocked-response] Failed to edit the targeted Entry resource");
+          screen.getByText(
+            "[mocked-response] Failed to edit the targeted Entry resource"
+          );
         });
       }
     );
@@ -3480,7 +3490,7 @@ describe("<EditEntry>", () => {
       async () => {
         // Arrange.
         quasiServer.use(
-          rest.put("/api/entries/1", (req, res, ctx) => {
+          rest.put(`/api/entries/${MOCK_ENTRY_10.id}`, (req, res, ctx) => {
             return res(
               ctx.status(401),
               ctx.json({
@@ -3490,7 +3500,7 @@ describe("<EditEntry>", () => {
           })
         );
 
-        const { getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Router history={history}>
               <Alerts />
@@ -3505,12 +3515,12 @@ describe("<EditEntry>", () => {
         );
 
         // Act.
-        const button = getByRole("button");
+        const button = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
         await waitFor(() => {
-          getByText("[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN");
+          screen.getByText("[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN");
         });
       }
     );
@@ -3521,7 +3531,7 @@ describe("<EditEntry>", () => {
         " the form submission was accepted as valid and processed",
       async () => {
         // Arrange.
-        const { getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Router history={history}>
               <Alerts />
@@ -3535,12 +3545,12 @@ describe("<EditEntry>", () => {
         );
 
         // Act.
-        const button = getByRole("button");
+        const button = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
         await waitFor(() => {
-          getByText("ENTRY EDITING SUCCESSFUL");
+          screen.getByText("ENTRY EDITING SUCCESSFUL");
         });
 
         expect(history.location.pathname).toEqual("/journal-entries");
@@ -3571,25 +3581,27 @@ describe("<DeleteEntryLink>", () => {
       " first over the anchor tag, and then away from that tag",
     () => {
       // Arrange.
-      const { getByText, queryByText } = render(
+      render(
         <Router history={history}>
           <DeleteEntryLink to="/entries/17/delete" />
         </Router>
       );
 
-      const deleteAnchor = getByText("Delete");
+      const deleteAnchor = screen.getByText("Delete");
 
       // Act.
       fireEvent.mouseEnter(deleteAnchor);
 
       // Assert.
-      getByText("(HINT: After clicking, you will be asked to confirm your choice.)");
+      screen.getByText(
+        "(HINT: After clicking, you will be asked to confirm your choice.)"
+      );
 
       // Act.
       fireEvent.mouseLeave(deleteAnchor);
 
       // Assert.
-      const hint = queryByText(
+      const hint = screen.queryByText(
         "(HINT: After clicking, you will be asked to confirm your choice.)"
       );
       expect(hint).toEqual(null);
@@ -3626,14 +3638,14 @@ describe("<DeleteEntry>", () => {
     realStore = createStore(rootReducer, initState, enhancer);
 
     history = createMemoryHistory();
-    const route = "/entries/1/delete";
+    const route = `/entries/${MOCK_ENTRY_10.id}/delete`;
     history.push(route);
   });
 
   describe("without the user interaction triggering any network communication", () => {
     test("initial render (i.e. before/without any user interaction)", () => {
       // Act.
-      const { getByText, getAllByRole, getByRole } = render(
+      render(
         <Provider store={realStore}>
           <Router history={history}>
             <PrivateRoute exact path="/entries/:id/delete">
@@ -3644,19 +3656,19 @@ describe("<DeleteEntry>", () => {
       );
 
       // Assert.
-      getByText("You are about to delete the following Entry:");
+      screen.getByText("You are about to delete the following Entry:");
 
-      getByText("2020-12-01 15:17 (UTC +00:00)");
-      getByText(MOCK_ENTRY_1.content);
+      screen.getByText("2020-12-01 15:17 (UTC +00:00)");
+      screen.getByText(MOCK_ENTRY_10.content);
 
-      getByText("Do you want to delete the selected Entry?");
-      getByRole("button", { name: "Yes" });
-      getByRole("button", { name: "No" });
+      screen.getByText("Do you want to delete the selected Entry?");
+      screen.getByRole("button", { name: "Yes" });
+      screen.getByRole("button", { name: "No" });
     });
 
     test("the user clicks the 'No' button, which should redirect to /journal-entries", () => {
       // Arrange.
-      const { getByRole, getByText } = render(
+      render(
         <Provider store={realStore}>
           <Router history={history}>
             <PrivateRoute exact path="/journal-entries">
@@ -3669,13 +3681,13 @@ describe("<DeleteEntry>", () => {
         </Provider>
       );
 
-      const buttonNo = getByRole("button", { name: "No" });
+      const buttonNo = screen.getByRole("button", { name: "No" });
 
       // Act.
       fireEvent.click(buttonNo);
 
       // Assert.
-      getByText("Review JournalEntries!");
+      screen.getByText("Review JournalEntries!");
 
       expect(history.location.pathname).toEqual("/journal-entries");
     });
@@ -3703,7 +3715,7 @@ describe("<DeleteEntry>", () => {
       async () => {
         // Arrange.
         quasiServer.use(
-          rest.delete("/api/entries/1", (req, res, ctx) => {
+          rest.delete(`/api/entries/${MOCK_ENTRY_10.id}`, (req, res, ctx) => {
             return res(
               ctx.status(401),
               ctx.json({
@@ -3713,7 +3725,7 @@ describe("<DeleteEntry>", () => {
           })
         );
 
-        const { getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Router history={history}>
               <Alerts />
@@ -3728,18 +3740,18 @@ describe("<DeleteEntry>", () => {
         );
 
         // Act.
-        const buttonYes = getByRole("button", { name: "Yes" });
+        const buttonYes = screen.getByRole("button", { name: "Yes" });
         fireEvent.click(buttonYes);
 
         // Assert.
         await waitFor(() => {
-          getByText("[FROM <DeleteEntry>'S handleClickYes] PLEASE SIGN BACK IN");
+          screen.getByText("[FROM <DeleteEntry>'S handleClickYes] PLEASE SIGN BACK IN");
         });
 
         await waitFor(() => {
           expect(history.location.pathname).toEqual("/sign-in");
 
-          getByText("Sign me in");
+          screen.getByText("Sign me in");
         });
       }
     );
@@ -3751,7 +3763,7 @@ describe("<DeleteEntry>", () => {
       async () => {
         // Arrange.
         quasiServer.use(
-          rest.delete("/api/entries/1", (req, res, ctx) => {
+          rest.delete(`/api/entries/${MOCK_ENTRY_10.id}`, (req, res, ctx) => {
             return res(
               ctx.status(400),
               ctx.json({
@@ -3763,7 +3775,7 @@ describe("<DeleteEntry>", () => {
           })
         );
 
-        const { getByRole, getByText } = render(
+        render(
           <Provider store={realStore}>
             <Router history={history}>
               <Alerts />
@@ -3775,12 +3787,12 @@ describe("<DeleteEntry>", () => {
         );
 
         // Act.
-        const buttonYes = getByRole("button", { name: "Yes" });
+        const buttonYes = screen.getByRole("button", { name: "Yes" });
         fireEvent.click(buttonYes);
 
         // Assert.
         await waitFor(() => {
-          getByText(
+          screen.getByText(
             "[mocked-response] Encountered an error, which is not related to authentication"
           );
         });
