@@ -1351,7 +1351,7 @@ const mockFetchEntries = (req, res, ctx) => {
   const end: number = start + perPage;
   const items: IEntry[] = MOCK_ENTRIES.slice(start, end);
 
-  return res(
+  return res.once(
     ctx.status(200),
     ctx.json({
       _meta,
