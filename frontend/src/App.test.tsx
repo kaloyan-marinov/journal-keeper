@@ -1,6 +1,5 @@
 import "@testing-library/jest-dom";
 import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
-import { BrowserRouter } from "react-router-dom";
 
 import {
   IEntry,
@@ -2936,13 +2935,15 @@ describe("<JournalEntries> - initial render", () => {
       const enhancer = applyMiddleware(thunkMiddleware);
       const realStore = createStore(rootReducer, initState, enhancer);
 
+      const history = createMemoryHistory();
+
       // Act.
       render(
         <Provider store={realStore}>
-          <BrowserRouter>
+          <Router history={history}>
             <Alerts />
             <JournalEntries />
-          </BrowserRouter>
+          </Router>
         </Provider>
       );
 
@@ -2978,13 +2979,15 @@ describe("<JournalEntries> - initial render", () => {
       const enhancer = applyMiddleware(thunkMiddleware);
       const realStore = createStore(rootReducer, enhancer);
 
+      const history = createMemoryHistory();
+
       // Act.
       render(
         <Provider store={realStore}>
-          <BrowserRouter>
+          <Router history={history}>
             <Alerts />
             <JournalEntries />
-          </BrowserRouter>
+          </Router>
         </Provider>
       );
 
@@ -3028,12 +3031,14 @@ describe("<JournalEntries> - initial render", () => {
       const enhancer = applyMiddleware(thunkMiddleware);
       const realStore = createStore(rootReducer, initState, enhancer);
 
+      const history = createMemoryHistory();
+
       // Act.
       render(
         <Provider store={realStore}>
-          <BrowserRouter>
+          <Router history={history}>
             <JournalEntries />
-          </BrowserRouter>
+          </Router>
         </Provider>
       );
 
