@@ -1,3 +1,4 @@
+import "@testing-library/jest-dom";
 import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 
@@ -83,6 +84,7 @@ import {
   initialStateAuth,
   initialStateEntries,
   URL_FOR_FIRST_PAGE_OF_EXAMPLES,
+  PER_PAGE_DEFAULT,
 } from "./constants";
 
 import moment from "moment";
@@ -1176,8 +1178,11 @@ describe("reducers", () => {
       initStateEntries = {
         ...initialStateEntries,
         requestStatus: RequestStatus.LOADING,
-        ids: MOCK_ENTRIES_IDS,
-        entities: MOCK_ENTRIES_ENTITIES,
+        ids: [MOCK_ENTRY_10.id, MOCK_ENTRY_20.id],
+        entities: {
+          [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
+          [MOCK_ENTRY_20.id]: MOCK_ENTRY_20,
+        },
       };
       const action = deleteEntryFulfilled(MOCK_ENTRY_20.id);
 
@@ -1258,57 +1263,94 @@ const profileMock = {
   updatedAt: "[mocked] 2021-05-23T11:10:34.000Z",
 };
 
-const MOCK_ENTRY_10 = {
-  id: 10,
-  timestampInUTC: "2020-12-01T15:17:00.000Z",
-  utcZoneOfTimestamp: "+02:00",
-  content: "mocked-content-of-entry-10",
-  createdAt: "2021-04-29T05:10:56.000Z",
-  updatedAt: "2021-04-29T05:10:56.000Z",
-  userId: 1,
-};
+const MOCK_ENTRIES: IEntry[] = Array.from({ length: 50 }).map((_, index) => {
+  const minute = (index + 1).toString().padStart(2, "0");
 
-const MOCK_ENTRY_20 = {
-  id: 20,
-  timestampInUTC: "2019-08-20T13:17:00.000Z",
-  utcZoneOfTimestamp: "+01:00",
-  content: "mocked-content-of-entry-20",
-  createdAt: "2021-04-29T05:11:01.000Z",
-  updatedAt: "2021-04-29T05:11:01.000Z",
-  userId: 1,
-};
+  return {
+    id: 10 * (index + 1),
+    timestampInUTC: `2021-09-01T06:${minute}:00.000Z`,
+    utcZoneOfTimestamp: "+02:00",
+    content: `mocked-content-of-entry-${minute}`,
+    createdAt: `2021-09-01T07:00:00.000Z`,
+    updatedAt: `2021-09-01T07:00:00.000Z`,
+    userId: 1,
+  };
+});
 
-const MOCK_ENTRY_20_LOCAL_TIME = moment
-  .utc(MOCK_ENTRY_20.timestampInUTC)
-  .utcOffset(MOCK_ENTRY_20.utcZoneOfTimestamp)
-  .format("YYYY-MM-DD HH:mm");
+const MOCK_ENTRIES_IDS: number[] = MOCK_ENTRIES.map((e: IEntry) => e.id);
 
-const MOCK_ENTRIES = [MOCK_ENTRY_10, MOCK_ENTRY_20];
-
-const _metaMock: IPaginationMeta = {
-  totalItems: MOCK_ENTRIES.length,
-  perPage: 10,
-  totalPages: 1,
-  page: 1,
-};
-
-const _linksMock: IPaginationLinks = {
-  self: "localhost:5000/api/entries?perPage=10&page=1",
-  next: null,
-  prev: null,
-  first: "localhost:5000/api/entries?perPage=10&page=1",
-  last: "localhost:5000/api/entries?perPage=10&page=1",
-};
-
-const MOCK_ENTRIES_IDS = MOCK_ENTRIES.map((e: IEntry) => e.id);
-
-const MOCK_ENTRIES_ENTITIES = MOCK_ENTRIES.reduce(
+const MOCK_ENTRIES_ENTITIES: { [entryId: string]: IEntry } = MOCK_ENTRIES.reduce(
   (entriesObj: { [entryId: string]: IEntry }, entry: IEntry) => {
     entriesObj[entry.id] = entry;
     return entriesObj;
   },
   {}
 );
+
+const MOCK_ENTRY_10: IEntry = MOCK_ENTRIES_ENTITIES[10];
+
+const MOCK_ENTRY_20: IEntry = MOCK_ENTRIES_ENTITIES[20];
+
+const MOCK_ENTRY_10_LOCAL_TIME = moment
+  .utc(MOCK_ENTRY_10.timestampInUTC)
+  .utcOffset(MOCK_ENTRY_10.utcZoneOfTimestamp)
+  .format("YYYY-MM-DD HH:mm");
+
+const MOCK_ENTRY_20_LOCAL_TIME = moment
+  .utc(MOCK_ENTRY_20.timestampInUTC)
+  .utcOffset(MOCK_ENTRY_20.utcZoneOfTimestamp)
+  .format("YYYY-MM-DD HH:mm");
+
+const MOCK_META: IPaginationMeta = {
+  totalItems: MOCK_ENTRIES.length,
+  perPage: PER_PAGE_DEFAULT,
+  totalPages: Math.ceil(MOCK_ENTRIES.length / PER_PAGE_DEFAULT),
+  page: 1,
+};
+
+const MOCK_LINKS: IPaginationLinks = {
+  self: "/api/entries?perPage=10&page=1",
+  next: "/api/entries?perPage=10&page=2",
+  prev: null,
+  first: "/api/entries?perPage=10&page=1",
+  last: `/api/entries?perPage=10&page=${MOCK_META.totalPages}`,
+};
+
+const mockFetchEntries = (req, res, ctx) => {
+  const totalItems: number = MOCK_ENTRIES.length;
+  const perPage: number = PER_PAGE_DEFAULT;
+  const totalPages: number = Math.ceil(totalItems / perPage);
+  const page: number = parseInt(req.url.searchParams.get("page") || 1);
+
+  const _meta: IPaginationMeta = {
+    totalItems,
+    perPage,
+    totalPages,
+    page,
+  };
+
+  const _links: IPaginationLinks = {
+    self: `/api/entries?perPage=${perPage}&page=${page}`,
+    next:
+      page >= totalPages ? null : `/api/entries?perPage=${perPage}&page=${page + 1}`,
+    prev: page <= 1 ? null : `/api/entries?perPage=${perPage}&page=${page - 1}`,
+    first: `/api/entries?perPage=${perPage}&page=1`,
+    last: `/api/entries?perPage=${perPage}&page=${totalPages}`,
+  };
+
+  const start: number = (page - 1) * perPage;
+  const end: number = start + perPage;
+  const items: IEntry[] = MOCK_ENTRIES.slice(start, end);
+
+  return res(
+    ctx.status(200),
+    ctx.json({
+      _meta,
+      _links,
+      items,
+    })
+  );
+};
 
 const requestHandlersToMock = [
   rest.post("/api/users", (req, res, ctx) => {
@@ -1334,16 +1376,7 @@ const requestHandlersToMock = [
     return res(ctx.status(200), ctx.json(profileMock));
   }),
 
-  rest.get("/api/entries", (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({
-        _meta: _metaMock,
-        _links: _linksMock,
-        items: MOCK_ENTRIES,
-      })
-    );
-  }),
+  rest.get("/api/entries", mockFetchEntries),
 
   rest.post("/api/entries", (req, res, ctx) => {
     return res(ctx.status(200), ctx.json(MOCK_ENTRY_10));
@@ -1680,9 +1713,9 @@ describe(
           {
             type: "entries/fetchEntries/fulfilled",
             payload: {
-              _meta: _metaMock,
-              _links: _linksMock,
-              entries: MOCK_ENTRIES,
+              _meta: MOCK_META,
+              _links: MOCK_LINKS,
+              entries: MOCK_ENTRIES.slice(0, PER_PAGE_DEFAULT),
             },
           },
         ]);
@@ -2956,6 +2989,7 @@ describe("<JournalEntries> - initial render", () => {
       " as part of the effect function, and the backend is _mocked_ to accept" +
       " the client-provided authentication credential as valid",
     async () => {
+      // Arrange.
       const initState = {
         alerts: {
           ...initialStateAlerts,
@@ -2978,6 +3012,7 @@ describe("<JournalEntries> - initial render", () => {
       const enhancer = applyMiddleware(thunkMiddleware);
       const realStore = createStore(rootReducer, initState, enhancer);
 
+      // Act.
       render(
         <Provider store={realStore}>
           <BrowserRouter>
@@ -2989,13 +3024,22 @@ describe("<JournalEntries> - initial render", () => {
       screen.getByText("Review JournalEntries!");
       screen.getByText("Create a new entry");
 
+      // Assert.
+      let element: HTMLElement;
       await waitFor(() => {
-        screen.getByText("mocked-content-of-entry-10");
-        screen.getByText("mocked-content-of-entry-20");
+        element = screen.getByText("mocked-content-of-entry-01");
+        expect(element).toBeInTheDocument();
       });
 
+      for (const i of [2, 3, 4, 5, 6, 7, 8, 9, 10]) {
+        element = screen.getByText(
+          `mocked-content-of-entry-` + i.toString().padStart(2, "0")
+        );
+        expect(element).toBeInTheDocument();
+      }
+
       const editLinks = screen.getAllByText("Edit");
-      expect(editLinks.length).toEqual(2);
+      expect(editLinks.length).toEqual(PER_PAGE_DEFAULT);
     }
   );
 });
@@ -3342,15 +3386,13 @@ describe("<EditEntry>", () => {
       );
 
       // Assert.
-      screen.getByText("2020-12-01 15:17 (UTC +00:00)");
+      screen.getByText("2021-09-01 06:01 (UTC +00:00)");
 
-      const elementsWithTheEntryContent = screen.getAllByText(
-        "mocked-content-of-entry-10"
-      );
+      const elementsWithTheEntryContent = screen.getAllByText(MOCK_ENTRY_10.content);
       expect(elementsWithTheEntryContent.length).toEqual(2);
 
-      screen.getByDisplayValue("2020-12-01 17:17");
-      screen.getByDisplayValue("+02:00");
+      screen.getByDisplayValue(MOCK_ENTRY_10_LOCAL_TIME);
+      screen.getByDisplayValue(MOCK_ENTRY_10.utcZoneOfTimestamp);
     });
 
     test("the user fills out the form (without submitting it)", () => {
@@ -3627,8 +3669,8 @@ describe("<DeleteEntry>", () => {
       entries: {
         requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
-        _meta: _metaMock,
-        _links: _linksMock,
+        _meta: MOCK_META,
+        _links: MOCK_LINKS,
         ids: MOCK_ENTRIES_IDS,
         entities: MOCK_ENTRIES_ENTITIES,
       },
@@ -3657,7 +3699,7 @@ describe("<DeleteEntry>", () => {
       // Assert.
       screen.getByText("You are about to delete the following Entry:");
 
-      screen.getByText("2020-12-01 15:17 (UTC +00:00)");
+      screen.getByText("2021-09-01 06:01 (UTC +00:00)");
       screen.getByText(MOCK_ENTRY_10.content);
 
       screen.getByText("Do you want to delete the selected Entry?");
