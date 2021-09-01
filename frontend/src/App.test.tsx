@@ -1316,6 +1316,15 @@ const MOCK_LINKS: IPaginationLinks = {
   last: `/api/entries?perPage=10&page=${MOCK_META.totalPages}`,
 };
 
+const mockMultpleFailures = (req, res, ctx) => {
+  return res(
+    ctx.status(401),
+    ctx.json({
+      error: "[mocked] authentication required",
+    })
+  );
+};
+
 const mockFetchEntries = (req, res, ctx) => {
   const totalItems: number = MOCK_ENTRIES.length;
   const perPage: number = PER_PAGE_DEFAULT;
@@ -1376,7 +1385,7 @@ const requestHandlersToMock = [
     return res(ctx.status(200), ctx.json(profileMock));
   }),
 
-  rest.get("/api/entries", mockFetchEntries),
+  rest.get("/api/entries", mockMultpleFailures),
 
   rest.post("/api/entries", (req, res, ctx) => {
     return res(ctx.status(200), ctx.json(MOCK_ENTRY_10));
@@ -1701,10 +1710,15 @@ describe(
       "fetchEntries()" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
+        // Arrange.
+        quasiServer.use(rest.get("/api/entries", mockFetchEntries));
+
+        // Act.
         const fetchEntriesPromise = storeMock.dispatch(
           fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES)
         );
 
+        // Assert.
         await expect(fetchEntriesPromise).resolves.toEqual(undefined);
         expect(storeMock.getActions()).toEqual([
           {
@@ -2990,6 +3004,8 @@ describe("<JournalEntries> - initial render", () => {
       " the client-provided authentication credential as valid",
     async () => {
       // Arrange.
+      quasiServer.use(rest.get("/api/entries", mockFetchEntries));
+
       const initState = {
         alerts: {
           ...initialStateAlerts,
