@@ -89,7 +89,7 @@ export const MOCK_LINKS: IPaginationLinks = {
 };
 
 /* Mock handlers for HTTP requests. */
-export const mockMultipleFailures = (
+const mockMultipleFailures = (
   req: RestRequest<DefaultRequestBody, RequestParams>,
   res: ResponseComposition<any>,
   ctx: RestContext
@@ -110,7 +110,7 @@ const mockCreateUser = (
   return res(ctx.status(201), ctx.json(MOCK_USER_1));
 };
 
-const issueJWSToken = (
+const mockIssueJWSToken = (
   req: RestRequest<DefaultRequestBody, RequestParams>,
   res: ResponseComposition<any>,
   ctx: RestContext
@@ -131,7 +131,7 @@ const mockFetchUserProfile = (
   return res(ctx.status(200), ctx.json(MOCK_PROFILE_1));
 };
 
-export const mockFetchEntries = (
+const mockFetchEntries = (
   req: RestRequest<DefaultRequestBody, RequestParams>,
   res: ResponseComposition<any>,
   ctx: RestContext
@@ -206,16 +206,15 @@ const mockDeleteEntry = (
   return res(ctx.status(204));
 };
 
-/* Describe what requests should be mocked. */
-export const requestHandlersToMock = [
-  rest.post("/api/users", mockCreateUser),
+export const requestHandlers = {
+  mockMultipleFailures,
 
-  rest.post("/api/tokens", issueJWSToken),
+  mockCreateUser,
+  mockIssueJWSToken,
+  mockFetchUserProfile,
 
-  rest.get("/api/user-profile", mockFetchUserProfile),
-
-  rest.get("/api/entries", mockMultipleFailures),
-  rest.post("/api/entries", mockCreateEntry),
-  rest.put("/api/entries/:id", mockEditEntry),
-  rest.delete("/api/entries/:id", mockDeleteEntry),
-];
+  mockCreateEntry,
+  mockFetchEntries,
+  mockEditEntry,
+  mockDeleteEntry,
+};

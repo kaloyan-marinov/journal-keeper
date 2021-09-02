@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 
 import { IState, RequestStatus } from "./types";
 
@@ -33,7 +33,6 @@ import {
 import { rest } from "msw";
 
 import {
-  mockFetchEntries,
   MOCK_ENTRIES_ENTITIES,
   MOCK_ENTRIES_IDS,
   MOCK_ENTRY_10,
@@ -41,13 +40,26 @@ import {
   MOCK_LINKS,
   MOCK_META,
   MOCK_PROFILE_1,
-  requestHandlersToMock,
+  requestHandlers,
 } from "./testHelpers";
 
 import { rootReducer, store } from "./store";
 
 /* Create an MSW "request-interception layer". */
-const quasiServer = setupServer(...requestHandlersToMock);
+const requestInterceptionLayer = [
+  rest.post("/api/users", requestHandlers.mockCreateUser),
+
+  rest.post("/api/tokens", requestHandlers.mockIssueJWSToken),
+
+  rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
+
+  rest.get("/api/entries", requestHandlers.mockMultipleFailures),
+  rest.post("/api/entries", requestHandlers.mockCreateEntry),
+  rest.put("/api/entries/:id", requestHandlers.mockEditEntry),
+  rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry),
+];
+
+const quasiServer = setupServer(...requestInterceptionLayer);
 
 describe("<App>", () => {
   let enhancer: any;
@@ -264,7 +276,7 @@ describe("<App>", () => {
       " 'Home', 'JournalEntries', and 'Sign Out'",
     async () => {
       // Arrange.
-      quasiServer.use(rest.get("/api/entries", mockFetchEntries));
+      quasiServer.use(rest.get("/api/entries", requestHandlers.mockFetchEntries));
 
       const realStore = createStore(rootReducer, initState, enhancer);
 
@@ -1139,7 +1151,7 @@ describe("<JournalEntries>", () => {
         " the client-provided authentication credential as valid",
       async () => {
         // Arrange.
-        quasiServer.use(rest.get("/api/entries", mockFetchEntries));
+        quasiServer.use(rest.get("/api/entries", requestHandlers.mockFetchEntries));
 
         const initState = {
           alerts: {
@@ -1200,12 +1212,12 @@ describe("<JournalEntries>", () => {
     test("the user interacts with the pagination-controlling buttons", async () => {
       // Arrange.
       quasiServer.use(
-        rest.get("/api/entries", mockFetchEntries),
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
 
-        rest.get("/api/entries", mockFetchEntries),
-        rest.get("/api/entries", mockFetchEntries),
-        rest.get("/api/entries", mockFetchEntries),
-        rest.get("/api/entries", mockFetchEntries)
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.get("/api/entries", requestHandlers.mockFetchEntries)
       );
 
       const enhancer = applyMiddleware(thunkMiddleware);

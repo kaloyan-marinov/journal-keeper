@@ -24,7 +24,6 @@ import {
 } from "./constants";
 
 import {
-  mockFetchEntries,
   MOCK_ALERT_17,
   MOCK_ALERT_34,
   MOCK_ENTRIES,
@@ -36,7 +35,7 @@ import {
   MOCK_LINKS,
   MOCK_META,
   MOCK_PROFILE_1,
-  requestHandlersToMock,
+  requestHandlers,
 } from "./testHelpers";
 import {
   createUserPending,
@@ -1110,7 +1109,20 @@ describe("reducers", () => {
 });
 
 /* Create an MSW "request-interception layer". */
-const quasiServer = setupServer(...requestHandlersToMock);
+const requestInterceptionLayer = [
+  rest.post("/api/users", requestHandlers.mockCreateUser),
+
+  rest.post("/api/tokens", requestHandlers.mockIssueJWSToken),
+
+  rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
+
+  rest.get("/api/entries", requestHandlers.mockMultipleFailures),
+  rest.post("/api/entries", requestHandlers.mockCreateEntry),
+  rest.put("/api/entries/:id", requestHandlers.mockEditEntry),
+  rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry),
+];
+
+const quasiServer = setupServer(...requestInterceptionLayer);
 
 const createStoreMock = configureMockStore([thunkMiddleware]);
 
@@ -1409,7 +1421,7 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(rest.get("/api/entries", mockFetchEntries));
+        quasiServer.use(rest.get("/api/entries", requestHandlers.mockFetchEntries));
 
         // Act.
         const fetchEntriesPromise = storeMock.dispatch(
