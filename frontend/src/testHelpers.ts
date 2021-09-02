@@ -176,7 +176,7 @@ const mockCreateEntry = (
   res: ResponseComposition<any>,
   ctx: RestContext
 ) => {
-  return res(ctx.status(200), ctx.json(MOCK_ENTRY_10));
+  return res(ctx.status(201), ctx.json(MOCK_ENTRY_10));
 };
 
 const mockEditEntry = (

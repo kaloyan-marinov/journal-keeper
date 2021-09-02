@@ -1110,16 +1110,16 @@ describe("reducers", () => {
 
 /* Create an MSW "request-interception layer". */
 const requestInterceptionLayer = [
-  rest.post("/api/users", requestHandlers.mockCreateUser),
+  rest.post("/api/users", requestHandlers.mockMultipleFailures),
 
-  rest.post("/api/tokens", requestHandlers.mockIssueJWSToken),
+  rest.post("/api/tokens", requestHandlers.mockMultipleFailures),
 
-  rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
+  rest.get("/api/user-profile", requestHandlers.mockMultipleFailures),
 
   rest.get("/api/entries", requestHandlers.mockMultipleFailures),
-  rest.post("/api/entries", requestHandlers.mockCreateEntry),
-  rest.put("/api/entries/:id", requestHandlers.mockEditEntry),
-  rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry),
+  rest.post("/api/entries", requestHandlers.mockMultipleFailures),
+  rest.put("/api/entries/:id", requestHandlers.mockMultipleFailures),
+  rest.delete("/api/entries/:id", requestHandlers.mockMultipleFailures),
 ];
 
 const quasiServer = setupServer(...requestInterceptionLayer);
@@ -1217,6 +1217,10 @@ describe(
       "createUser(username, ...)" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
+        // Arrange.
+        quasiServer.use(rest.post("/api/users", requestHandlers.mockCreateUser));
+
+        // Act.
         const createUserPromise = storeMock.dispatch(
           createUser(
             "mocked-request-username",
@@ -1226,6 +1230,7 @@ describe(
           )
         );
 
+        // Assert.
         await expect(createUserPromise).resolves.toEqual(undefined);
         expect(storeMock.getActions()).toEqual([
           { type: "auth/createUser/pending" },
@@ -1275,10 +1280,15 @@ describe(
       "issueJWSToken(email, password)" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
+        // Arrange.
+        quasiServer.use(rest.post("/api/tokens", requestHandlers.mockIssueJWSToken));
+
+        // Act.
         const issueJWSTokenPromise = storeMock.dispatch(
           issueJWSToken("mocked-request-email", "mocked-request-password")
         );
 
+        // Assert.
         await expect(issueJWSTokenPromise).resolves.toEqual(undefined);
         expect(storeMock.getActions()).toEqual([
           {
@@ -1362,8 +1372,15 @@ describe(
       "fetchProfile()" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
+        );
+
+        // Act.
         const fetchProfilePromise = storeMock.dispatch(fetchProfile());
 
+        // Assert.
         await expect(fetchProfilePromise).resolves.toEqual(undefined);
         expect(storeMock.getActions()).toEqual([
           {
@@ -1487,6 +1504,10 @@ describe(
       "createEntry(localTime, ...)" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
+        // Arrange.
+        quasiServer.use(rest.post("/api/entries", requestHandlers.mockCreateEntry));
+
+        // Act.
         const createEntryPromise = storeMock.dispatch(
           createEntry(
             MOCK_ENTRY_10.localTime,
@@ -1495,6 +1516,7 @@ describe(
           )
         );
 
+        // Assert.
         await expect(createEntryPromise).resolves.toEqual(undefined);
         expect(storeMock.getActions()).toEqual([
           {
@@ -1559,7 +1581,12 @@ describe(
       "editEntry(entryId, ...)" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
+        // Arrange.
+        quasiServer.use(rest.put("/api/entries/:id", requestHandlers.mockEditEntry));
+
         const targetedEntryId: number = MOCK_ENTRY_10.id;
+
+        // Act.
         const editEntryPromise = storeMock.dispatch(
           editEntry(
             targetedEntryId,
@@ -1569,6 +1596,7 @@ describe(
           )
         );
 
+        // Assert.
         await expect(editEntryPromise).resolves.toEqual(undefined);
 
         expect(storeMock.getActions()).toEqual([
@@ -1630,10 +1658,17 @@ describe(
       "deleteEntry(entryId)" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry)
+        );
+
         const targetedEntryId: number = MOCK_ENTRY_10.id;
 
+        // Act.
         const deleteEntryPromise = storeMock.dispatch(deleteEntry(targetedEntryId));
 
+        // Assert.
         await expect(deleteEntryPromise).resolves.toEqual(undefined);
 
         expect(storeMock.getActions()).toEqual([
