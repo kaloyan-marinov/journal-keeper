@@ -10,19 +10,10 @@ import {
   RequestStatus,
 } from "./types";
 
-import {
-  createUserPending,
-  createUserRejected,
-  createUserFulfilled,
-  rootReducer,
-  PrivateRoute,
-} from "./App";
+import { PrivateRoute } from "./App";
 import App, { Alerts, Home, SignUp, SignIn, JournalEntries, CreateEntry } from "./App";
 
 import { Provider } from "react-redux";
-import { store } from "./App";
-
-import { alertsCreate, alertsRemove } from "./App";
 
 import { createStore } from "redux";
 
@@ -31,52 +22,15 @@ import { setupServer } from "msw/node";
 
 import configureMockStore, { MockStoreEnhanced } from "redux-mock-store";
 import thunkMiddleware from "redux-thunk";
-import { createUser } from "./App";
 
 import { applyMiddleware } from "redux";
-
-import {
-  issueJWSTokenPending,
-  issueJWSTokenRejected,
-  issueJWSTokenFulfilled,
-} from "./App";
-import { issueJWSToken } from "./App";
-
-import {
-  fetchProfilePending,
-  fetchProfileRejected,
-  fetchProfileFulfilled,
-} from "./App";
-import { fetchProfile } from "./App";
-
-import { clearAuthSlice } from "./App";
-
-import {
-  fetchEntriesPending,
-  fetchEntriesRejected,
-  fetchEntriesFulfilled,
-  entriesReducer,
-} from "./App";
-import { fetchEntries } from "./App";
-
-import { createEntryPending, createEntryRejected, createEntryFulfilled } from "./App";
-import { createEntry } from "./App";
-
-import { editEntryPending, editEntryRejected, editEntryFulfilled } from "./App";
-import { editEntry } from "./App";
 
 import { createMemoryHistory } from "history";
 import { Router, Switch, Route } from "react-router-dom";
 import { EditEntry } from "./App";
 
-import { deleteEntryPending, deleteEntryRejected, deleteEntryFulfilled } from "./App";
-import { deleteEntry } from "./App";
-
 import { DeleteEntryLink, DeleteEntry } from "./App";
 
-import { clearEntriesSlice } from "./App";
-
-import { signOut } from "./App";
 import {
   initialStateAlerts,
   JOURNAL_APP_TOKEN,
@@ -85,6 +39,45 @@ import {
   URL_FOR_FIRST_PAGE_OF_EXAMPLES,
   PER_PAGE_DEFAULT,
 } from "./constants";
+
+import {
+  createUserPending,
+  createUserRejected,
+  createUserFulfilled,
+  rootReducer,
+  store,
+  alertsCreate,
+  alertsRemove,
+  createUser,
+  issueJWSTokenPending,
+  issueJWSTokenRejected,
+  issueJWSTokenFulfilled,
+  issueJWSToken,
+  fetchProfilePending,
+  fetchProfileRejected,
+  fetchProfileFulfilled,
+  fetchProfile,
+  clearAuthSlice,
+  fetchEntriesPending,
+  fetchEntriesRejected,
+  fetchEntriesFulfilled,
+  entriesReducer,
+  fetchEntries,
+  createEntryPending,
+  createEntryRejected,
+  createEntryFulfilled,
+  createEntry,
+  editEntryPending,
+  editEntryRejected,
+  editEntryFulfilled,
+  editEntry,
+  deleteEntryPending,
+  deleteEntryRejected,
+  deleteEntryFulfilled,
+  deleteEntry,
+  clearEntriesSlice,
+  signOut,
+} from "./store";
 
 import moment from "moment";
 
