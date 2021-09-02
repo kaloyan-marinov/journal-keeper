@@ -233,11 +233,11 @@ describe("GET /api/users", () => {
           page: 1,
         },
         _links: {
-          self: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
+          self: `/api/users?perPage=10&page=1`,
           next: null,
           prev: null,
-          first: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
-          last: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=0`,
+          first: `/api/users?perPage=10&page=1`,
+          last: `/api/users?perPage=10&page=0`,
         },
         items: [],
       });
@@ -268,11 +268,11 @@ describe("GET /api/users", () => {
           page: 1,
         },
         _links: {
-          self: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
+          self: `/api/users?perPage=10&page=1`,
           next: null,
           prev: null,
-          first: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
-          last: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=10&page=1`,
+          first: `/api/users?perPage=10&page=1`,
+          last: `/api/users?perPage=10&page=1`,
         },
         items: [{ id: 1, username: "jd" }],
       });
@@ -303,11 +303,11 @@ describe("GET /api/users", () => {
           page: 1,
         },
         _links: {
-          self: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=100&page=1`,
+          self: `/api/users?perPage=100&page=1`,
           next: null,
           prev: null,
-          first: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=100&page=1`,
-          last: `http://127.0.0.1:${PORT_FOR_TESTING}/api/users?perPage=100&page=1`,
+          first: `/api/users?perPage=100&page=1`,
+          last: `/api/users?perPage=100&page=1`,
         },
         items: [{ id: 1, username: "jd" }],
       });
@@ -1116,7 +1116,7 @@ describe("GET /api/entries", () => {
       expect(response.status).toEqual(200);
 
       const responseBody = {
-        entries: response.body.entries.map((entry: Entry) => {
+        entries: response.body.items.map((entry: Entry) => {
           const { id, timestampInUTC, utcZoneOfTimestamp, content, userId } = entry;
           return { id, timestampInUTC, utcZoneOfTimestamp, content, userId };
         }),
@@ -1671,7 +1671,7 @@ describe("DELETE /api/entries/:id", () => {
       const response2 = await request(server)
         .get("/api/entries")
         .set("Authorization", "Bearer " + token1);
-      expect(response2.body.entries.length).toEqual(1);
+      expect(response2.body._meta.totalItems).toEqual(1);
     }
   );
 
@@ -1694,7 +1694,7 @@ describe("DELETE /api/entries/:id", () => {
       const response2 = await request(server)
         .get("/api/entries")
         .set("Authorization", "Bearer " + token2);
-      expect(response2.body.entries.length).toEqual(1);
+      expect(response2.body._meta.totalItems).toEqual(1);
     }
   );
 

@@ -9,9 +9,7 @@ describe("buildLinkWithPaginationParams", () => {
 
     const urlWithParams = buildLinkWithPaginationParams(url, perPage, page);
 
-    expect(urlWithParams).toEqual(
-      "https://some-elementary-school.com/api/students?perPage=10&page=3"
-    );
+    expect(urlWithParams).toEqual("/api/students?perPage=10&page=3");
   });
 
   test("with query parameters", () => {
@@ -21,9 +19,7 @@ describe("buildLinkWithPaginationParams", () => {
 
     const urlWithParams = buildLinkWithPaginationParams(url, perPage, page);
 
-    expect(urlWithParams).toEqual(
-      "https://some-elementary-school.com/api/students?perPage=10&page=3"
-    );
+    expect(urlWithParams).toEqual("/api/students?perPage=10&page=3");
   });
 });
 
@@ -61,11 +57,11 @@ describe("PaginationHelper", () => {
       const links = paginationHelper.buildLinks(url);
 
       expect(links).toEqual({
-        self: "https://some-elementary-school.com/api/students?perPage=10&page=3",
-        next: "https://some-elementary-school.com/api/students?perPage=10&page=4",
-        prev: "https://some-elementary-school.com/api/students?perPage=10&page=2",
-        first: "https://some-elementary-school.com/api/students?perPage=10&page=1",
-        last: "https://some-elementary-school.com/api/students?perPage=10&page=5",
+        self: "/api/students?perPage=10&page=3",
+        next: "/api/students?perPage=10&page=4",
+        prev: "/api/students?perPage=10&page=2",
+        first: "/api/students?perPage=10&page=1",
+        last: "/api/students?perPage=10&page=5",
       });
     }
   );

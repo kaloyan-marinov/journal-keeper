@@ -8,7 +8,7 @@ export const buildLinkWithPaginationParams = (
   const changedUrl: URL = new URL(url.toString());
   changedUrl.searchParams.set("perPage", perPage.toString());
   changedUrl.searchParams.set("page", page.toString());
-  return changedUrl.toString();
+  return changedUrl.pathname + changedUrl.search;
 };
 
 const PER_PAGE_DEFAULT: number = 10;

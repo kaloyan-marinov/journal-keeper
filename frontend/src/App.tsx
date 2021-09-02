@@ -19,93 +19,25 @@ import { useParams } from "react-router-dom";
 import moment from "moment";
 
 import { Redirect } from "react-router-dom";
-
-/*
-Specify all slices of the Redux state,
-along with an initial value for each slice.
-*/
-interface IAlert {
-  id: string;
-  message: string;
-}
-
-interface IStateAlerts {
-  ids: string[];
-  entities: {
-    [alertId: string]: IAlert;
-  };
-}
-
-export const initialStateAlerts: IStateAlerts = {
-  ids: [],
-  entities: {},
-};
-
-enum RequestStatus {
-  IDLE = "idle",
-  LOADING = "loading",
-  FAILED = "failed",
-  SUCCEEDED = "succeeded",
-}
-
-export interface IProfile {
-  id: number;
-  username: string;
-  name: string;
-  email: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface IStateAuth {
-  requestStatus: RequestStatus;
-  requestError: string | null;
-  token: string | null;
-  hasValidToken: boolean | null;
-  signedInUserProfile: IProfile | null;
-}
-
-export const JOURNAL_APP_TOKEN = "token-4-journal-app";
-
-export const initialStateAuth: IStateAuth = {
-  requestStatus: RequestStatus.IDLE,
-  requestError: null,
-  token: localStorage.getItem(JOURNAL_APP_TOKEN),
-  hasValidToken: null,
-  signedInUserProfile: null,
-};
-
-export interface IEntry {
-  id: number;
-  timestampInUTC: string;
-  utcZoneOfTimestamp: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  userId: number;
-}
-
-export interface IStateEntries {
-  requestStatus: RequestStatus;
-  requestError: string | null;
-  ids: number[];
-  entities: {
-    [entryId: string]: IEntry;
-  };
-}
-
-export const initialStateEntries: IStateEntries = {
-  requestStatus: RequestStatus.IDLE,
-  requestError: null,
-  ids: [],
-  entities: {},
-};
-
-export interface IState {
-  alerts: IStateAlerts;
-  auth: IStateAuth;
-  entries: IStateEntries;
-}
+import {
+  IAlert,
+  IEntry,
+  IPaginationLinks,
+  IPaginationMeta,
+  IProfile,
+  IState,
+  IStateAlerts,
+  IStateAuth,
+  IStateEntries,
+  RequestStatus,
+} from "./types";
+import {
+  initialStateAlerts,
+  initialStateAuth,
+  initialStateEntries,
+  JOURNAL_APP_TOKEN,
+  URL_FOR_FIRST_PAGE_OF_EXAMPLES,
+} from "./constants";
 
 /* alertsSlice - "alerts/" action creators */
 enum ActionTypesAlerts {
@@ -433,6 +365,8 @@ interface IFetchEntriesRejected {
 interface IFetchEntriesFulfilled {
   type: typeof ActionTypesFetchEntries.FULFILLED;
   payload: {
+    _meta: IPaginationMeta;
+    _links: IPaginationLinks;
     entries: IEntry[];
   };
 }
@@ -446,10 +380,16 @@ export const fetchEntriesRejected = (error: string): IFetchEntriesRejected => ({
   error,
 });
 
-export const fetchEntriesFulfilled = (entries: IEntry[]): IFetchEntriesFulfilled => ({
+export const fetchEntriesFulfilled = (
+  _meta: IPaginationMeta,
+  _links: IPaginationLinks,
+  items: IEntry[]
+): IFetchEntriesFulfilled => ({
   type: ActionTypesFetchEntries.FULFILLED,
   payload: {
-    entries,
+    _meta,
+    _links,
+    entries: items,
   },
 });
 
@@ -459,12 +399,9 @@ type ActionFetchEntries =
   | IFetchEntriesFulfilled;
 
 /* entriesSlice - "entries/fetchEntries" thunk-action creator */
-export const fetchEntries = (): ThunkAction<
-  Promise<any>,
-  IState,
-  unknown,
-  ActionFetchEntries
-> => {
+export const fetchEntries = (
+  urlForOnePageOfEntries: string
+): ThunkAction<Promise<any>, IState, unknown, ActionFetchEntries> => {
   /*
   Create a thunk-action.
   When dispatched, it makes the web browser issue an HTTP request
@@ -486,8 +423,14 @@ export const fetchEntries = (): ThunkAction<
 
     dispatch(fetchEntriesPending());
     try {
-      const response = await axios.get("/api/entries", config);
-      dispatch(fetchEntriesFulfilled(response.data.entries));
+      const response = await axios.get(urlForOnePageOfEntries, config);
+      dispatch(
+        fetchEntriesFulfilled(
+          response.data._meta,
+          response.data._links,
+          response.data.items
+        )
+      );
       return Promise.resolve();
     } catch (err) {
       const responseBodyError =
@@ -953,6 +896,8 @@ export const entriesReducer = (
       };
 
     case ActionTypesFetchEntries.FULFILLED: {
+      const _meta: IPaginationMeta = action.payload._meta;
+      const _links: IPaginationLinks = action.payload._links;
       const entries: IEntry[] = action.payload.entries;
 
       const ids: number[] = entries.map((e: IEntry) => e.id);
@@ -967,6 +912,8 @@ export const entriesReducer = (
       return {
         requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
+        _meta,
+        _links,
         ids,
         entities,
       };
@@ -987,16 +934,28 @@ export const entriesReducer = (
       };
 
     case ActionTypesCreateEntry.FULFILLED: {
+      const newMeta: IPaginationMeta = {
+        ...initialStateEntries._meta,
+        totalItems:
+          stateEntries._meta.totalItems !== null
+            ? stateEntries._meta.totalItems + 1
+            : null,
+      };
+
+      const newLinks: IPaginationLinks = {
+        ...initialStateEntries._links,
+      };
+
       const entry: IEntry = action.payload.entry;
-
       const newIds: number[] = [...stateEntries.ids, entry.id];
-
       const newEntities: { [entryId: string]: IEntry } = { ...stateEntries.entities };
       newEntities[entry.id] = entry;
 
       return {
         requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
+        _meta: newMeta,
+        _links: newLinks,
         ids: newIds,
         entities: newEntities,
       };
@@ -1045,16 +1004,17 @@ export const entriesReducer = (
       };
 
     case ActionTypesDeleteEntry.FULFILLED: {
-      const entryId: number = action.payload.entryId;
+      const idOfDeletedEntry: number = action.payload.entryId;
 
       const newIds: number[] = [...stateEntries.ids].filter(
-        (eId: number) => eId !== entryId
+        (eId: number) => eId !== idOfDeletedEntry
       );
 
       const newEntities: { [entryId: string]: IEntry } = { ...stateEntries.entities };
-      delete newEntities[entryId];
+      delete newEntities[idOfDeletedEntry];
 
       return {
+        ...stateEntries,
         requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
         ids: newIds,
@@ -1102,6 +1062,8 @@ const selectAuthRequestStatus = (state: IState) => state.auth.requestStatus;
 const selectHasValidToken = (state: IState) => state.auth.hasValidToken;
 const selectSignedInUserProfile = (state: IState) => state.auth.signedInUserProfile;
 
+const selectEntriesMeta = (state: IState) => state.entries._meta;
+const selectEntriesLinks = (state: IState) => state.entries._links;
 const selectEntriesIds = (state: IState) => state.entries.ids;
 const selectEntriesEntities = (state: IState) => state.entries.entities;
 
@@ -1150,8 +1112,8 @@ const App = () => {
         <Route exact path="/sign-in">
           <SignIn />
         </Route>
-        <PrivateRoute exact path="/my-monthly-journal">
-          <MyMonthlyJournal />
+        <PrivateRoute exact path="/journal-entries">
+          <JournalEntries />
         </PrivateRoute>
         <PrivateRoute exact path="/entries/create">
           <CreateEntry />
@@ -1221,7 +1183,7 @@ export const Home = () => {
   const greeting =
     signedInUserProfile !== null
       ? `Hello, ${signedInUserProfile.name}!`
-      : "Welcome to MyMonthlyJournal!";
+      : "Welcome to JournalEntries!";
 
   return (
     <React.Fragment>
@@ -1255,8 +1217,7 @@ export const NavigationBar = () => {
     </React.Fragment>
   ) : (
     <React.Fragment>
-      <Link to="/">Home</Link> | <Link to="/my-monthly-journal">MyMonthlyJournal</Link>{" "}
-      |{" "}
+      <Link to="/">Home</Link> | <Link to="/journal-entries">JournalEntries</Link> |{" "}
       <a href="#!" onClick={() => handleClick()}>
         Sign Out
       </a>
@@ -1528,12 +1489,14 @@ export const PrivateRoute = (props: any) => {
   }
 };
 
-export const MyMonthlyJournal = () => {
+export const JournalEntries = () => {
   console.log(
     `${new Date().toISOString()} - ${__filename}` +
-      ` - React is rendering <MyMonthlyJournal>`
+      ` - React is rendering <JournalEntries>`
   );
 
+  const entriesMeta: IPaginationMeta = useSelector(selectEntriesMeta);
+  const entriesLinks: IPaginationLinks = useSelector(selectEntriesLinks);
   const entriesIds: number[] = useSelector(selectEntriesIds);
   console.log("    entriesIds:");
   console.log(`    ${JSON.stringify(entriesIds)}`);
@@ -1546,24 +1509,28 @@ export const MyMonthlyJournal = () => {
   const dispatch: ThunkDispatch<IState, unknown, IActionClearAuthSlice | ActionAlerts> =
     useDispatch();
 
+  const [entriesUrl, setEntriesUrl] = React.useState<string>(
+    URL_FOR_FIRST_PAGE_OF_EXAMPLES
+  );
+
   React.useEffect(() => {
     console.log(
       `${new Date().toISOString()}` +
         ` - ${__filename}` +
-        ` - React is running <MyMonthlyJournal>'s useEffect hook`
+        ` - React is running <JournalEntries>'s useEffect hook`
     );
 
     const effectFn = async () => {
       console.log(
-        "    <MyMonthlyJournal>'s useEffect hook is dispatching fetchEntries()"
+        "    <JournalEntries>'s useEffect hook is dispatching fetchEntries()"
       );
 
       try {
-        await dispatch(fetchEntries());
+        await dispatch(fetchEntries(entriesUrl));
       } catch (err) {
         if (err.response.status === 401) {
           dispatch(
-            signOut("[FROM <MyMonthlyJournal>'S useEffect HOOK] PLEASE SIGN BACK IN")
+            signOut("[FROM <JournalEntries>'S useEffect HOOK] PLEASE SIGN BACK IN")
           );
         } else {
           const id: string = uuidv4();
@@ -1576,7 +1543,7 @@ export const MyMonthlyJournal = () => {
     };
 
     effectFn();
-  }, [dispatch]);
+  }, [dispatch, entriesUrl]);
 
   const entries = entriesIds.map((entryId: number) => {
     const e: IEntry = entriesEntities[entryId];
@@ -1584,7 +1551,7 @@ export const MyMonthlyJournal = () => {
     return (
       <div key={e.id}>
         <hr />
-        <SingleEntry timestampInUTC={e.timestampInUTC} content={e.content} />
+        <SingleJournalEntry timestampInUTC={e.timestampInUTC} content={e.content} />
         <ul>
           <li>
             <Link to={`/entries/${e.id}/edit`}>Edit</Link>
@@ -1597,25 +1564,100 @@ export const MyMonthlyJournal = () => {
     );
   });
 
+  let paginationControllingButtons: JSX.Element;
+  if (entriesMeta.page === null) {
+    paginationControllingButtons = (
+      <div>Building pagination-controlling buttons...</div>
+    );
+  } else {
+    /*
+    TODO: find out why
+          this block requires the Non-null Assertion Operator (Postfix !) to be used twice,
+          despite the fact this block appears to be in line with the recommendation on
+          https://stackoverflow.com/a/46915314
+
+          the "Non-null Assertion Operator (Postfix !)" is described on
+          https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#strictnullchecks-on
+    */
+    const paginationCtrlBtnPrev: JSX.Element = (
+      <button
+        disabled={entriesLinks.prev === null}
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
+          setEntriesUrl(entriesLinks.prev!)
+        }
+      >
+        Previous page
+      </button>
+    );
+    const paginationCtrlBtnNext: JSX.Element = (
+      <button
+        disabled={entriesLinks.next === null}
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
+          setEntriesUrl(entriesLinks.next!)
+        }
+      >
+        Next page
+      </button>
+    );
+
+    const paginationCtrlBtnFirst: JSX.Element = (
+      <button
+        disabled={
+          entriesLinks.first === null || entriesLinks.self === entriesLinks.first
+        }
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
+          setEntriesUrl(entriesLinks.first!)
+        }
+      >
+        First page: 1
+      </button>
+    );
+
+    const paginationCtrlBtnLast: JSX.Element = (
+      <button
+        disabled={entriesLinks.last === null || entriesLinks.self === entriesLinks.last}
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
+          setEntriesUrl(entriesLinks.last!)
+        }
+      >
+        Last page: {entriesMeta.totalPages}
+      </button>
+    );
+
+    paginationControllingButtons = (
+      <React.Fragment>
+        <div>
+          {paginationCtrlBtnFirst} {paginationCtrlBtnPrev}{" "}
+          <span style={{ color: "red" }}>Current page: {entriesMeta.page}</span>{" "}
+          {paginationCtrlBtnNext} {paginationCtrlBtnLast}{" "}
+        </div>
+      </React.Fragment>
+    );
+  }
+
   return (
     <React.Fragment>
-      {"<MyMonthlyJournal>"}
-      <div>Review the entries in MyMonthlyJournal!</div>
-      <Link to="/entries/create">Create a new entry</Link>
+      {"<JournalEntries>"}
+      <p>
+        <Link to="/entries/create">Create a new entry</Link>
+      </p>
+      <hr />
+      <div>Review JournalEntries!</div>
+      {paginationControllingButtons}
       {entries}
     </React.Fragment>
   );
 };
 
-type SingleEntryProps = {
+type SingleJournalEntryProps = {
   timestampInUTC: string;
   content: string;
 };
 
-const SingleEntry = (props: SingleEntryProps) => {
+const SingleJournalEntry = (props: SingleJournalEntryProps) => {
   return (
     <React.Fragment>
-      {"<SingleEntry>"}
+      {"<SingleJournalEntry>"}
       <h3>
         {moment.utc(props.timestampInUTC).format("YYYY-MM-DD HH:mm")} (UTC +00:00)
       </h3>
@@ -1717,7 +1759,7 @@ export const CreateEntry = () => {
           createEntry(formData.localTime, formData.timezone, formData.content)
         );
         dispatch(alertsCreate(id, "ENTRY CREATION SUCCESSFUL"));
-        history.push("/my-monthly-journal");
+        history.push("/journal-entries");
       } catch (err) {
         if (err.response.status === 401) {
           dispatch(signOut("[FROM <CreateEntry>'S handleSubmit] PLEASE SIGN BACK IN"));
@@ -1856,7 +1898,7 @@ export const EditEntry = () => {
           editEntry(entryId, formData.localTime, formData.timezone, formData.content)
         );
         dispatch(alertsCreate(id, "ENTRY EDITING SUCCESSFUL"));
-        history.push("/my-monthly-journal");
+        history.push("/journal-entries");
       } catch (err) {
         if (err.response.status === 401) {
           dispatch(signOut("[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN"));
@@ -1882,7 +1924,10 @@ export const EditEntry = () => {
       {"<EditEntry>"}
       <h3>You are about to edit the following Entry:</h3>
       <hr />
-      <SingleEntry timestampInUTC={entry.timestampInUTC} content={entry.content} />
+      <SingleJournalEntry
+        timestampInUTC={entry.timestampInUTC}
+        content={entry.content}
+      />
       <hr />
       <form
         name="edit-entry-form"
@@ -1979,9 +2024,9 @@ export const DeleteEntry = () => {
       dispatch(alertsCreate(id, "ENTRY DELETION SUCCESSFUL"));
 
       console.log(
-        `    <DeleteEntry> - handleClickYes - history.push("/my-monthly-journal");`
+        `    <DeleteEntry> - handleClickYes - history.push("/journal-entries");`
       );
-      history.push("/my-monthly-journal");
+      history.push("/journal-entries");
     } catch (err) {
       if (err.response.status === 401) {
         dispatch(signOut("[FROM <DeleteEntry>'S handleClickYes] PLEASE SIGN BACK IN"));
@@ -1995,7 +2040,7 @@ export const DeleteEntry = () => {
   };
 
   const handleClickNo = (e: React.MouseEvent<HTMLButtonElement>) => {
-    return history.push("/my-monthly-journal");
+    return history.push("/journal-entries");
   };
 
   let content;
@@ -2004,7 +2049,10 @@ export const DeleteEntry = () => {
       <React.Fragment>
         <h3>You are about to delete the following Entry:</h3>
         <hr />
-        <SingleEntry timestampInUTC={entry.timestampInUTC} content={entry.content} />
+        <SingleJournalEntry
+          timestampInUTC={entry.timestampInUTC}
+          content={entry.content}
+        />
         <hr />
         <div>Do you want to delete the selected Entry?</div>
         <ul>

@@ -193,7 +193,7 @@ router.get("/api/users", async (ctx: Koa.Context) => {
     getConnection(connectionName).getRepository(User);
   const userCount: number = await usersRepository.count();
 
-  const paginationHelper = new PaginationHelper(
+  const paginationHelper: PaginationHelper = new PaginationHelper(
     ctx.query["perPage"] instanceof Array ? undefined : ctx.query["perPage"],
     ctx.query["page"] instanceof Array ? undefined : ctx.query["page"],
     userCount
@@ -340,7 +340,7 @@ router.delete("/api/users/:id", basicAuth, async (ctx: Koa.Context) => {
 router.post("/api/tokens", basicAuth, async (ctx: Koa.Context) => {
   console.log(`${new Date().toISOString()} - issuing a JWS token`);
   const payload = { userId: ctx.user.id };
-  const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "1m" });
+  const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "15m" });
   ctx.body = { token };
 });
 
@@ -394,8 +394,33 @@ router.post("/api/entries", tokenAuth, async (ctx: Koa.Context) => {
 router.get("/api/entries", tokenAuth, async (ctx: Koa.Context) => {
   const entriesRepository: Repository<Entry> =
     getConnection(connectionName).getRepository(Entry);
-  const entries: Entry[] = await entriesRepository.find({ userId: ctx.user.id });
-  ctx.body = { entries };
+  const entryCount: number = await entriesRepository.count({ userId: ctx.user.id });
+
+  const paginationHelper: PaginationHelper = new PaginationHelper(
+    ctx.query["perPage"] instanceof Array ? undefined : ctx.query["perPage"],
+    ctx.query["page"] instanceof Array ? undefined : ctx.query["page"],
+    entryCount
+  );
+
+  const entries: Entry[] = await entriesRepository
+    .createQueryBuilder("entries")
+    .where("entries.user_id = :user_id", { user_id: ctx.user.id })
+    .limit(paginationHelper.perPage)
+    .offset(paginationHelper.offset())
+    .getMany();
+
+  const _links: IPaginationLinks = paginationHelper.buildLinks(ctx.request.URL);
+
+  ctx.body = {
+    _meta: {
+      totalItems: entryCount,
+      perPage: paginationHelper.perPage,
+      totalPages: paginationHelper.totalPages,
+      page: paginationHelper.page,
+    },
+    _links,
+    items: entries,
+  };
 });
 
 router.get("/api/entries/:id", tokenAuth, async (ctx: Koa.Context) => {
