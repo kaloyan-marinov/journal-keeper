@@ -10,6 +10,8 @@ import {
   IPaginationLinks,
   IPaginationMeta,
   IState,
+  IStateAlerts,
+  IStateAuth,
   IStateEntries,
   RequestStatus,
 } from "./types";
@@ -23,6 +25,8 @@ import {
 
 import {
   mockFetchEntries,
+  MOCK_ALERT_17,
+  MOCK_ALERT_34,
   MOCK_ENTRIES,
   MOCK_ENTRIES_ENTITIES,
   MOCK_ENTRIES_IDS,
@@ -39,7 +43,6 @@ import {
   createUserRejected,
   createUserFulfilled,
   rootReducer,
-  store,
   alertsCreate,
   alertsRemove,
   createUser,
@@ -71,6 +74,8 @@ import {
   deleteEntry,
   clearEntriesSlice,
   signOut,
+  alertsReducer,
+  authReducer,
 } from "./store";
 
 describe("action creators", () => {
@@ -100,24 +105,21 @@ describe("action creators", () => {
   });
 
   test("alertsCreate", () => {
-    const action = alertsCreate("id-17", "the-undertaken-action-is-illegitimate");
+    const action = alertsCreate(MOCK_ALERT_17.id, MOCK_ALERT_17.message);
 
     expect(action).toEqual({
       type: "alerts/create",
-      payload: {
-        id: "id-17",
-        message: "the-undertaken-action-is-illegitimate",
-      },
+      payload: MOCK_ALERT_17,
     });
   });
 
   test("alertsRemove", () => {
-    const action = alertsRemove("id-17");
+    const action = alertsRemove(MOCK_ALERT_17.id);
 
     expect(action).toEqual({
       type: "alerts/remove",
       payload: {
-        id: "id-17",
+        id: MOCK_ALERT_17.id,
       },
     });
   });
@@ -389,406 +391,277 @@ describe("reducers", () => {
     };
   });
 
-  test("alerts/create", () => {
-    initState.alerts = {
-      ids: ["id-17"],
-      entities: {
-        "id-17": {
-          id: "id-17",
-          message: "the-undertaken-action-is-illegitimate",
-        },
-      },
-    };
-    const action = {
-      type: "alerts/create",
-      payload: {
-        id: "id-34",
-        message: "once-again-the-undertaken-action-is-illegitimate",
-      },
-    };
+  describe("alertsReducer", () => {
+    let initStAlerts: IStateAlerts;
 
-    const newState = rootReducer(initState, action);
+    beforeEach(() => {
+      initStAlerts = { ...initialStateAlerts };
+    });
 
-    expect(newState).toEqual({
-      alerts: {
-        ids: ["id-34", "id-17"],
+    test("alerts/create", () => {
+      initStAlerts = {
+        ids: [MOCK_ALERT_17.id],
         entities: {
-          "id-34": {
-            id: "id-34",
-            message: "once-again-the-undertaken-action-is-illegitimate",
-          },
-          "id-17": {
-            id: "id-17",
-            message: "the-undertaken-action-is-illegitimate",
-          },
+          [MOCK_ALERT_17.id]: MOCK_ALERT_17,
         },
-      },
-      auth: {
-        ...initialStateAuth,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
+      };
+      const action = {
+        type: "alerts/create",
+        payload: MOCK_ALERT_34,
+      };
+
+      const newSt: IStateAlerts = alertsReducer(initStAlerts, action);
+
+      expect(newSt).toEqual({
+        ids: [MOCK_ALERT_34.id, MOCK_ALERT_17.id],
+        entities: {
+          [MOCK_ALERT_34.id]: MOCK_ALERT_34,
+          [MOCK_ALERT_17.id]: MOCK_ALERT_17,
+        },
+      });
+    });
+
+    test("alerts/remove", () => {
+      initStAlerts = {
+        ids: [MOCK_ALERT_17.id, MOCK_ALERT_34.id],
+        entities: {
+          [MOCK_ALERT_17.id]: MOCK_ALERT_17,
+          [MOCK_ALERT_34.id]: MOCK_ALERT_34,
+        },
+      };
+      const action = {
+        type: "alerts/remove",
+        payload: {
+          id: MOCK_ALERT_34.id,
+        },
+      };
+
+      const newSt: IStateAlerts = alertsReducer(initStAlerts, action);
+
+      expect(newSt).toEqual({
+        ids: [MOCK_ALERT_17.id],
+        entities: {
+          [MOCK_ALERT_17.id]: MOCK_ALERT_17,
+        },
+      });
     });
   });
 
-  test("alerts/remove", () => {
-    initState.alerts = {
-      ids: ["id-17", "id-34"],
-      entities: {
-        "id-17": {
-          id: "id-17",
-          message: "the-undertaken-action-is-illegitimate",
-        },
-        "id-34": {
-          id: "id-34",
-          message: "once-again-the-undertaken-action-is-illegitimate",
-        },
-      },
-    };
-    const action = {
-      type: "alerts/remove",
-      payload: {
-        id: "id-34",
-      },
-    };
+  describe("authReducer", () => {
+    let initStAuth: IStateAuth;
 
-    const newState = rootReducer(initState, action);
-
-    expect(newState).toEqual({
-      alerts: {
-        ids: ["id-17"],
-        entities: {
-          "id-17": {
-            id: "id-17",
-            message: "the-undertaken-action-is-illegitimate",
-          },
-        },
-      },
-      auth: {
-        ...initialStateAuth,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
+    beforeEach(() => {
+      initStAuth = { ...initialStateAuth };
     });
-  });
 
-  test("auth/createUser/pending", () => {
-    initState = {
-      ...store.getState(),
-      auth: {
-        ...store.getState().auth,
+    test("auth/createUser/pending", () => {
+      initStAuth = {
+        ...initStAuth,
         requestStatus: RequestStatus.FAILED,
         requestError: "The previous attempt to create a User resource didn't succeed",
-      },
-    };
-    const action = {
-      type: "auth/createUser/pending",
-    };
+      };
+      const action = {
+        type: "auth/createUser/pending",
+      };
 
-    const newState = rootReducer(initState, action);
+      const newSt: IStateAuth = authReducer(initStAuth, action);
 
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
+      expect(newSt).toEqual({
         requestStatus: "loading",
         requestError: null,
         token: null,
         hasValidToken: null,
         signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
+      });
     });
-  });
 
-  test("auth/createUser/rejected", () => {
-    initState = {
-      ...store.getState(),
-      auth: {
-        ...store.getState().auth,
+    test("auth/createUser/rejected", () => {
+      initStAuth = {
+        ...initStAuth,
         requestStatus: RequestStatus.LOADING,
-      },
-    };
-    const action = {
-      type: "auth/createUser/rejected",
-      error: "auth-createUser-rejected",
-    };
+      };
+      const action = {
+        type: "auth/createUser/rejected",
+        error: "auth-createUser-rejected",
+      };
 
-    const newState = rootReducer(initState, action);
+      const newSt: IStateAuth = authReducer(initStAuth, action);
 
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
+      expect(newSt).toEqual({
         requestStatus: "failed",
         requestError: "auth-createUser-rejected",
         token: null,
         hasValidToken: null,
         signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
+      });
     });
-  });
 
-  test("auth/createUser/fulfilled", () => {
-    initState = {
-      ...store.getState(),
-      auth: {
-        ...store.getState().auth,
+    test("auth/createUser/fulfilled", () => {
+      initStAuth = {
+        ...initStAuth,
         requestStatus: RequestStatus.LOADING,
-      },
-    };
-    const action = {
-      type: "auth/createUser/fulfilled",
-    };
+      };
+      const action = {
+        type: "auth/createUser/fulfilled",
+      };
 
-    const newState = rootReducer(initState, action);
+      const newSt: IStateAuth = authReducer(initStAuth, action);
 
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
+      expect(newSt).toEqual({
         requestStatus: "succeeded",
         requestError: null,
         token: null,
         hasValidToken: null,
         signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
+      });
     });
-  });
 
-  test("auth/issueJWSToken/pending", () => {
-    initState = {
-      ...store.getState(),
-      auth: {
-        ...store.getState().auth,
+    test("auth/issueJWSToken/pending", () => {
+      initStAuth = {
+        ...initStAuth,
         requestStatus: RequestStatus.FAILED,
         requestError: "The previous attempt to issue a JWS token didn't succeed",
-      },
-    };
-    const action = {
-      type: "auth/issueJWSToken/pending",
-    };
+      };
+      const action = {
+        type: "auth/issueJWSToken/pending",
+      };
 
-    const newState = rootReducer(initState, action);
+      const newSt: IStateAuth = authReducer(initStAuth, action);
 
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
+      expect(newSt).toEqual({
         requestStatus: "loading",
         requestError: null,
         token: null,
         hasValidToken: null,
         signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
+      });
     });
-  });
 
-  test("auth/issueJWSToken/rejected", () => {
-    initState = {
-      ...store.getState(),
-      auth: {
-        ...store.getState().auth,
+    test("auth/issueJWSToken/rejected", () => {
+      initStAuth = {
+        ...initStAuth,
         requestStatus: RequestStatus.LOADING,
-      },
-    };
-    const action = {
-      type: "auth/issueJWSToken/rejected",
-      error: "auth-issueJWSToken-rejected",
-    };
+      };
+      const action = {
+        type: "auth/issueJWSToken/rejected",
+        error: "auth-issueJWSToken-rejected",
+      };
 
-    const newState = rootReducer(initState, action);
+      const newSt: IStateAuth = authReducer(initStAuth, action);
 
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
+      expect(newSt).toEqual({
         requestStatus: "failed",
         requestError: "auth-issueJWSToken-rejected",
         token: null,
         hasValidToken: false,
         signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
+      });
     });
-  });
 
-  test("auth/issueJWSToken/fulfilled", () => {
-    initState = {
-      ...store.getState(),
-      auth: {
-        ...store.getState().auth,
+    test("auth/issueJWSToken/fulfilled", () => {
+      initStAuth = {
+        ...initStAuth,
         requestStatus: RequestStatus.LOADING,
-      },
-    };
-    const action = {
-      type: "auth/issueJWSToken/fulfilled",
-      payload: {
-        token: "a-jws-token-issued-by-the-backend",
-      },
-    };
+      };
+      const action = {
+        type: "auth/issueJWSToken/fulfilled",
+        payload: {
+          token: "a-jws-token-issued-by-the-backend",
+        },
+      };
 
-    const newState = rootReducer(initState, action);
+      const newSt: IStateAuth = authReducer(initStAuth, action);
 
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
+      expect(newSt).toEqual({
         requestStatus: "succeeded",
         requestError: null,
         token: "a-jws-token-issued-by-the-backend",
         hasValidToken: true,
         signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
+      });
     });
-  });
 
-  test("auth/fetchProfile/pending", () => {
-    const action = {
-      type: "auth/fetchProfile/pending",
-    };
+    test("auth/fetchProfile/pending", () => {
+      const action = {
+        type: "auth/fetchProfile/pending",
+      };
 
-    const newState = rootReducer(initState, action);
+      const newSt: IStateAuth = authReducer(initStAuth, action);
 
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
+      expect(newSt).toEqual({
         requestStatus: "loading",
         requestError: null,
         token: null,
         hasValidToken: null,
         signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
+      });
     });
-  });
 
-  test("auth/fetchProfile/rejected", () => {
-    const action = {
-      type: "auth/fetchProfile/rejected",
-      error: "auth-fetchProfile-rejected",
-    };
+    test("auth/fetchProfile/rejected", () => {
+      initStAuth = {
+        ...initStAuth,
+        requestStatus: RequestStatus.LOADING,
+      };
+      const action = {
+        type: "auth/fetchProfile/rejected",
+        error: "auth-fetchProfile-rejected",
+      };
 
-    const newState = rootReducer(initState, action);
+      const newSt: IStateAuth = authReducer(initStAuth, action);
 
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
+      expect(newSt).toEqual({
         requestStatus: "failed",
         requestError: "auth-fetchProfile-rejected",
         token: null,
         hasValidToken: false,
         signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
+      });
     });
-  });
 
-  test("auth/fetchProfile/fulfilled", () => {
-    initState = {
-      ...store.getState(),
-      auth: {
-        ...store.getState().auth,
+    test("auth/fetchProfile/fulfilled", () => {
+      initStAuth = {
+        ...initStAuth,
         requestStatus: RequestStatus.LOADING,
         requestError: null,
         token: "a-jws-token-issued-by-the-backend",
-      },
-    };
-    const action = {
-      type: "auth/fetchProfile/fulfilled",
-      payload: {
-        profile: {
-          id: 17,
-          username: "[mocked] ms",
-          name: "[mocked] Mary Smith",
-          email: "[mocked] mary.smith@protonmail.com",
-          createdAt: "[mocked] 2021-05-23T11:10:17.000Z",
-          updatedAt: "[mocked] 2021-05-23T11:10:34.000Z",
+      };
+      const action = {
+        type: "auth/fetchProfile/fulfilled",
+        payload: {
+          profile: profileMock,
         },
-      },
-    };
+      };
 
-    const newState = rootReducer(initState, action);
+      const newSt: IStateAuth = authReducer(initStAuth, action);
 
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
+      expect(newSt).toEqual({
         requestStatus: "succeeded",
         requestError: null,
         token: "a-jws-token-issued-by-the-backend",
         hasValidToken: true,
-        signedInUserProfile: {
-          id: 17,
-          username: "[mocked] ms",
-          name: "[mocked] Mary Smith",
-          email: "[mocked] mary.smith@protonmail.com",
-          createdAt: "[mocked] 2021-05-23T11:10:17.000Z",
-          updatedAt: "[mocked] 2021-05-23T11:10:34.000Z",
-        },
-      },
-      entries: {
-        ...initialStateEntries,
-      },
+        signedInUserProfile: profileMock,
+      });
     });
-  });
 
-  test("auth/clearAuthSlice", () => {
-    initState.auth.token = "a-jws-token-issued-by-the-backend";
-    initState.auth.hasValidToken = true;
-    const action = {
-      type: "auth/clearAuthSlice",
-    };
+    test("auth/clearAuthSlice", () => {
+      initStAuth = {
+        ...initStAuth,
+        token: "a-jws-token-issued-by-the-backend",
+        hasValidToken: true,
+      };
+      const action = {
+        type: "auth/clearAuthSlice",
+      };
 
-    const newState = rootReducer(initState, action);
+      const newSt: IStateAuth = authReducer(initStAuth, action);
 
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
+      expect(newSt).toEqual({
         requestStatus: "idle",
         requestError: null,
         token: null,
         hasValidToken: false,
         signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
+      });
     });
   });
 
@@ -798,12 +671,9 @@ describe("reducers", () => {
     () => {
       const initState: IState = {
         alerts: {
-          ids: ["id-17"],
+          ids: [MOCK_ALERT_17.id],
           entities: {
-            "id-17": {
-              id: "id-17",
-              message: "the-undertaken-action-is-illegitimate",
-            },
+            [MOCK_ALERT_17.id]: MOCK_ALERT_17,
           },
         },
         auth: {

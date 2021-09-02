@@ -8,8 +8,18 @@ import {
   RestRequest,
 } from "msw";
 
-import { IEntry, IPaginationLinks, IPaginationMeta } from "./types";
+import { IAlert, IEntry, IPaginationLinks, IPaginationMeta } from "./types";
 import { PER_PAGE_DEFAULT } from "./constants";
+
+export const MOCK_ALERT_17: IAlert = {
+  id: "id-17",
+  message: "the-undertaken-action-is-illegitimate",
+};
+
+export const MOCK_ALERT_34: IAlert = {
+  id: "id-34",
+  message: "once-again-the-undertaken-action-is-illegitimate",
+};
 
 export const profileMock = {
   id: 17,
