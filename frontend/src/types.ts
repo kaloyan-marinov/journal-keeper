@@ -2,6 +2,7 @@ export interface IAlert {
   id: string;
   message: string;
 }
+
 export interface IStateAlerts {
   ids: string[];
   entities: {
@@ -24,6 +25,7 @@ export interface IProfile {
   createdAt: string;
   updatedAt: string;
 }
+
 export interface IStateAuth {
   requestStatus: RequestStatus;
   requestError: string | null;
@@ -31,6 +33,7 @@ export interface IStateAuth {
   hasValidToken: boolean | null;
   signedInUserProfile: IProfile | null;
 }
+
 export interface IEntry {
   id: number;
   timestampInUTC: string;

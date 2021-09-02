@@ -405,11 +405,13 @@ describe("reducers", () => {
   });
 
   test("alerts/create", () => {
-    initState.alerts.ids = ["id-17"];
-    initState.alerts.entities = {
-      "id-17": {
-        id: "id-17",
-        message: "the-undertaken-action-is-illegitimate",
+    initState.alerts = {
+      ids: ["id-17"],
+      entities: {
+        "id-17": {
+          id: "id-17",
+          message: "the-undertaken-action-is-illegitimate",
+        },
       },
     };
     const action = {

@@ -1004,19 +1004,14 @@ export const entriesReducer = (
       };
 
     case ActionTypesDeleteEntry.FULFILLED: {
-      /*
-      TODO: before executing this merge request,
-            rename `entryId` to `idOfDeletedEntry`
-            (thus mimicking the naming in the VocabTreasury project)
-      */
-      const entryId: number = action.payload.entryId;
+      const idOfDeletedEntry: number = action.payload.entryId;
 
       const newIds: number[] = [...stateEntries.ids].filter(
-        (eId: number) => eId !== entryId
+        (eId: number) => eId !== idOfDeletedEntry
       );
 
       const newEntities: { [entryId: string]: IEntry } = { ...stateEntries.entities };
-      delete newEntities[entryId];
+      delete newEntities[idOfDeletedEntry];
 
       return {
         ...stateEntries,
