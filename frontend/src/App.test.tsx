@@ -107,13 +107,17 @@ describe("<App>", () => {
       </Provider>
     );
 
-    await waitFor(() => {
-      screen.getByText("Home");
-      screen.getByText("Sign In");
-      screen.getByText("Sign Up");
+    let element: HTMLElement;
 
-      screen.getByText("Welcome to JournalEntries!");
-    });
+    element = await screen.findByText("Home");
+    expect(element).toBeInTheDocument();
+    element = screen.getByText("Sign In");
+    expect(element).toBeInTheDocument();
+    element = screen.getByText("Sign Up");
+    expect(element).toBeInTheDocument();
+
+    element = screen.getByText("Welcome to JournalEntries!");
+    expect(element).toBeInTheDocument();
   });
 
   test("render after the user has signed in", async () => {
@@ -130,11 +134,14 @@ describe("<App>", () => {
     );
 
     // Assert.
-    await waitFor(() => {
-      screen.getByText("Home");
-      screen.getByText("JournalEntries");
-      screen.getByText("Sign Out");
-    });
+    let element: HTMLElement;
+
+    element = await screen.findByText("Sign Out");
+    expect(element).toBeInTheDocument();
+    element = screen.getByText("JournalEntries");
+    expect(element).toBeInTheDocument();
+    element = screen.getByText("Home");
+    expect(element).toBeInTheDocument();
   });
 
   test("after the user has signed in, the user clicks on 'Sign Out'", async () => {
@@ -149,19 +156,21 @@ describe("<App>", () => {
     );
 
     // Act.
-    await waitFor(() => {
-      const signOutAnchor: HTMLElement = screen.getByText("Sign Out");
-      fireEvent.click(signOutAnchor);
-    });
+    const signOutAnchor: HTMLElement = await screen.findByText("Sign Out");
+    fireEvent.click(signOutAnchor);
 
     // Assert.
-    await waitFor(() => {
-      screen.getByText("Home");
-      screen.getByText("Sign In");
-      screen.getByText("Sign Up");
+    let element: HTMLElement;
 
-      screen.getByText("SIGN-OUT SUCCESSFUL");
-    });
+    element = await screen.findByText("SIGN-OUT SUCCESSFUL");
+    expect(element).toBeInTheDocument();
+
+    element = screen.getByText("Home");
+    expect(element).toBeInTheDocument();
+    element = screen.getByText("Sign In");
+    expect(element).toBeInTheDocument();
+    element = screen.getByText("Sign Up");
+    expect(element).toBeInTheDocument();
   });
 
   test(
@@ -186,10 +195,8 @@ describe("<App>", () => {
       );
 
       // Act.
-      await waitFor(() => {
-        const signOutAnchor: HTMLElement = screen.getByText("Sign Out");
-        fireEvent.click(signOutAnchor);
-      });
+      const signOutAnchor: HTMLElement = await screen.findByText("Sign Out");
+      fireEvent.click(signOutAnchor);
 
       // Assert.
       expect(localStorage.getItem(JOURNAL_APP_TOKEN)).toEqual(null);
@@ -235,11 +242,17 @@ describe("<App>", () => {
       );
 
       // Assert.
-      await waitFor(() => {
-        screen.getByText("Home");
-        screen.getByText("Sign In");
-        screen.getByText("Sign Up");
-      });
+      let element: HTMLElement;
+
+      element = await screen.findByText("TO CONTINUE, PLEASE SIGN IN");
+      expect(element).toBeInTheDocument();
+
+      element = screen.getByText("Home");
+      expect(element).toBeInTheDocument();
+      element = screen.getByText("Sign In");
+      expect(element).toBeInTheDocument();
+      element = screen.getByText("Sign Up");
+      expect(element).toBeInTheDocument();
     }
   );
 
@@ -251,6 +264,8 @@ describe("<App>", () => {
       " 'Home', 'JournalEntries', and 'Sign Out'",
     async () => {
       // Arrange.
+      quasiServer.use(rest.get("/api/entries", mockFetchEntries));
+
       const realStore = createStore(rootReducer, initState, enhancer);
 
       // Act:
@@ -272,7 +287,7 @@ describe("<App>", () => {
       // - navigate to the /journal-entries URL,
       //   and mount the application's entire React tree
       history.push("/journal-entries");
-      const { getByText: getByTextFromJournalEntriesURL } = render(
+      render(
         <Provider store={realStore}>
           <Router history={history}>
             <App />
@@ -281,11 +296,14 @@ describe("<App>", () => {
       );
 
       // Assert.
-      await waitFor(() => {
-        getByTextFromJournalEntriesURL("Home");
-        getByTextFromJournalEntriesURL("Sign Out");
-        getByTextFromJournalEntriesURL("JournalEntries");
-      });
+      let element: HTMLElement;
+
+      element = await screen.findByText("Sign Out");
+      expect(element).toBeInTheDocument();
+      element = screen.getByText("JournalEntries");
+      expect(element).toBeInTheDocument();
+      element = screen.getByText("Home");
+      expect(element).toBeInTheDocument();
     }
   );
 
@@ -310,10 +328,10 @@ describe("<App>", () => {
       );
 
       // Assert.
-      await waitFor(() => {
-        const elements = screen.queryAllByText("Review JournalEntries!");
-        expect(elements.length).toEqual(0);
-      });
+      expect(history.location.pathname).toEqual("/sign-in");
+
+      const elements = screen.queryAllByText("Review JournalEntries!");
+      expect(elements.length).toEqual(0);
     }
   );
 });
@@ -648,9 +666,16 @@ describe(
         getByText("[mocked-response] Failed to create a new User resource");
         */
         // This causes the test to PASS:
+        /*
         await waitFor(() => {
           screen.getByText("[mocked-response] Failed to create a new User resource");
         });
+        */
+        // as does this:
+        const element: HTMLElement = await screen.findByText(
+          "[mocked-response] Failed to create a new User resource"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -691,9 +716,8 @@ describe(
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("REGISTRATION SUCCESSFUL");
-        });
+        const element: HTMLElement = await screen.findByText("REGISTRATION SUCCESSFUL");
+        expect(element).toBeInTheDocument();
       }
     );
   }
@@ -882,11 +906,10 @@ describe(
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText(
-            "[mocked response] Authenticaiton failed - incorrect email and/or password"
-          );
-        });
+        const element = await screen.findByText(
+          "[mocked response] Authenticaiton failed - incorrect email and/or password"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -923,9 +946,8 @@ describe(
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("SIGN-IN SUCCESSFUL");
-        });
+        const element: HTMLElement = await screen.findByText("SIGN-IN SUCCESSFUL");
+        expect(element).toBeInTheDocument();
 
         expect(history.location.pathname).toEqual("/");
       }
@@ -1057,12 +1079,14 @@ describe("<JournalEntries>", () => {
         );
 
         // Assert.
-        await waitFor(() => {
-          screen.getByRole("button");
-          screen.getByText(
-            "[FROM <JournalEntries>'S useEffect HOOK] PLEASE SIGN BACK IN"
-          );
-        });
+        let element: HTMLElement;
+
+        element = await screen.findByRole("button", { name: "Clear alert" });
+        expect(element).toBeInTheDocument();
+        element = screen.getByText(
+          "[FROM <JournalEntries>'S useEffect HOOK] PLEASE SIGN BACK IN"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -1101,12 +1125,11 @@ describe("<JournalEntries>", () => {
         );
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText(
-            "[mocked-response] Encountered an error," +
-              " which is not related to authentication"
-          );
-        });
+        const element: HTMLElement = await screen.findByText(
+          "[mocked-response] Encountered an error," +
+            " which is not related to authentication"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -1156,10 +1179,9 @@ describe("<JournalEntries>", () => {
 
         // Assert.
         let element: HTMLElement;
-        await waitFor(() => {
-          element = screen.getByText("mocked-content-of-entry-01");
-          expect(element).toBeInTheDocument();
-        });
+
+        element = await screen.findByText("mocked-content-of-entry-01");
+        expect(element).toBeInTheDocument();
 
         for (const i of [2, 3, 4, 5, 6, 7, 8, 9, 10]) {
           element = screen.getByText(
@@ -1469,9 +1491,10 @@ describe(
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("[mocked-response] Failed to create a new Entry resource");
-        });
+        const element: HTMLElement = await screen.findByText(
+          "[mocked-response] Failed to create a new Entry resource"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -1516,9 +1539,10 @@ describe(
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("[FROM <CreateEntry>'S handleSubmit] PLEASE SIGN BACK IN");
-        });
+        const element: HTMLElement = await screen.findByText(
+          "[FROM <CreateEntry>'S handleSubmit] PLEASE SIGN BACK IN"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -1559,9 +1583,10 @@ describe(
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("ENTRY CREATION SUCCESSFUL");
-        });
+        const element: HTMLElement = await screen.findByText(
+          "ENTRY CREATION SUCCESSFUL"
+        );
+        expect(element).toBeInTheDocument();
 
         expect(history.location.pathname).toEqual("/journal-entries");
       }
@@ -1745,11 +1770,10 @@ describe("<EditEntry>", () => {
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText(
-            "[mocked-response] Failed to edit the targeted Entry resource"
-          );
-        });
+        const element: HTMLElement = await screen.findByText(
+          "[mocked-response] Failed to edit the targeted Entry resource"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -1785,13 +1809,14 @@ describe("<EditEntry>", () => {
         );
 
         // Act.
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN");
-        });
+        const element: HTMLElement = await screen.findByText(
+          "[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -1815,13 +1840,14 @@ describe("<EditEntry>", () => {
         );
 
         // Act.
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("ENTRY EDITING SUCCESSFUL");
-        });
+        const element: HTMLElement = await screen.findByText(
+          "ENTRY EDITING SUCCESSFUL"
+        );
+        expect(element).toBeInTheDocument();
 
         expect(history.location.pathname).toEqual("/journal-entries");
       }
@@ -2010,19 +2036,19 @@ describe("<DeleteEntry>", () => {
         );
 
         // Act.
-        const buttonYes = screen.getByRole("button", { name: "Yes" });
+        const buttonYes: HTMLElement = screen.getByRole("button", { name: "Yes" });
         fireEvent.click(buttonYes);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("[FROM <DeleteEntry>'S handleClickYes] PLEASE SIGN BACK IN");
-        });
+        let element: HTMLElement = await screen.findByText(
+          "[FROM <DeleteEntry>'S handleClickYes] PLEASE SIGN BACK IN"
+        );
+        expect(element).toBeInTheDocument();
 
-        await waitFor(() => {
-          expect(history.location.pathname).toEqual("/sign-in");
+        expect(history.location.pathname).toEqual("/sign-in");
 
-          screen.getByText("Sign me in");
-        });
+        element = screen.getByText("Sign me in");
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -2057,15 +2083,14 @@ describe("<DeleteEntry>", () => {
         );
 
         // Act.
-        const buttonYes = screen.getByRole("button", { name: "Yes" });
+        const buttonYes: HTMLElement = screen.getByRole("button", { name: "Yes" });
         fireEvent.click(buttonYes);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText(
-            "[mocked-response] Encountered an error, which is not related to authentication"
-          );
-        });
+        const element: HTMLElement = await screen.findByText(
+          "[mocked-response] Encountered an error, which is not related to authentication"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -2088,25 +2113,16 @@ describe("<DeleteEntry>", () => {
           </Provider>
         );
 
-        const buttonYes = screen.getByRole("button", { name: "Yes" });
+        const buttonYes: HTMLElement = screen.getByRole("button", { name: "Yes" });
 
         // Act.
         fireEvent.click(buttonYes);
 
         // Assert.
-        await waitFor(() => {
-          /*
-          As soon as the Redux store is notified
-          that the targeted Entry resource has been successfully deleted,
-          the corresponding change of the Redux state
-          causes the UI to re-render <DeleteEntry>
-          - importantly, that re-rendering takes places
-            before the UI redirects the browser to /journal-entries
-          */
-          screen.getByText("Loading...");
-        });
-
-        screen.getByText("ENTRY DELETION SUCCESSFUL");
+        const element: HTMLElement = await screen.findByText(
+          "ENTRY DELETION SUCCESSFUL"
+        );
+        expect(element).toBeInTheDocument();
 
         expect(history.location.pathname).toEqual("/journal-entries");
       }

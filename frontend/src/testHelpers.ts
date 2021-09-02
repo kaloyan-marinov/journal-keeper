@@ -1,5 +1,12 @@
 import moment from "moment";
-import { rest } from "msw";
+import {
+  DefaultRequestBody,
+  RequestParams,
+  ResponseComposition,
+  rest,
+  RestContext,
+  RestRequest,
+} from "msw";
 
 import { IEntry, IPaginationLinks, IPaginationMeta } from "./types";
 import { PER_PAGE_DEFAULT } from "./constants";
@@ -66,7 +73,11 @@ export const MOCK_LINKS: IPaginationLinks = {
   last: `/api/entries?perPage=10&page=${MOCK_META.totalPages}`,
 };
 
-export const mockMultpleFailures = (req, res, ctx) => {
+export const mockMultpleFailures = (
+  req: RestRequest<DefaultRequestBody, RequestParams>,
+  res: ResponseComposition<any>,
+  ctx: RestContext
+) => {
   return res(
     ctx.status(401),
     ctx.json({
@@ -75,11 +86,15 @@ export const mockMultpleFailures = (req, res, ctx) => {
   );
 };
 
-export const mockFetchEntries = (req, res, ctx) => {
+export const mockFetchEntries = (
+  req: RestRequest<DefaultRequestBody, RequestParams>,
+  res: ResponseComposition<any>,
+  ctx: RestContext
+) => {
   const totalItems: number = MOCK_ENTRIES.length;
   const perPage: number = PER_PAGE_DEFAULT;
   const totalPages: number = Math.ceil(totalItems / perPage);
-  const page: number = parseInt(req.url.searchParams.get("page") || 1);
+  const page: number = parseInt(req.url.searchParams.get("page") || "1");
 
   const _meta: IPaginationMeta = {
     totalItems,
