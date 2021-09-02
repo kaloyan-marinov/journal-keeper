@@ -21,13 +21,18 @@ export const MOCK_ALERT_34: IAlert = {
   message: "once-again-the-undertaken-action-is-illegitimate",
 };
 
-export const profileMock = {
-  id: 17,
-  username: "[mocked] jd",
-  name: "[mocked] John Doe",
-  email: "[mocked] john.doe@protonmail.com",
-  createdAt: "[mocked] 2021-05-23T11:10:17.000Z",
-  updatedAt: "[mocked] 2021-05-23T11:10:34.000Z",
+export const MOCK_USER_1 = {
+  id: 1,
+  username: "mocked-jd",
+};
+
+export const MOCK_PROFILE_1 = {
+  id: MOCK_USER_1.id,
+  username: MOCK_USER_1.username,
+  name: "mocked-John Doe",
+  email: "mocked-john.doe@protonmail.com",
+  createdAt: "mocked-2021-05-23T11:10:17.000Z",
+  updatedAt: "mocked-2021-05-23T11:10:34.000Z",
 };
 
 export const MOCK_ENTRIES: IEntry[] = Array.from({ length: 50 }).map((_, index) => {
@@ -139,13 +144,7 @@ export const mockFetchEntries = (
 /* Describe what requests should be mocked. */
 export const requestHandlersToMock = [
   rest.post("/api/users", (req, res, ctx) => {
-    return res(
-      ctx.status(201),
-      ctx.json({
-        id: 17,
-        username: "mocked-request-jd",
-      })
-    );
+    return res(ctx.status(201), ctx.json(MOCK_USER_1));
   }),
 
   rest.post("/api/tokens", (req, res, ctx) => {
@@ -158,7 +157,7 @@ export const requestHandlersToMock = [
   }),
 
   rest.get("/api/user-profile", (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(profileMock));
+    return res(ctx.status(200), ctx.json(MOCK_PROFILE_1));
   }),
 
   rest.get("/api/entries", mockMultpleFailures),

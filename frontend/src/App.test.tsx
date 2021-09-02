@@ -40,7 +40,7 @@ import {
   MOCK_ENTRY_10_LOCAL_TIME,
   MOCK_LINKS,
   MOCK_META,
-  profileMock,
+  MOCK_PROFILE_1,
   requestHandlersToMock,
 } from "./testHelpers";
 
@@ -741,7 +741,7 @@ describe("<SignUp> + <Home>", () => {
           ...initialStateAuth,
           token,
           hasValidToken: true,
-          signedInUserProfile: profileMock,
+          signedInUserProfile: MOCK_PROFILE_1,
         },
         entries: {
           ...initialStateEntries,
@@ -769,7 +769,7 @@ describe("<SignUp> + <Home>", () => {
       );
 
       // Assert.
-      screen.getByText("Hello, [mocked] John Doe!");
+      screen.getByText("Hello, mocked-John Doe!");
     }
   );
 });
@@ -991,7 +991,7 @@ describe("<Home>", () => {
       },
       auth: {
         ...initialStateAuth,
-        signedInUserProfile: profileMock,
+        signedInUserProfile: MOCK_PROFILE_1,
       },
       entries: {
         ...initialStateEntries,
@@ -1007,7 +1007,7 @@ describe("<Home>", () => {
     );
 
     // Assert.
-    screen.getByText("Hello, [mocked] John Doe!");
+    screen.getByText("Hello, mocked-John Doe!");
   });
 });
 

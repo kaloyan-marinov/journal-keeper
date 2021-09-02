@@ -35,7 +35,7 @@ import {
   MOCK_ENTRY_20_LOCAL_TIME,
   MOCK_LINKS,
   MOCK_META,
-  profileMock,
+  MOCK_PROFILE_1,
   requestHandlersToMock,
 } from "./testHelpers";
 import {
@@ -628,7 +628,7 @@ describe("reducers", () => {
       const action = {
         type: "auth/fetchProfile/fulfilled",
         payload: {
-          profile: profileMock,
+          profile: MOCK_PROFILE_1,
         },
       };
 
@@ -639,7 +639,7 @@ describe("reducers", () => {
         requestError: null,
         token: "a-jws-token-issued-by-the-backend",
         hasValidToken: true,
-        signedInUserProfile: profileMock,
+        signedInUserProfile: MOCK_PROFILE_1,
       });
     });
 
@@ -1360,7 +1360,7 @@ describe(
           {
             type: "auth/fetchProfile/fulfilled",
             payload: {
-              profile: profileMock,
+              profile: MOCK_PROFILE_1,
             },
           },
         ]);
