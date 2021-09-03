@@ -47,16 +47,16 @@ import { rootReducer, store } from "./store";
 
 /* Create an MSW "request-interception layer". */
 const requestInterceptionLayer = [
-  rest.post("/api/users", requestHandlers.mockCreateUser),
+  rest.post("/api/users", requestHandlers.mockMultipleFailures),
 
-  rest.post("/api/tokens", requestHandlers.mockIssueJWSToken),
+  rest.post("/api/tokens", requestHandlers.mockMultipleFailures),
 
-  rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
+  rest.get("/api/user-profile", requestHandlers.mockMultipleFailures),
 
   rest.get("/api/entries", requestHandlers.mockMultipleFailures),
-  rest.post("/api/entries", requestHandlers.mockCreateEntry),
-  rest.put("/api/entries/:id", requestHandlers.mockEditEntry),
-  rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry),
+  rest.post("/api/entries", requestHandlers.mockMultipleFailures),
+  rest.put("/api/entries/:id", requestHandlers.mockMultipleFailures),
+  rest.delete("/api/entries/:id", requestHandlers.mockMultipleFailures),
 ];
 
 const quasiServer = setupServer(...requestInterceptionLayer);
@@ -134,6 +134,10 @@ describe("<App>", () => {
 
   test("render after the user has signed in", async () => {
     // Arrange.
+    quasiServer.use(
+      rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
+    );
+
     const realStore = createStore(rootReducer, initState, enhancer);
 
     // Act.
@@ -158,7 +162,12 @@ describe("<App>", () => {
 
   test("after the user has signed in, the user clicks on 'Sign Out'", async () => {
     // Arrange.
+    quasiServer.use(
+      rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
+    );
+
     const realStore = createStore(rootReducer, initState, enhancer);
+
     render(
       <Provider store={realStore}>
         <Router history={history}>
@@ -276,7 +285,10 @@ describe("<App>", () => {
       " 'Home', 'JournalEntries', and 'Sign Out'",
     async () => {
       // Arrange.
-      quasiServer.use(rest.get("/api/entries", requestHandlers.mockFetchEntries));
+      quasiServer.use(
+        rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
+        rest.get("/api/entries", requestHandlers.mockFetchEntries)
+      );
 
       const realStore = createStore(rootReducer, initState, enhancer);
 
@@ -697,6 +709,8 @@ describe(
         " the form submission was accepted as valid and processed",
       async () => {
         // Arrange.
+        quasiServer.use(rest.post("/api/users", requestHandlers.mockCreateUser));
+
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
 
@@ -931,6 +945,8 @@ describe(
         " the form submission was accepted as valid and processed",
       async () => {
         // Arrange.
+        quasiServer.use(rest.post("/api/tokens", requestHandlers.mockIssueJWSToken));
+
         const history = createMemoryHistory();
         history.push("/sign-in");
 
@@ -1564,6 +1580,8 @@ describe(
         " the form submission was accepted as valid and processed",
       async () => {
         // Arrange.
+        quasiServer.use(rest.post("/api/entries", requestHandlers.mockCreateEntry));
+
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
 
@@ -1838,6 +1856,8 @@ describe("<EditEntry>", () => {
         " the form submission was accepted as valid and processed",
       async () => {
         // Arrange.
+        quasiServer.use(rest.put("/api/entries/:id", requestHandlers.mockEditEntry));
+
         render(
           <Provider store={realStore}>
             <Router history={history}>
@@ -2112,6 +2132,10 @@ describe("<DeleteEntry>", () => {
         " the DELETE request was accepted as valid and processed",
       async () => {
         // Arrange.
+        quasiServer.use(
+          rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry)
+        );
+
         render(
           <Provider store={realStore}>
             <Router history={history}>
