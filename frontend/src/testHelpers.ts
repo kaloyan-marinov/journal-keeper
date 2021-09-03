@@ -3,7 +3,6 @@ import {
   DefaultRequestBody,
   RequestParams,
   ResponseComposition,
-  rest,
   RestContext,
   RestRequest,
 } from "msw";
@@ -107,7 +106,7 @@ const mockCreateUser = (
   res: ResponseComposition<any>,
   ctx: RestContext
 ) => {
-  return res(ctx.status(201), ctx.json(MOCK_USER_1));
+  return res.once(ctx.status(201), ctx.json(MOCK_USER_1));
 };
 
 const mockIssueJWSToken = (
@@ -115,7 +114,7 @@ const mockIssueJWSToken = (
   res: ResponseComposition<any>,
   ctx: RestContext
 ) => {
-  return res(
+  return res.once(
     ctx.status(200),
     ctx.json({
       token: "mocked-json-web-signature-token",
@@ -128,7 +127,7 @@ const mockFetchUserProfile = (
   res: ResponseComposition<any>,
   ctx: RestContext
 ) => {
-  return res(ctx.status(200), ctx.json(MOCK_PROFILE_1));
+  return res.once(ctx.status(200), ctx.json(MOCK_PROFILE_1));
 };
 
 const mockFetchEntries = (
@@ -176,7 +175,7 @@ const mockCreateEntry = (
   res: ResponseComposition<any>,
   ctx: RestContext
 ) => {
-  return res(ctx.status(201), ctx.json(MOCK_ENTRY_10));
+  return res.once(ctx.status(201), ctx.json(MOCK_ENTRY_10));
 };
 
 const mockEditEntry = (
@@ -189,7 +188,7 @@ const mockEditEntry = (
 
   const editedEntry = entryId !== MOCK_ENTRY_10.id ? MOCK_ENTRY_10 : MOCK_ENTRY_20;
 
-  return res(
+  return res.once(
     ctx.status(200),
     ctx.json({
       ...editedEntry,
@@ -203,7 +202,7 @@ const mockDeleteEntry = (
   res: ResponseComposition<any>,
   ctx: RestContext
 ) => {
-  return res(ctx.status(204));
+  return res.once(ctx.status(204));
 };
 
 export const requestHandlers = {
