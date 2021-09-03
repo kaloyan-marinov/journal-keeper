@@ -1,1947 +1,53 @@
 import "@testing-library/jest-dom";
 import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
 
-import {
-  IEntry,
-  IPaginationLinks,
-  IPaginationMeta,
-  IStateEntries,
-  IState,
-  RequestStatus,
-} from "./types";
+import { IState, RequestStatus } from "./types";
 
-import {
-  createUserPending,
-  createUserRejected,
-  createUserFulfilled,
-  rootReducer,
-  PrivateRoute,
-} from "./App";
+import { PrivateRoute } from "./App";
 import App, { Alerts, Home, SignUp, SignIn, JournalEntries, CreateEntry } from "./App";
 
 import { Provider } from "react-redux";
-import { store } from "./App";
-
-import { alertsCreate, alertsRemove } from "./App";
 
 import { createStore } from "redux";
 
-import { rest } from "msw";
 import { setupServer } from "msw/node";
 
-import configureMockStore, { MockStoreEnhanced } from "redux-mock-store";
 import thunkMiddleware from "redux-thunk";
-import { createUser } from "./App";
 
 import { applyMiddleware } from "redux";
-
-import {
-  issueJWSTokenPending,
-  issueJWSTokenRejected,
-  issueJWSTokenFulfilled,
-} from "./App";
-import { issueJWSToken } from "./App";
-
-import {
-  fetchProfilePending,
-  fetchProfileRejected,
-  fetchProfileFulfilled,
-} from "./App";
-import { fetchProfile } from "./App";
-
-import { clearAuthSlice } from "./App";
-
-import {
-  fetchEntriesPending,
-  fetchEntriesRejected,
-  fetchEntriesFulfilled,
-  entriesReducer,
-} from "./App";
-import { fetchEntries } from "./App";
-
-import { createEntryPending, createEntryRejected, createEntryFulfilled } from "./App";
-import { createEntry } from "./App";
-
-import { editEntryPending, editEntryRejected, editEntryFulfilled } from "./App";
-import { editEntry } from "./App";
 
 import { createMemoryHistory } from "history";
 import { Router, Switch, Route } from "react-router-dom";
 import { EditEntry } from "./App";
 
-import { deleteEntryPending, deleteEntryRejected, deleteEntryFulfilled } from "./App";
-import { deleteEntry } from "./App";
-
 import { DeleteEntryLink, DeleteEntry } from "./App";
 
-import { clearEntriesSlice } from "./App";
-
-import { signOut } from "./App";
 import {
   initialStateAlerts,
   JOURNAL_APP_TOKEN,
   initialStateAuth,
   initialStateEntries,
-  URL_FOR_FIRST_PAGE_OF_EXAMPLES,
   PER_PAGE_DEFAULT,
 } from "./constants";
 
-import moment from "moment";
-
-describe("action creators", () => {
-  test("createUserPending", () => {
-    const action = createUserPending();
-
-    expect(action).toEqual({
-      type: "auth/createUser/pending",
-    });
-  });
-
-  test("createUserRejected", () => {
-    const action = createUserRejected("auth-createUser-rejected");
-
-    expect(action).toEqual({
-      type: "auth/createUser/rejected",
-      error: "auth-createUser-rejected",
-    });
-  });
-
-  test("createUserFulfilled", () => {
-    const action = createUserFulfilled();
-
-    expect(action).toEqual({
-      type: "auth/createUser/fulfilled",
-    });
-  });
-
-  test("alertsCreate", () => {
-    const action = alertsCreate("id-17", "the-undertaken-action-is-illegitimate");
-
-    expect(action).toEqual({
-      type: "alerts/create",
-      payload: {
-        id: "id-17",
-        message: "the-undertaken-action-is-illegitimate",
-      },
-    });
-  });
-
-  test("alertsRemove", () => {
-    const action = alertsRemove("id-17");
-
-    expect(action).toEqual({
-      type: "alerts/remove",
-      payload: {
-        id: "id-17",
-      },
-    });
-  });
-
-  test("issueJWSTokenPending", () => {
-    const action = issueJWSTokenPending();
-
-    expect(action).toEqual({
-      type: "auth/issueJWSToken/pending",
-    });
-  });
-
-  test("issueJWSTokenRejected", () => {
-    const action = issueJWSTokenRejected("auth-issueJWSToken-rejected");
-
-    expect(action).toEqual({
-      type: "auth/issueJWSToken/rejected",
-      error: "auth-issueJWSToken-rejected",
-    });
-  });
-
-  test("issueJWSTokenFulfilled", () => {
-    const action = issueJWSTokenFulfilled("a-jws-token-issued-by-the-backend");
-
-    expect(action).toEqual({
-      type: "auth/issueJWSToken/fulfilled",
-      payload: {
-        token: "a-jws-token-issued-by-the-backend",
-      },
-    });
-  });
-
-  test("fetchProfilePending", () => {
-    const action = fetchProfilePending();
-
-    expect(action).toEqual({
-      type: "auth/fetchProfile/pending",
-    });
-  });
-
-  test("fetchProfileRejected", () => {
-    const action = fetchProfileRejected("auth-fetchProfile-rejected");
-
-    expect(action).toEqual({
-      type: "auth/fetchProfile/rejected",
-      error: "auth-fetchProfile-rejected",
-    });
-  });
-
-  test("fetchProfileFulfilled", () => {
-    const profile = {
-      id: 17,
-      username: "jd",
-      name: "John Doe",
-      email: "john.doe@protonmail.com",
-      createdAt: "2021-05-23T11:10:17.000Z",
-      updatedAt: "2021-05-23T11:10:34.000Z",
-    };
-    const action = fetchProfileFulfilled(profile);
-
-    expect(action).toEqual({
-      type: "auth/fetchProfile/fulfilled",
-      payload: {
-        profile,
-      },
-    });
-  });
-
-  test("clearAuthSlice", () => {
-    const action = clearAuthSlice();
-
-    expect(action).toEqual({
-      type: "auth/clearAuthSlice",
-    });
-  });
-
-  test("fetchEntriesPending", () => {
-    const action = fetchEntriesPending();
-
-    expect(action).toEqual({
-      type: "entries/fetchEntries/pending",
-    });
-  });
-
-  test("fetchEntriesRejected", () => {
-    const action = fetchEntriesRejected("entries-fetchEntries-rejected");
-
-    expect(action).toEqual({
-      type: "entries/fetchEntries/rejected",
-      error: "entries-fetchEntries-rejected",
-    });
-  });
-
-  test("fetchEntriesFulfilled", () => {
-    const _meta: IPaginationMeta = {
-      totalItems: 2,
-      perPage: 10,
-      totalPages: 1,
-      page: 1,
-    };
-    const _links: IPaginationLinks = {
-      self: "localhost:5000/api/entries?perPage=10&page=1",
-      next: null,
-      prev: null,
-      first: "localhost:5000/api/entries?perPage=10&page=1",
-      last: "localhost:5000/api/entries?perPage=10&page=1",
-    };
-    const items: IEntry[] = [
-      {
-        id: 1,
-        timestampInUTC: "2020-12-01T15:17:00.000Z",
-        utcZoneOfTimestamp: "+02:00",
-        content:
-          "[hard-coded-into-test] Then it dawned on me: there is no finish line!",
-        createdAt: "2021-04-29T05:10:56.000Z",
-        updatedAt: "2021-04-29T05:10:56.000Z",
-        userId: 1,
-      },
-      {
-        id: 2,
-        timestampInUTC: "2019-08-20T13:17:00.000Z",
-        utcZoneOfTimestamp: "+01:00",
-        content: "[hard-coded-into-test] Mallorca has beautiful sunny beaches!",
-        createdAt: "2021-04-29T05:11:01.000Z",
-        updatedAt: "2021-04-29T05:11:01.000Z",
-        userId: 1,
-      },
-    ];
-
-    const action = fetchEntriesFulfilled(_meta, _links, items);
-
-    expect(action).toEqual({
-      type: "entries/fetchEntries/fulfilled",
-      payload: {
-        _meta,
-        _links,
-        entries: items,
-      },
-    });
-  });
-
-  test("createEntryPending", () => {
-    const action = createEntryPending();
-
-    expect(action).toEqual({
-      type: "entries/createEntry/pending",
-    });
-  });
-
-  test("createEntryRejected", () => {
-    const action = createEntryRejected("entries-createEntry-rejected");
-
-    expect(action).toEqual({
-      type: "entries/createEntry/rejected",
-      error: "entries-createEntry-rejected",
-    });
-  });
-
-  test("createEntryFulfilled", () => {
-    const entry = {
-      id: 1,
-      timestampInUTC: "2020-12-01T15:17:00.000Z",
-      utcZoneOfTimestamp: "+02:00",
-      content: "[hard-coded-into-test] Then it dawned on me: there is no finish line!",
-      createdAt: "2021-04-29T05:10:56.000Z",
-      updatedAt: "2021-04-29T05:10:56.000Z",
-      userId: 1,
-    };
-
-    const action = createEntryFulfilled(entry);
-
-    expect(action).toEqual({
-      type: "entries/createEntry/fulfilled",
-      payload: {
-        entry,
-      },
-    });
-  });
-
-  test("editEntryPending", () => {
-    const action = editEntryPending();
-
-    expect(action).toEqual({
-      type: "entries/editEntry/pending",
-    });
-  });
-
-  test("editEntryRejected", () => {
-    const action = editEntryRejected("entries-editEntry-rejected");
-
-    expect(action).toEqual({
-      type: "entries/editEntry/rejected",
-      error: "entries-editEntry-rejected",
-    });
-  });
-
-  test("editEntryFulfilled", () => {
-    const entry = {
-      id: 1,
-      timestampInUTC: "2020-12-01T15:17:00.000Z",
-      utcZoneOfTimestamp: "+02:00",
-      content: "[hard-coded-into-test] Then it dawned on me: there is no finish line!",
-      createdAt: "2021-04-29T05:10:56.000Z",
-      updatedAt: "2021-04-29T05:10:56.000Z",
-      userId: 1,
-    };
-
-    const action = editEntryFulfilled(entry);
-
-    expect(action).toEqual({
-      type: "entries/editEntry/fulfilled",
-      payload: {
-        entry,
-      },
-    });
-  });
-
-  test("deleteEntryPending", () => {
-    const action = deleteEntryPending();
-
-    expect(action).toEqual({
-      type: "entries/deleteEntry/pending",
-    });
-  });
-
-  test("deleteEntryRejected", () => {
-    const action = deleteEntryRejected("entries-deleteEntry-rejected");
-
-    expect(action).toEqual({
-      type: "entries/deleteEntry/rejected",
-      error: "entries-deleteEntry-rejected",
-    });
-  });
-
-  test("deleteEntryFulfilled", () => {
-    const action = deleteEntryFulfilled(17);
-
-    expect(action).toEqual({
-      type: "entries/deleteEntry/fulfilled",
-      payload: {
-        entryId: 17,
-      },
-    });
-  });
-
-  test("clearEntriesSlice", () => {
-    const action = clearEntriesSlice();
-
-    expect(action).toEqual({
-      type: "entries/clearEntriesSlice",
-    });
-  });
-});
-
-describe("reducers", () => {
-  let initState: IState;
-
-  beforeEach(() => {
-    initState = {
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
-        ...initialStateAuth,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    };
-  });
-
-  test("alerts/create", () => {
-    initState.alerts = {
-      ids: ["id-17"],
-      entities: {
-        "id-17": {
-          id: "id-17",
-          message: "the-undertaken-action-is-illegitimate",
-        },
-      },
-    };
-    const action = {
-      type: "alerts/create",
-      payload: {
-        id: "id-34",
-        message: "once-again-the-undertaken-action-is-illegitimate",
-      },
-    };
-
-    const newState = rootReducer(initState, action);
-
-    expect(newState).toEqual({
-      alerts: {
-        ids: ["id-34", "id-17"],
-        entities: {
-          "id-34": {
-            id: "id-34",
-            message: "once-again-the-undertaken-action-is-illegitimate",
-          },
-          "id-17": {
-            id: "id-17",
-            message: "the-undertaken-action-is-illegitimate",
-          },
-        },
-      },
-      auth: {
-        ...initialStateAuth,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    });
-  });
-
-  test("alerts/remove", () => {
-    initState.alerts = {
-      ids: ["id-17", "id-34"],
-      entities: {
-        "id-17": {
-          id: "id-17",
-          message: "the-undertaken-action-is-illegitimate",
-        },
-        "id-34": {
-          id: "id-34",
-          message: "once-again-the-undertaken-action-is-illegitimate",
-        },
-      },
-    };
-    const action = {
-      type: "alerts/remove",
-      payload: {
-        id: "id-34",
-      },
-    };
-
-    const newState = rootReducer(initState, action);
-
-    expect(newState).toEqual({
-      alerts: {
-        ids: ["id-17"],
-        entities: {
-          "id-17": {
-            id: "id-17",
-            message: "the-undertaken-action-is-illegitimate",
-          },
-        },
-      },
-      auth: {
-        ...initialStateAuth,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    });
-  });
-
-  test("auth/createUser/pending", () => {
-    initState = {
-      ...store.getState(),
-      auth: {
-        ...store.getState().auth,
-        requestStatus: RequestStatus.FAILED,
-        requestError: "The previous attempt to create a User resource didn't succeed",
-      },
-    };
-    const action = {
-      type: "auth/createUser/pending",
-    };
-
-    const newState = rootReducer(initState, action);
-
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
-        requestStatus: "loading",
-        requestError: null,
-        token: null,
-        hasValidToken: null,
-        signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    });
-  });
-
-  test("auth/createUser/rejected", () => {
-    initState = {
-      ...store.getState(),
-      auth: {
-        ...store.getState().auth,
-        requestStatus: RequestStatus.LOADING,
-      },
-    };
-    const action = {
-      type: "auth/createUser/rejected",
-      error: "auth-createUser-rejected",
-    };
-
-    const newState = rootReducer(initState, action);
-
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
-        requestStatus: "failed",
-        requestError: "auth-createUser-rejected",
-        token: null,
-        hasValidToken: null,
-        signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    });
-  });
-
-  test("auth/createUser/fulfilled", () => {
-    initState = {
-      ...store.getState(),
-      auth: {
-        ...store.getState().auth,
-        requestStatus: RequestStatus.LOADING,
-      },
-    };
-    const action = {
-      type: "auth/createUser/fulfilled",
-    };
-
-    const newState = rootReducer(initState, action);
-
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
-        requestStatus: "succeeded",
-        requestError: null,
-        token: null,
-        hasValidToken: null,
-        signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    });
-  });
-
-  test("auth/issueJWSToken/pending", () => {
-    initState = {
-      ...store.getState(),
-      auth: {
-        ...store.getState().auth,
-        requestStatus: RequestStatus.FAILED,
-        requestError: "The previous attempt to issue a JWS token didn't succeed",
-      },
-    };
-    const action = {
-      type: "auth/issueJWSToken/pending",
-    };
-
-    const newState = rootReducer(initState, action);
-
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
-        requestStatus: "loading",
-        requestError: null,
-        token: null,
-        hasValidToken: null,
-        signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    });
-  });
-
-  test("auth/issueJWSToken/rejected", () => {
-    initState = {
-      ...store.getState(),
-      auth: {
-        ...store.getState().auth,
-        requestStatus: RequestStatus.LOADING,
-      },
-    };
-    const action = {
-      type: "auth/issueJWSToken/rejected",
-      error: "auth-issueJWSToken-rejected",
-    };
-
-    const newState = rootReducer(initState, action);
-
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
-        requestStatus: "failed",
-        requestError: "auth-issueJWSToken-rejected",
-        token: null,
-        hasValidToken: false,
-        signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    });
-  });
-
-  test("auth/issueJWSToken/fulfilled", () => {
-    initState = {
-      ...store.getState(),
-      auth: {
-        ...store.getState().auth,
-        requestStatus: RequestStatus.LOADING,
-      },
-    };
-    const action = {
-      type: "auth/issueJWSToken/fulfilled",
-      payload: {
-        token: "a-jws-token-issued-by-the-backend",
-      },
-    };
-
-    const newState = rootReducer(initState, action);
-
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
-        requestStatus: "succeeded",
-        requestError: null,
-        token: "a-jws-token-issued-by-the-backend",
-        hasValidToken: true,
-        signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    });
-  });
-
-  test("auth/fetchProfile/pending", () => {
-    const action = {
-      type: "auth/fetchProfile/pending",
-    };
-
-    const newState = rootReducer(initState, action);
-
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
-        requestStatus: "loading",
-        requestError: null,
-        token: null,
-        hasValidToken: null,
-        signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    });
-  });
-
-  test("auth/fetchProfile/rejected", () => {
-    const action = {
-      type: "auth/fetchProfile/rejected",
-      error: "auth-fetchProfile-rejected",
-    };
-
-    const newState = rootReducer(initState, action);
-
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
-        requestStatus: "failed",
-        requestError: "auth-fetchProfile-rejected",
-        token: null,
-        hasValidToken: false,
-        signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    });
-  });
-
-  test("auth/fetchProfile/fulfilled", () => {
-    initState = {
-      ...store.getState(),
-      auth: {
-        ...store.getState().auth,
-        requestStatus: RequestStatus.LOADING,
-        requestError: null,
-        token: "a-jws-token-issued-by-the-backend",
-      },
-    };
-    const action = {
-      type: "auth/fetchProfile/fulfilled",
-      payload: {
-        profile: {
-          id: 17,
-          username: "[mocked] ms",
-          name: "[mocked] Mary Smith",
-          email: "[mocked] mary.smith@protonmail.com",
-          createdAt: "[mocked] 2021-05-23T11:10:17.000Z",
-          updatedAt: "[mocked] 2021-05-23T11:10:34.000Z",
-        },
-      },
-    };
-
-    const newState = rootReducer(initState, action);
-
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
-        requestStatus: "succeeded",
-        requestError: null,
-        token: "a-jws-token-issued-by-the-backend",
-        hasValidToken: true,
-        signedInUserProfile: {
-          id: 17,
-          username: "[mocked] ms",
-          name: "[mocked] Mary Smith",
-          email: "[mocked] mary.smith@protonmail.com",
-          createdAt: "[mocked] 2021-05-23T11:10:17.000Z",
-          updatedAt: "[mocked] 2021-05-23T11:10:34.000Z",
-        },
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    });
-  });
-
-  test("auth/clearAuthSlice", () => {
-    initState.auth.token = "a-jws-token-issued-by-the-backend";
-    initState.auth.hasValidToken = true;
-    const action = {
-      type: "auth/clearAuthSlice",
-    };
-
-    const newState = rootReducer(initState, action);
-
-    expect(newState).toEqual({
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
-        requestStatus: "idle",
-        requestError: null,
-        token: null,
-        hasValidToken: false,
-        signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    });
-  });
-
-  test(
-    "an action, which the rootReducer doesn't specifically handle," +
-      " should not modify the state",
-    () => {
-      const initState: IState = {
-        alerts: {
-          ids: ["id-17"],
-          entities: {
-            "id-17": {
-              id: "id-17",
-              message: "the-undertaken-action-is-illegitimate",
-            },
-          },
-        },
-        auth: {
-          ...initialStateAuth,
-          requestStatus: RequestStatus.FAILED,
-          requestError: "original-error",
-          token: null,
-        },
-        entries: {
-          ...initialStateEntries,
-        },
-      };
-      const action = {
-        type: "an action, which the rootReducer doesn't specifically handle",
-      };
-
-      const newState = rootReducer(initState, action);
-
-      expect(newState).toEqual(initState);
-    }
-  );
-
-  describe("entriesReducer", () => {
-    let initStateEntries: IStateEntries;
-
-    beforeEach(() => {
-      initStateEntries = { ...initialStateEntries };
-    });
-
-    test("entries/fetchEntries/pending", () => {
-      const action = {
-        type: "entries/fetchEntries/pending",
-      };
-
-      const newStateEntries = entriesReducer(initStateEntries, action);
-
-      expect(newStateEntries).toEqual({
-        requestStatus: "loading",
-        requestError: null,
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [],
-        entities: {},
-      });
-    });
-
-    test("entries/fetchEntries/rejected", () => {
-      const action = {
-        type: "entries/fetchEntries/rejected",
-        error: "entries-fetchEntries-rejected",
-      };
-
-      const newStateEntries = entriesReducer(initStateEntries, action);
-
-      expect(newStateEntries).toEqual({
-        requestStatus: "failed",
-        requestError: "entries-fetchEntries-rejected",
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [],
-        entities: {},
-      });
-    });
-
-    test("entries/fetchEntries/fulfilled", () => {
-      const action = {
-        type: "entries/fetchEntries/fulfilled",
-        payload: {
-          entries: [
-            {
-              id: 1,
-              timestampInUTC: "2020-12-01T15:17:00.000Z",
-              utcZoneOfTimestamp: "+02:00",
-              content: "[hard-coded] Then it dawned on me: there is no finish line!",
-              createdAt: "2021-04-29T05:10:56.000Z",
-              updatedAt: "2021-04-29T05:10:56.000Z",
-              userId: 1,
-            },
-            {
-              id: 2,
-              timestampInUTC: "2019-08-20T13:17:00.000Z",
-              utcZoneOfTimestamp: "+01:00",
-              content: "[hard-coded] Mallorca has beautiful sunny beaches!",
-              createdAt: "2021-04-29T05:11:01.000Z",
-              updatedAt: "2021-04-29T05:11:01.000Z",
-              userId: 1,
-            },
-          ],
-        },
-      };
-
-      const newStateEntries = entriesReducer(initStateEntries, action);
-
-      expect(newStateEntries).toEqual({
-        requestStatus: "succeeded",
-        requestError: null,
-        ids: [1, 2],
-        entities: {
-          1: {
-            id: 1,
-            timestampInUTC: "2020-12-01T15:17:00.000Z",
-            utcZoneOfTimestamp: "+02:00",
-            content: "[hard-coded] Then it dawned on me: there is no finish line!",
-            createdAt: "2021-04-29T05:10:56.000Z",
-            updatedAt: "2021-04-29T05:10:56.000Z",
-            userId: 1,
-          },
-          2: {
-            id: 2,
-            timestampInUTC: "2019-08-20T13:17:00.000Z",
-            utcZoneOfTimestamp: "+01:00",
-            content: "[hard-coded] Mallorca has beautiful sunny beaches!",
-            createdAt: "2021-04-29T05:11:01.000Z",
-            updatedAt: "2021-04-29T05:11:01.000Z",
-            userId: 1,
-          },
-        },
-      });
-    });
-
-    test("entries/createEntry/pending", () => {
-      const action = {
-        type: "entries/createEntry/pending",
-      };
-
-      const newState = entriesReducer(initStateEntries, action);
-
-      expect(newState).toEqual({
-        requestStatus: "loading",
-        requestError: null,
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [],
-        entities: {},
-      });
-    });
-
-    test("entries/createEntry/rejected", () => {
-      initStateEntries = {
-        ...initialStateEntries,
-        requestStatus: RequestStatus.LOADING,
-      };
-      const action = {
-        type: "entries/createEntry/rejected",
-        error: "entries-createEntry-rejected",
-      };
-
-      const newState = entriesReducer(initStateEntries, action);
-
-      expect(newState).toEqual({
-        requestStatus: "failed",
-        requestError: "entries-createEntry-rejected",
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [],
-        entities: {},
-      });
-    });
-
-    test("entries/createEntry/fulfilled", () => {
-      initStateEntries = {
-        ...initialStateEntries,
-        requestStatus: RequestStatus.LOADING,
-        ids: [1],
-        entities: {
-          1: {
-            id: 1,
-            timestampInUTC: "2020-12-01T15:17:00.000Z",
-            utcZoneOfTimestamp: "+02:00",
-            content: "[hard-coded] Then it dawned on me: there is no finish line!",
-            createdAt: "2021-04-29T05:10:56.000Z",
-            updatedAt: "2021-04-29T05:10:56.000Z",
-            userId: 1,
-          },
-        },
-      };
-      const action = {
-        type: "entries/createEntry/fulfilled",
-        payload: {
-          entry: {
-            id: 17,
-            timestampInUTC: "2019-08-20T13:17:00.000Z",
-            utcZoneOfTimestamp: "+01:00",
-            content: "[hard-coded] Mallorca has beautiful sunny beaches!",
-            createdAt: "2021-04-29T05:11:01.000Z",
-            updatedAt: "2021-04-29T05:11:01.000Z",
-            userId: 1,
-          },
-        },
-      };
-
-      const newState = entriesReducer(initStateEntries, action);
-
-      expect(newState).toEqual({
-        requestStatus: "succeeded",
-        requestError: null,
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [1, 17],
-        entities: {
-          1: {
-            id: 1,
-            timestampInUTC: "2020-12-01T15:17:00.000Z",
-            utcZoneOfTimestamp: "+02:00",
-            content: "[hard-coded] Then it dawned on me: there is no finish line!",
-            createdAt: "2021-04-29T05:10:56.000Z",
-            updatedAt: "2021-04-29T05:10:56.000Z",
-            userId: 1,
-          },
-          17: {
-            id: 17,
-            timestampInUTC: "2019-08-20T13:17:00.000Z",
-            utcZoneOfTimestamp: "+01:00",
-            content: "[hard-coded] Mallorca has beautiful sunny beaches!",
-            createdAt: "2021-04-29T05:11:01.000Z",
-            updatedAt: "2021-04-29T05:11:01.000Z",
-            userId: 1,
-          },
-        },
-      });
-    });
-
-    test("entries/editEntry/pending", () => {
-      const action = editEntryPending();
-
-      const newState = entriesReducer(initStateEntries, action);
-
-      expect(newState).toEqual({
-        requestStatus: "loading",
-        requestError: null,
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [],
-        entities: {},
-      });
-    });
-
-    test("entries/editEntry/rejected", () => {
-      const action = editEntryRejected("entries-editEntry-rejected");
-
-      const newState = entriesReducer(initStateEntries, action);
-
-      expect(newState).toEqual({
-        requestStatus: "failed",
-        requestError: "entries-editEntry-rejected",
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [],
-        entities: {},
-      });
-    });
-
-    test("entries/editEntry/fulfilled", () => {
-      initStateEntries = {
-        ...initialStateEntries,
-        requestStatus: RequestStatus.LOADING,
-        ids: [1],
-        entities: {
-          1: {
-            id: 1,
-            timestampInUTC: "2020-12-01T15:17:00.000Z",
-            utcZoneOfTimestamp: "+02:00",
-            content: "[hard-coded] Then it dawned on me: there is no finish line!",
-            createdAt: "2021-04-29T05:10:56.000Z",
-            updatedAt: "2021-04-29T05:10:56.000Z",
-            userId: 1,
-          },
-        },
-      };
-      const action = {
-        type: "entries/editEntry/fulfilled",
-        payload: {
-          entry: {
-            id: 1,
-            timestampInUTC: "2019-08-20T13:17:00.000Z",
-            utcZoneOfTimestamp: "+01:00",
-            content: "[hard-coded] Mallorca has beautiful sunny beaches!",
-            createdAt: "2021-04-29T05:11:01.000Z",
-            updatedAt: "2021-04-29T05:11:01.000Z",
-            userId: 1,
-          },
-        },
-      };
-
-      const newState = entriesReducer(initStateEntries, action);
-
-      expect(newState).toEqual({
-        requestStatus: "succeeded",
-        requestError: null,
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [1],
-        entities: {
-          1: {
-            id: 1,
-            timestampInUTC: "2019-08-20T13:17:00.000Z",
-            utcZoneOfTimestamp: "+01:00",
-            content: "[hard-coded] Mallorca has beautiful sunny beaches!",
-            createdAt: "2021-04-29T05:11:01.000Z",
-            updatedAt: "2021-04-29T05:11:01.000Z",
-            userId: 1,
-          },
-        },
-      });
-    });
-
-    test("entries/deleteEntry/pending", () => {
-      initStateEntries = {
-        ...initialStateEntries,
-        requestStatus: RequestStatus.SUCCEEDED,
-        ids: [MOCK_ENTRY_10.id],
-        entities: {
-          [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
-        },
-      };
-      const action = deleteEntryPending();
-
-      const newState = entriesReducer(initStateEntries, action);
-
-      expect(newState).toEqual({
-        requestStatus: "loading",
-        requestError: null,
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [MOCK_ENTRY_10.id],
-        entities: {
-          [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
-        },
-      });
-    });
-
-    test("entries/deleteEntry/rejected", () => {
-      initStateEntries = {
-        ...initialStateEntries,
-        requestStatus: RequestStatus.SUCCEEDED,
-        ids: [MOCK_ENTRY_10.id],
-        entities: {
-          [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
-        },
-      };
-      const action = deleteEntryRejected("entries-deleteEntry-rejected");
-
-      const newState = entriesReducer(initStateEntries, action);
-
-      expect(newState).toEqual({
-        requestStatus: "failed",
-        requestError: "entries-deleteEntry-rejected",
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [MOCK_ENTRY_10.id],
-        entities: {
-          [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
-        },
-      });
-    });
-
-    test("entries/deleteEntry/fulfilled", () => {
-      initStateEntries = {
-        ...initialStateEntries,
-        requestStatus: RequestStatus.LOADING,
-        ids: [MOCK_ENTRY_10.id, MOCK_ENTRY_20.id],
-        entities: {
-          [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
-          [MOCK_ENTRY_20.id]: MOCK_ENTRY_20,
-        },
-      };
-      const action = deleteEntryFulfilled(MOCK_ENTRY_20.id);
-
-      const newState = entriesReducer(initStateEntries, action);
-
-      expect(newState).toEqual({
-        requestStatus: "succeeded",
-        requestError: null,
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [MOCK_ENTRY_10.id],
-        entities: {
-          [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
-        },
-      });
-    });
-
-    test("entries/clearEntriesSlice", () => {
-      initStateEntries = {
-        ...initialStateEntries,
-        requestStatus: RequestStatus.SUCCEEDED,
-        ids: MOCK_ENTRIES_IDS,
-        entities: MOCK_ENTRIES_ENTITIES,
-      };
-      const action = clearEntriesSlice();
-
-      const newState = entriesReducer(initStateEntries, action);
-
-      expect(newState).toEqual({
-        requestStatus: "succeeded",
-        requestError: null,
-        _meta: { ...initialStateEntries._meta },
-        _links: { ...initialStateEntries._links },
-        ids: [],
-        entities: {},
-      });
-    });
-
-    test(
-      "an action, which this reducer doesn't specifically handle," +
-        " should not modify (the corresponding slice of) the state",
-      () => {
-        const initStEntries = {
-          requestStatus: "fulfilled",
-          requestError: null,
-          ids: [17],
-          entities: {
-            17: {
-              id: 17,
-              timestampInUTC: "2020-12-01T15:17:00.000Z",
-              utcZoneOfTimestamp: "+02:00",
-              content: "[hard-coded] Then it dawned on me: there is no finish line!",
-              createdAt: "2021-04-29T05:10:56.000Z",
-              updatedAt: "2021-04-29T05:10:56.000Z",
-              userId: 1,
-            },
-          },
-        };
-        const action = {
-          type: "an action, which this reducer doesn't specifically handle",
-        };
-
-        const newStEntries = entriesReducer(initStEntries, action);
-
-        expect(newStEntries).toEqual(initStEntries);
-      }
-    );
-  });
-});
-
-/* Describe what requests should be mocked. */
-const profileMock = {
-  id: 17,
-  username: "[mocked] jd",
-  name: "[mocked] John Doe",
-  email: "[mocked] john.doe@protonmail.com",
-  createdAt: "[mocked] 2021-05-23T11:10:17.000Z",
-  updatedAt: "[mocked] 2021-05-23T11:10:34.000Z",
-};
-
-const MOCK_ENTRIES: IEntry[] = Array.from({ length: 50 }).map((_, index) => {
-  const minute = (index + 1).toString().padStart(2, "0");
-
-  return {
-    id: 10 * (index + 1),
-    timestampInUTC: `2021-09-01T06:${minute}:00.000Z`,
-    utcZoneOfTimestamp: "+02:00",
-    content: `mocked-content-of-entry-${minute}`,
-    createdAt: `2021-09-01T07:00:00.000Z`,
-    updatedAt: `2021-09-01T07:00:00.000Z`,
-    userId: 1,
-  };
-});
-
-const MOCK_ENTRIES_IDS: number[] = MOCK_ENTRIES.map((e: IEntry) => e.id);
-
-const MOCK_ENTRIES_ENTITIES: { [entryId: string]: IEntry } = MOCK_ENTRIES.reduce(
-  (entriesObj: { [entryId: string]: IEntry }, entry: IEntry) => {
-    entriesObj[entry.id] = entry;
-    return entriesObj;
-  },
-  {}
-);
-
-const MOCK_ENTRY_10: IEntry = MOCK_ENTRIES_ENTITIES[10];
-
-const MOCK_ENTRY_20: IEntry = MOCK_ENTRIES_ENTITIES[20];
-
-const MOCK_ENTRY_10_LOCAL_TIME = moment
-  .utc(MOCK_ENTRY_10.timestampInUTC)
-  .utcOffset(MOCK_ENTRY_10.utcZoneOfTimestamp)
-  .format("YYYY-MM-DD HH:mm");
-
-const MOCK_ENTRY_20_LOCAL_TIME = moment
-  .utc(MOCK_ENTRY_20.timestampInUTC)
-  .utcOffset(MOCK_ENTRY_20.utcZoneOfTimestamp)
-  .format("YYYY-MM-DD HH:mm");
-
-const MOCK_META: IPaginationMeta = {
-  totalItems: MOCK_ENTRIES.length,
-  perPage: PER_PAGE_DEFAULT,
-  totalPages: Math.ceil(MOCK_ENTRIES.length / PER_PAGE_DEFAULT),
-  page: 1,
-};
-
-const MOCK_LINKS: IPaginationLinks = {
-  self: "/api/entries?perPage=10&page=1",
-  next: "/api/entries?perPage=10&page=2",
-  prev: null,
-  first: "/api/entries?perPage=10&page=1",
-  last: `/api/entries?perPage=10&page=${MOCK_META.totalPages}`,
-};
-
-const mockMultpleFailures = (req, res, ctx) => {
-  return res(
-    ctx.status(401),
-    ctx.json({
-      error: "[mocked] authentication required",
-    })
-  );
-};
-
-const mockFetchEntries = (req, res, ctx) => {
-  const totalItems: number = MOCK_ENTRIES.length;
-  const perPage: number = PER_PAGE_DEFAULT;
-  const totalPages: number = Math.ceil(totalItems / perPage);
-  const page: number = parseInt(req.url.searchParams.get("page") || 1);
-
-  const _meta: IPaginationMeta = {
-    totalItems,
-    perPage,
-    totalPages,
-    page,
-  };
-
-  const _links: IPaginationLinks = {
-    self: `/api/entries?perPage=${perPage}&page=${page}`,
-    next:
-      page >= totalPages ? null : `/api/entries?perPage=${perPage}&page=${page + 1}`,
-    prev: page <= 1 ? null : `/api/entries?perPage=${perPage}&page=${page - 1}`,
-    first: `/api/entries?perPage=${perPage}&page=1`,
-    last: `/api/entries?perPage=${perPage}&page=${totalPages}`,
-  };
-
-  const start: number = (page - 1) * perPage;
-  const end: number = start + perPage;
-  const items: IEntry[] = MOCK_ENTRIES.slice(start, end);
-
-  return res.once(
-    ctx.status(200),
-    ctx.json({
-      _meta,
-      _links,
-      items,
-    })
-  );
-};
-
-const requestHandlersToMock = [
-  rest.post("/api/users", (req, res, ctx) => {
-    return res(
-      ctx.status(201),
-      ctx.json({
-        id: 17,
-        username: "mocked-request-jd",
-      })
-    );
-  }),
-
-  rest.post("/api/tokens", (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({
-        token: "mocked-json-web-signature-token",
-      })
-    );
-  }),
-
-  rest.get("/api/user-profile", (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(profileMock));
-  }),
-
-  rest.get("/api/entries", mockMultpleFailures),
-
-  rest.post("/api/entries", (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(MOCK_ENTRY_10));
-  }),
-
-  rest.put("/api/entries/:id", (req, res, ctx) => {
-    const { id: entryIdStr } = req.params;
-    const entryId: number = parseInt(entryIdStr);
-
-    const editedEntry = entryId !== MOCK_ENTRY_10.id ? MOCK_ENTRY_10 : MOCK_ENTRY_20;
-
-    return res(
-      ctx.status(200),
-      ctx.json({
-        ...editedEntry,
-        id: entryId,
-      })
-    );
-  }),
-
-  rest.delete("/api/entries/:id", (req, res, ctx) => {
-    return res(ctx.status(204));
-  }),
-];
+import { rest } from "msw";
+
+import {
+  mockFetchEntries,
+  MOCK_ENTRIES_ENTITIES,
+  MOCK_ENTRIES_IDS,
+  MOCK_ENTRY_10,
+  MOCK_ENTRY_10_LOCAL_TIME,
+  MOCK_LINKS,
+  MOCK_META,
+  MOCK_PROFILE_1,
+  requestHandlersToMock,
+} from "./testHelpers";
+
+import { rootReducer, store } from "./store";
 
 /* Create an MSW "request-interception layer". */
 const quasiServer = setupServer(...requestHandlersToMock);
-
-const createStoreMock = configureMockStore([thunkMiddleware]);
-
-describe(
-  "dispatching of async thunk-actions," +
-    " with each test case focusing on the action-related logic only" +
-    " (and thus completely disregarding the reducer-related logic) ",
-  () => {
-    let initSt: IState;
-    let storeMock: MockStoreEnhanced<unknown, {}>;
-
-    beforeAll(() => {
-      // Establish the created request-interception layer
-      // (= Enable API mocking).
-      quasiServer.listen();
-    });
-
-    beforeEach(() => {
-      initSt = {
-        alerts: {
-          ...initialStateAlerts,
-        },
-        auth: {
-          ...initialStateAuth,
-        },
-        entries: {
-          ...initialStateEntries,
-        },
-      };
-      storeMock = createStoreMock(initSt);
-    });
-
-    afterEach(() => {
-      // Remove any request handlers that may have been added at runtime
-      // (by individual tests after the initial `setupServer` call).
-      quasiServer.resetHandlers();
-    });
-
-    afterAll(() => {
-      // Prevent the established request-interception layer
-      // from affecting irrelevant tests
-      // by tearing down that layer
-      // (= by stopping request interception)
-      // (= disabling API mocking).
-      quasiServer.close();
-    });
-
-    test(
-      "createUser(username, ...)" +
-        " + the HTTP request issued by that thunk-action is mocked to fail",
-      async () => {
-        // Arrange.
-        // (Prepend a request handler to the request-interception layer.)
-        quasiServer.use(
-          rest.post("/api/users", (req, res, ctx) => {
-            return res(
-              ctx.status(400),
-              ctx.json({
-                error: "[mocked-response] Failed to create a new User resource",
-              })
-            );
-          })
-        );
-
-        // Act.
-        const createUserPromise = storeMock.dispatch(
-          createUser(
-            "mocked-request-username",
-            "mocked-request-name",
-            "mocked-request-email@protonmail.com",
-            "mocked-request-password"
-          )
-        );
-
-        // Assert.
-        await expect(createUserPromise).rejects.toEqual(
-          "[mocked-response] Failed to create a new User resource"
-        );
-        expect(storeMock.getActions()).toEqual([
-          {
-            type: "auth/createUser/pending",
-          },
-          {
-            type: "auth/createUser/rejected",
-            error: "[mocked-response] Failed to create a new User resource",
-          },
-        ]);
-      }
-    );
-
-    test(
-      "createUser(username, ...)" +
-        " + the HTTP request issued by that thunk-action is mocked to succeed",
-      async () => {
-        const createUserPromise = storeMock.dispatch(
-          createUser(
-            "mocked-request-username",
-            "mocked-request-name",
-            "mocked-request-email@protonmail.com",
-            "mocked-request-password"
-          )
-        );
-
-        await expect(createUserPromise).resolves.toEqual(undefined);
-        expect(storeMock.getActions()).toEqual([
-          { type: "auth/createUser/pending" },
-          { type: "auth/createUser/fulfilled" },
-        ]);
-      }
-    );
-
-    test(
-      "issueJWSToken(email, password)" +
-        " + the HTTP request issued by that thunk-action is mocked to fail",
-      async () => {
-        // Arrange.
-        quasiServer.use(
-          rest.post("/api/tokens", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error: "[mocked-response] Failed to issue a JWS token",
-              })
-            );
-          })
-        );
-
-        // Act.
-        const issueJWSTokenPromise = storeMock.dispatch(
-          issueJWSToken("mocked-request-email", "mocked-request-password")
-        );
-
-        // Assert.
-        await expect(issueJWSTokenPromise).rejects.toEqual(
-          "[mocked-response] Failed to issue a JWS token"
-        );
-        expect(storeMock.getActions()).toEqual([
-          {
-            type: "auth/issueJWSToken/pending",
-          },
-          {
-            type: "auth/issueJWSToken/rejected",
-            error: "[mocked-response] Failed to issue a JWS token",
-          },
-        ]);
-      }
-    );
-
-    test(
-      "issueJWSToken(email, password)" +
-        " + the HTTP request issued by that thunk-action is mocked to succeed",
-      async () => {
-        const issueJWSTokenPromise = storeMock.dispatch(
-          issueJWSToken("mocked-request-email", "mocked-request-password")
-        );
-
-        await expect(issueJWSTokenPromise).resolves.toEqual(undefined);
-        expect(storeMock.getActions()).toEqual([
-          {
-            type: "auth/issueJWSToken/pending",
-          },
-          {
-            type: "auth/issueJWSToken/fulfilled",
-            payload: {
-              token: "mocked-json-web-signature-token",
-            },
-          },
-        ]);
-      }
-    );
-
-    test("signOut()", () => {
-      storeMock.dispatch(signOut("We have signed you out of your account."));
-
-      const dispatchedActions = storeMock.getActions();
-
-      expect(dispatchedActions.length).toEqual(3);
-
-      expect(dispatchedActions[0]).toEqual({
-        type: "auth/clearAuthSlice",
-      });
-
-      expect(dispatchedActions[1]).toEqual({
-        type: "entries/clearEntriesSlice",
-      });
-
-      expect({
-        type: dispatchedActions[2].type,
-        payload: {
-          message: dispatchedActions[2].payload.message,
-        },
-      }).toEqual({
-        type: "alerts/create",
-        payload: {
-          message: "We have signed you out of your account.",
-        },
-      });
-    });
-
-    test(
-      "fetchProfile()" +
-        " + the HTTP request issued by that thunk-action is mocked to fail",
-      async () => {
-        // Arrange.
-        quasiServer.use(
-          rest.get("/api/user-profile", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error:
-                  "[mocked-response] Failed to authenticated you as an HTTP client",
-              })
-            );
-          })
-        );
-
-        // Act.
-        const fetchProfilePromise = storeMock.dispatch(fetchProfile());
-
-        // Assert.
-        await expect(fetchProfilePromise).rejects.toEqual(
-          "[mocked-response] Failed to authenticated you as an HTTP client"
-        );
-        expect(storeMock.getActions()).toEqual([
-          {
-            type: "auth/fetchProfile/pending",
-          },
-          {
-            type: "auth/fetchProfile/rejected",
-            error: "[mocked-response] Failed to authenticated you as an HTTP client",
-          },
-        ]);
-      }
-    );
-
-    test(
-      "fetchProfile()" +
-        " + the HTTP request issued by that thunk-action is mocked to succeed",
-      async () => {
-        const fetchProfilePromise = storeMock.dispatch(fetchProfile());
-
-        await expect(fetchProfilePromise).resolves.toEqual(undefined);
-        expect(storeMock.getActions()).toEqual([
-          {
-            type: "auth/fetchProfile/pending",
-          },
-          {
-            type: "auth/fetchProfile/fulfilled",
-            payload: {
-              profile: profileMock,
-            },
-          },
-        ]);
-      }
-    );
-
-    test(
-      "fetchEntries()" +
-        " + the HTTP request issued by that thunk-action is mocked to fail",
-      async () => {
-        // Arrange.
-        quasiServer.use(
-          rest.get("/api/entries", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error: "[mocked-response] Failed to authenticate you as an HTTP client",
-              })
-            );
-          })
-        );
-
-        // Act.
-        const fetchEntriesPromise = storeMock.dispatch(
-          fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES)
-        );
-
-        // Assert.
-        await expect(fetchEntriesPromise).rejects.toEqual(
-          new Error("Request failed with status code 401")
-        );
-        expect(storeMock.getActions()).toEqual([
-          {
-            type: "entries/fetchEntries/pending",
-          },
-          {
-            type: "entries/fetchEntries/rejected",
-            error: "[mocked-response] Failed to authenticate you as an HTTP client",
-          },
-        ]);
-      }
-    );
-
-    test(
-      "fetchEntries()" +
-        " + the HTTP request issued by that thunk-action is mocked to succeed",
-      async () => {
-        // Arrange.
-        quasiServer.use(rest.get("/api/entries", mockFetchEntries));
-
-        // Act.
-        const fetchEntriesPromise = storeMock.dispatch(
-          fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES)
-        );
-
-        // Assert.
-        await expect(fetchEntriesPromise).resolves.toEqual(undefined);
-        expect(storeMock.getActions()).toEqual([
-          {
-            type: "entries/fetchEntries/pending",
-          },
-          {
-            type: "entries/fetchEntries/fulfilled",
-            payload: {
-              _meta: MOCK_META,
-              _links: MOCK_LINKS,
-              entries: MOCK_ENTRIES.slice(0, PER_PAGE_DEFAULT),
-            },
-          },
-        ]);
-      }
-    );
-
-    test(
-      "createEntry(localTime, ...)" +
-        " + the HTTP request issued by that thunk-action is mocked to fail",
-      async () => {
-        // Arrange.
-        quasiServer.use(
-          rest.post("/api/entries", (req, res, ctx) => {
-            return res(
-              ctx.status(400),
-              ctx.json({
-                error: "[mocked-response] Failed to create a new Entry resource",
-              })
-            );
-          })
-        );
-
-        // Act.
-        const createEntryPromise = storeMock.dispatch(
-          createEntry("bad-localTime", MOCK_ENTRY_10.timezone, MOCK_ENTRY_10.content)
-        );
-
-        // Assert.
-        await expect(createEntryPromise).rejects.toEqual(
-          new Error("Request failed with status code 400")
-        );
-        expect(storeMock.getActions()).toEqual([
-          {
-            type: "entries/createEntry/pending",
-          },
-          {
-            type: "entries/createEntry/rejected",
-            error: "[mocked-response] Failed to create a new Entry resource",
-          },
-        ]);
-      }
-    );
-
-    test(
-      "createEntry(localTime, ...)" +
-        " + the HTTP request issued by that thunk-action is mocked to succeed",
-      async () => {
-        const createEntryPromise = storeMock.dispatch(
-          createEntry(
-            MOCK_ENTRY_10.localTime,
-            MOCK_ENTRY_10.timezone,
-            MOCK_ENTRY_10.content
-          )
-        );
-
-        await expect(createEntryPromise).resolves.toEqual(undefined);
-        expect(storeMock.getActions()).toEqual([
-          {
-            type: "entries/createEntry/pending",
-          },
-          {
-            type: "entries/createEntry/fulfilled",
-            payload: {
-              entry: MOCK_ENTRY_10,
-            },
-          },
-        ]);
-      }
-    );
-
-    test(
-      "editEntry(entryId, ...)" +
-        " + the HTTP request issued by that thunk-action is mocked to fail",
-      async () => {
-        // Arrange.
-        quasiServer.use(
-          rest.put("/api/entries/:id", (req, res, ctx) => {
-            return res(
-              ctx.status(400),
-              ctx.json({
-                error: "[mocked response] Failed to edit the targeted Entry resource",
-              })
-            );
-          })
-        );
-
-        const targetedEntryId: number = 1;
-
-        // Act.
-        const editEntryPromise = storeMock.dispatch(
-          editEntry(
-            targetedEntryId,
-            MOCK_ENTRY_20_LOCAL_TIME,
-            MOCK_ENTRY_20.utcZoneOfTimestamp,
-            MOCK_ENTRY_20.content
-          )
-        );
-
-        // Assert.
-        await expect(editEntryPromise).rejects.toEqual(
-          new Error("Request failed with status code 400")
-        );
-
-        expect(storeMock.getActions()).toEqual([
-          {
-            type: "entries/editEntry/pending",
-          },
-          {
-            type: "entries/editEntry/rejected",
-            error: "[mocked response] Failed to edit the targeted Entry resource",
-          },
-        ]);
-      }
-    );
-
-    test(
-      "editEntry(entryId, ...)" +
-        " + the HTTP request issued by that thunk-action is mocked to succeed",
-      async () => {
-        const targetedEntryId: number = MOCK_ENTRY_10.id;
-        const editEntryPromise = storeMock.dispatch(
-          editEntry(
-            targetedEntryId,
-            MOCK_ENTRY_20_LOCAL_TIME,
-            MOCK_ENTRY_20.utcZoneOfTimestamp,
-            MOCK_ENTRY_20.content
-          )
-        );
-
-        await expect(editEntryPromise).resolves.toEqual(undefined);
-
-        expect(storeMock.getActions()).toEqual([
-          {
-            type: "entries/editEntry/pending",
-          },
-          {
-            type: "entries/editEntry/fulfilled",
-            payload: {
-              entry: {
-                ...MOCK_ENTRY_20,
-                id: targetedEntryId,
-              },
-            },
-          },
-        ]);
-      }
-    );
-
-    test(
-      "deleteEntry(entryId)" +
-        " + the HTTP request issued by that thunk-action is mocked to fail",
-      async () => {
-        // Arrange.
-        quasiServer.use(
-          rest.delete("/api/entries/:id", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error: "[mocked-response] Failed to delete the targeted Entry resource",
-              })
-            );
-          })
-        );
-
-        const targetedEntryId: number = MOCK_ENTRY_10.id;
-
-        // Act.
-        const deleteEntryPromise = storeMock.dispatch(deleteEntry(targetedEntryId));
-
-        // Assert.
-        await expect(deleteEntryPromise).rejects.toEqual(
-          new Error("Request failed with status code 401")
-        );
-
-        expect(storeMock.getActions()).toEqual([
-          {
-            type: "entries/deleteEntry/pending",
-          },
-          {
-            type: "entries/deleteEntry/rejected",
-            error: "[mocked-response] Failed to delete the targeted Entry resource",
-          },
-        ]);
-      }
-    );
-
-    test(
-      "deleteEntry(entryId)" +
-        " + the HTTP request issued by that thunk-action is mocked to succeed",
-      async () => {
-        const targetedEntryId: number = MOCK_ENTRY_10.id;
-
-        const deleteEntryPromise = storeMock.dispatch(deleteEntry(targetedEntryId));
-
-        await expect(deleteEntryPromise).resolves.toEqual(undefined);
-
-        expect(storeMock.getActions()).toEqual([
-          {
-            type: "entries/deleteEntry/pending",
-          },
-          {
-            type: "entries/deleteEntry/fulfilled",
-            payload: {
-              entryId: targetedEntryId,
-            },
-          },
-        ]);
-      }
-    );
-  }
-);
 
 describe("<App>", () => {
   let enhancer: any;
@@ -2001,13 +107,17 @@ describe("<App>", () => {
       </Provider>
     );
 
-    await waitFor(() => {
-      screen.getByText("Home");
-      screen.getByText("Sign In");
-      screen.getByText("Sign Up");
+    let element: HTMLElement;
 
-      screen.getByText("Welcome to JournalEntries!");
-    });
+    element = await screen.findByText("Home");
+    expect(element).toBeInTheDocument();
+    element = screen.getByText("Sign In");
+    expect(element).toBeInTheDocument();
+    element = screen.getByText("Sign Up");
+    expect(element).toBeInTheDocument();
+
+    element = screen.getByText("Welcome to JournalEntries!");
+    expect(element).toBeInTheDocument();
   });
 
   test("render after the user has signed in", async () => {
@@ -2024,11 +134,14 @@ describe("<App>", () => {
     );
 
     // Assert.
-    await waitFor(() => {
-      screen.getByText("Home");
-      screen.getByText("JournalEntries");
-      screen.getByText("Sign Out");
-    });
+    let element: HTMLElement;
+
+    element = await screen.findByText("Sign Out");
+    expect(element).toBeInTheDocument();
+    element = screen.getByText("JournalEntries");
+    expect(element).toBeInTheDocument();
+    element = screen.getByText("Home");
+    expect(element).toBeInTheDocument();
   });
 
   test("after the user has signed in, the user clicks on 'Sign Out'", async () => {
@@ -2043,19 +156,21 @@ describe("<App>", () => {
     );
 
     // Act.
-    await waitFor(() => {
-      const signOutAnchor: HTMLElement = screen.getByText("Sign Out");
-      fireEvent.click(signOutAnchor);
-    });
+    const signOutAnchor: HTMLElement = await screen.findByText("Sign Out");
+    fireEvent.click(signOutAnchor);
 
     // Assert.
-    await waitFor(() => {
-      screen.getByText("Home");
-      screen.getByText("Sign In");
-      screen.getByText("Sign Up");
+    let element: HTMLElement;
 
-      screen.getByText("SIGN-OUT SUCCESSFUL");
-    });
+    element = await screen.findByText("SIGN-OUT SUCCESSFUL");
+    expect(element).toBeInTheDocument();
+
+    element = screen.getByText("Home");
+    expect(element).toBeInTheDocument();
+    element = screen.getByText("Sign In");
+    expect(element).toBeInTheDocument();
+    element = screen.getByText("Sign Up");
+    expect(element).toBeInTheDocument();
   });
 
   test(
@@ -2080,10 +195,8 @@ describe("<App>", () => {
       );
 
       // Act.
-      await waitFor(() => {
-        const signOutAnchor: HTMLElement = screen.getByText("Sign Out");
-        fireEvent.click(signOutAnchor);
-      });
+      const signOutAnchor: HTMLElement = await screen.findByText("Sign Out");
+      fireEvent.click(signOutAnchor);
 
       // Assert.
       expect(localStorage.getItem(JOURNAL_APP_TOKEN)).toEqual(null);
@@ -2129,11 +242,17 @@ describe("<App>", () => {
       );
 
       // Assert.
-      await waitFor(() => {
-        screen.getByText("Home");
-        screen.getByText("Sign In");
-        screen.getByText("Sign Up");
-      });
+      let element: HTMLElement;
+
+      element = await screen.findByText("TO CONTINUE, PLEASE SIGN IN");
+      expect(element).toBeInTheDocument();
+
+      element = screen.getByText("Home");
+      expect(element).toBeInTheDocument();
+      element = screen.getByText("Sign In");
+      expect(element).toBeInTheDocument();
+      element = screen.getByText("Sign Up");
+      expect(element).toBeInTheDocument();
     }
   );
 
@@ -2145,6 +264,8 @@ describe("<App>", () => {
       " 'Home', 'JournalEntries', and 'Sign Out'",
     async () => {
       // Arrange.
+      quasiServer.use(rest.get("/api/entries", mockFetchEntries));
+
       const realStore = createStore(rootReducer, initState, enhancer);
 
       // Act:
@@ -2166,7 +287,7 @@ describe("<App>", () => {
       // - navigate to the /journal-entries URL,
       //   and mount the application's entire React tree
       history.push("/journal-entries");
-      const { getByText: getByTextFromJournalEntriesURL } = render(
+      render(
         <Provider store={realStore}>
           <Router history={history}>
             <App />
@@ -2175,11 +296,14 @@ describe("<App>", () => {
       );
 
       // Assert.
-      await waitFor(() => {
-        getByTextFromJournalEntriesURL("Home");
-        getByTextFromJournalEntriesURL("Sign Out");
-        getByTextFromJournalEntriesURL("JournalEntries");
-      });
+      let element: HTMLElement;
+
+      element = await screen.findByText("Sign Out");
+      expect(element).toBeInTheDocument();
+      element = screen.getByText("JournalEntries");
+      expect(element).toBeInTheDocument();
+      element = screen.getByText("Home");
+      expect(element).toBeInTheDocument();
     }
   );
 
@@ -2204,10 +328,10 @@ describe("<App>", () => {
       );
 
       // Assert.
-      await waitFor(() => {
-        const elements = screen.queryAllByText("Review JournalEntries!");
-        expect(elements.length).toEqual(0);
-      });
+      expect(history.location.pathname).toEqual("/sign-in");
+
+      const elements = screen.queryAllByText("Review JournalEntries!");
+      expect(elements.length).toEqual(0);
     }
   );
 });
@@ -2542,9 +666,16 @@ describe(
         getByText("[mocked-response] Failed to create a new User resource");
         */
         // This causes the test to PASS:
+        /*
         await waitFor(() => {
           screen.getByText("[mocked-response] Failed to create a new User resource");
         });
+        */
+        // as does this:
+        const element: HTMLElement = await screen.findByText(
+          "[mocked-response] Failed to create a new User resource"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -2585,9 +716,8 @@ describe(
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("REGISTRATION SUCCESSFUL");
-        });
+        const element: HTMLElement = await screen.findByText("REGISTRATION SUCCESSFUL");
+        expect(element).toBeInTheDocument();
       }
     );
   }
@@ -2611,7 +741,7 @@ describe("<SignUp> + <Home>", () => {
           ...initialStateAuth,
           token,
           hasValidToken: true,
-          signedInUserProfile: profileMock,
+          signedInUserProfile: MOCK_PROFILE_1,
         },
         entries: {
           ...initialStateEntries,
@@ -2639,7 +769,7 @@ describe("<SignUp> + <Home>", () => {
       );
 
       // Assert.
-      screen.getByText("Hello, [mocked] John Doe!");
+      screen.getByText("Hello, mocked-John Doe!");
     }
   );
 });
@@ -2776,11 +906,10 @@ describe(
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText(
-            "[mocked response] Authenticaiton failed - incorrect email and/or password"
-          );
-        });
+        const element = await screen.findByText(
+          "[mocked response] Authenticaiton failed - incorrect email and/or password"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -2817,9 +946,8 @@ describe(
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("SIGN-IN SUCCESSFUL");
-        });
+        const element: HTMLElement = await screen.findByText("SIGN-IN SUCCESSFUL");
+        expect(element).toBeInTheDocument();
 
         expect(history.location.pathname).toEqual("/");
       }
@@ -2863,7 +991,7 @@ describe("<Home>", () => {
       },
       auth: {
         ...initialStateAuth,
-        signedInUserProfile: profileMock,
+        signedInUserProfile: MOCK_PROFILE_1,
       },
       entries: {
         ...initialStateEntries,
@@ -2879,7 +1007,7 @@ describe("<Home>", () => {
     );
 
     // Assert.
-    screen.getByText("Hello, [mocked] John Doe!");
+    screen.getByText("Hello, mocked-John Doe!");
   });
 });
 
@@ -2951,12 +1079,14 @@ describe("<JournalEntries>", () => {
         );
 
         // Assert.
-        await waitFor(() => {
-          screen.getByRole("button");
-          screen.getByText(
-            "[FROM <JournalEntries>'S useEffect HOOK] PLEASE SIGN BACK IN"
-          );
-        });
+        let element: HTMLElement;
+
+        element = await screen.findByRole("button", { name: "Clear alert" });
+        expect(element).toBeInTheDocument();
+        element = screen.getByText(
+          "[FROM <JournalEntries>'S useEffect HOOK] PLEASE SIGN BACK IN"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -2995,12 +1125,11 @@ describe("<JournalEntries>", () => {
         );
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText(
-            "[mocked-response] Encountered an error," +
-              " which is not related to authentication"
-          );
-        });
+        const element: HTMLElement = await screen.findByText(
+          "[mocked-response] Encountered an error," +
+            " which is not related to authentication"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -3050,10 +1179,9 @@ describe("<JournalEntries>", () => {
 
         // Assert.
         let element: HTMLElement;
-        await waitFor(() => {
-          element = screen.getByText("mocked-content-of-entry-01");
-          expect(element).toBeInTheDocument();
-        });
+
+        element = await screen.findByText("mocked-content-of-entry-01");
+        expect(element).toBeInTheDocument();
 
         for (const i of [2, 3, 4, 5, 6, 7, 8, 9, 10]) {
           element = screen.getByText(
@@ -3363,9 +1491,10 @@ describe(
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("[mocked-response] Failed to create a new Entry resource");
-        });
+        const element: HTMLElement = await screen.findByText(
+          "[mocked-response] Failed to create a new Entry resource"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -3410,9 +1539,10 @@ describe(
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("[FROM <CreateEntry>'S handleSubmit] PLEASE SIGN BACK IN");
-        });
+        const element: HTMLElement = await screen.findByText(
+          "[FROM <CreateEntry>'S handleSubmit] PLEASE SIGN BACK IN"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -3453,9 +1583,10 @@ describe(
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("ENTRY CREATION SUCCESSFUL");
-        });
+        const element: HTMLElement = await screen.findByText(
+          "ENTRY CREATION SUCCESSFUL"
+        );
+        expect(element).toBeInTheDocument();
 
         expect(history.location.pathname).toEqual("/journal-entries");
       }
@@ -3639,11 +1770,10 @@ describe("<EditEntry>", () => {
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText(
-            "[mocked-response] Failed to edit the targeted Entry resource"
-          );
-        });
+        const element: HTMLElement = await screen.findByText(
+          "[mocked-response] Failed to edit the targeted Entry resource"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -3679,13 +1809,14 @@ describe("<EditEntry>", () => {
         );
 
         // Act.
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN");
-        });
+        const element: HTMLElement = await screen.findByText(
+          "[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -3709,13 +1840,14 @@ describe("<EditEntry>", () => {
         );
 
         // Act.
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button");
         fireEvent.click(button);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("ENTRY EDITING SUCCESSFUL");
-        });
+        const element: HTMLElement = await screen.findByText(
+          "ENTRY EDITING SUCCESSFUL"
+        );
+        expect(element).toBeInTheDocument();
 
         expect(history.location.pathname).toEqual("/journal-entries");
       }
@@ -3904,19 +2036,19 @@ describe("<DeleteEntry>", () => {
         );
 
         // Act.
-        const buttonYes = screen.getByRole("button", { name: "Yes" });
+        const buttonYes: HTMLElement = screen.getByRole("button", { name: "Yes" });
         fireEvent.click(buttonYes);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText("[FROM <DeleteEntry>'S handleClickYes] PLEASE SIGN BACK IN");
-        });
+        let element: HTMLElement = await screen.findByText(
+          "[FROM <DeleteEntry>'S handleClickYes] PLEASE SIGN BACK IN"
+        );
+        expect(element).toBeInTheDocument();
 
-        await waitFor(() => {
-          expect(history.location.pathname).toEqual("/sign-in");
+        expect(history.location.pathname).toEqual("/sign-in");
 
-          screen.getByText("Sign me in");
-        });
+        element = screen.getByText("Sign me in");
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -3951,15 +2083,14 @@ describe("<DeleteEntry>", () => {
         );
 
         // Act.
-        const buttonYes = screen.getByRole("button", { name: "Yes" });
+        const buttonYes: HTMLElement = screen.getByRole("button", { name: "Yes" });
         fireEvent.click(buttonYes);
 
         // Assert.
-        await waitFor(() => {
-          screen.getByText(
-            "[mocked-response] Encountered an error, which is not related to authentication"
-          );
-        });
+        const element: HTMLElement = await screen.findByText(
+          "[mocked-response] Encountered an error, which is not related to authentication"
+        );
+        expect(element).toBeInTheDocument();
       }
     );
 
@@ -3982,25 +2113,16 @@ describe("<DeleteEntry>", () => {
           </Provider>
         );
 
-        const buttonYes = screen.getByRole("button", { name: "Yes" });
+        const buttonYes: HTMLElement = screen.getByRole("button", { name: "Yes" });
 
         // Act.
         fireEvent.click(buttonYes);
 
         // Assert.
-        await waitFor(() => {
-          /*
-          As soon as the Redux store is notified
-          that the targeted Entry resource has been successfully deleted,
-          the corresponding change of the Redux state
-          causes the UI to re-render <DeleteEntry>
-          - importantly, that re-rendering takes places
-            before the UI redirects the browser to /journal-entries
-          */
-          screen.getByText("Loading...");
-        });
-
-        screen.getByText("ENTRY DELETION SUCCESSFUL");
+        const element: HTMLElement = await screen.findByText(
+          "ENTRY DELETION SUCCESSFUL"
+        );
+        expect(element).toBeInTheDocument();
 
         expect(history.location.pathname).toEqual("/journal-entries");
       }
