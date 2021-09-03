@@ -562,7 +562,9 @@ describe(
         });
         fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 123" } });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create an account for me",
+        });
         fireEvent.click(button);
 
         // Assert.
@@ -602,7 +604,9 @@ describe(
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
         fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 456" } });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create an account for me",
+        });
         fireEvent.click(button);
 
         // Assert.
@@ -674,7 +678,9 @@ describe(
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
         fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 123" } });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create an account for me",
+        });
         fireEvent.click(button);
 
         // Assert.
@@ -747,7 +753,9 @@ describe(
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
         fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 123" } });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create an account for me",
+        });
         fireEvent.click(button);
 
         // Assert.
@@ -871,7 +879,7 @@ describe(
         fireEvent.change(emailInput, { target: { value: "" } });
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", { name: "Sign me in" });
         fireEvent.click(button);
 
         // Assert.
@@ -937,7 +945,7 @@ describe(
         fireEvent.change(emailInput, { target: { value: "[f-e] jd" } });
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", { name: "Sign me in" });
         fireEvent.click(button);
 
         // Assert.
@@ -979,7 +987,7 @@ describe(
         fireEvent.change(emailInput, { target: { value: "[f-e] jd" } });
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", { name: "Sign me in" });
         fireEvent.click(button);
 
         // Assert.
@@ -1459,7 +1467,9 @@ describe(
           },
         });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create entry",
+        });
         fireEvent.click(button);
 
         // Assert.
@@ -1524,7 +1534,9 @@ describe(
           target: { value: "some insightful content" },
         });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create entry",
+        });
         fireEvent.click(button);
 
         // Assert.
@@ -1572,7 +1584,9 @@ describe(
           target: { value: "some insightful content" },
         });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create entry",
+        });
         fireEvent.click(button);
 
         // Assert.
@@ -1618,7 +1632,9 @@ describe(
           target: { value: "some insightful content " },
         });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create entry",
+        });
         fireEvent.click(button);
 
         // Assert.
@@ -1751,7 +1767,9 @@ describe("<EditEntry>", () => {
           const timezoneSelect = screen.getByRole("combobox");
           fireEvent.change(timezoneSelect, { target: { value: "" } });
 
-          const button = screen.getByRole("button");
+          const button: HTMLElement = screen.getByRole("button", {
+            name: "Edit entry",
+          });
           fireEvent.click(button);
 
           // Assert.
@@ -1805,7 +1823,7 @@ describe("<EditEntry>", () => {
         );
 
         // Act.
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", { name: "Edit entry" });
         fireEvent.click(button);
 
         // Assert.
@@ -1848,7 +1866,7 @@ describe("<EditEntry>", () => {
         );
 
         // Act.
-        const button: HTMLElement = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", { name: "Edit entry" });
         fireEvent.click(button);
 
         // Assert.
@@ -1881,7 +1899,7 @@ describe("<EditEntry>", () => {
         );
 
         // Act.
-        const button: HTMLElement = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", { name: "Edit entry" });
         fireEvent.click(button);
 
         // Assert.
