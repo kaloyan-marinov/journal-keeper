@@ -10,7 +10,6 @@ import {
   IPaginationLinks,
   IPaginationMeta,
   IState,
-  IStateAlerts,
   IStateAuth,
   IStateEntries,
   RequestStatus,
@@ -25,7 +24,6 @@ import {
 
 import {
   MOCK_ALERT_17,
-  MOCK_ALERT_34,
   MOCK_ENTRIES,
   MOCK_ENTRIES_ENTITIES,
   MOCK_ENTRIES_IDS,
@@ -42,8 +40,6 @@ import {
   createUserRejected,
   createUserFulfilled,
   rootReducer,
-  alertsCreate,
-  alertsRemove,
   createUser,
   issueJWSTokenPending,
   issueJWSTokenRejected,
@@ -73,7 +69,6 @@ import {
   deleteEntry,
   clearEntriesSlice,
   signOut,
-  alertsReducer,
   authReducer,
 } from "./store";
 
@@ -100,26 +95,6 @@ describe("action creators", () => {
 
     expect(action).toEqual({
       type: "auth/createUser/fulfilled",
-    });
-  });
-
-  test("alertsCreate", () => {
-    const action = alertsCreate(MOCK_ALERT_17.id, MOCK_ALERT_17.message);
-
-    expect(action).toEqual({
-      type: "alerts/create",
-      payload: MOCK_ALERT_17,
-    });
-  });
-
-  test("alertsRemove", () => {
-    const action = alertsRemove(MOCK_ALERT_17.id);
-
-    expect(action).toEqual({
-      type: "alerts/remove",
-      payload: {
-        id: MOCK_ALERT_17.id,
-      },
     });
   });
 
@@ -388,62 +363,6 @@ describe("reducers", () => {
         ...initialStateEntries,
       },
     };
-  });
-
-  describe("alertsReducer", () => {
-    let initStAlerts: IStateAlerts;
-
-    beforeEach(() => {
-      initStAlerts = { ...initialStateAlerts };
-    });
-
-    test("alerts/create", () => {
-      initStAlerts = {
-        ids: [MOCK_ALERT_17.id],
-        entities: {
-          [MOCK_ALERT_17.id]: MOCK_ALERT_17,
-        },
-      };
-      const action = {
-        type: "alerts/create",
-        payload: MOCK_ALERT_34,
-      };
-
-      const newSt: IStateAlerts = alertsReducer(initStAlerts, action);
-
-      expect(newSt).toEqual({
-        ids: [MOCK_ALERT_34.id, MOCK_ALERT_17.id],
-        entities: {
-          [MOCK_ALERT_34.id]: MOCK_ALERT_34,
-          [MOCK_ALERT_17.id]: MOCK_ALERT_17,
-        },
-      });
-    });
-
-    test("alerts/remove", () => {
-      initStAlerts = {
-        ids: [MOCK_ALERT_17.id, MOCK_ALERT_34.id],
-        entities: {
-          [MOCK_ALERT_17.id]: MOCK_ALERT_17,
-          [MOCK_ALERT_34.id]: MOCK_ALERT_34,
-        },
-      };
-      const action = {
-        type: "alerts/remove",
-        payload: {
-          id: MOCK_ALERT_34.id,
-        },
-      };
-
-      const newSt: IStateAlerts = alertsReducer(initStAlerts, action);
-
-      expect(newSt).toEqual({
-        ids: [MOCK_ALERT_17.id],
-        entities: {
-          [MOCK_ALERT_17.id]: MOCK_ALERT_17,
-        },
-      });
-    });
   });
 
   describe("authReducer", () => {

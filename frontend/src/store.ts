@@ -10,61 +10,21 @@ import { Dispatch } from "redux";
 import { v4 as uuidv4 } from "uuid";
 
 import {
-  IStateAlerts,
   IStateAuth,
   IStateEntries,
   IState,
-  IAlert,
   RequestStatus,
   IProfile,
   IPaginationMeta,
   IPaginationLinks,
   IEntry,
 } from "./types";
+import { initialStateAuth, initialStateEntries, JOURNAL_APP_TOKEN } from "./constants";
 import {
-  initialStateAlerts,
-  initialStateAuth,
-  initialStateEntries,
-  JOURNAL_APP_TOKEN,
-} from "./constants";
-
-/* alertsSlice - "alerts/" action creators */
-enum ActionTypesAlerts {
-  CREATE = "alerts/create",
-  REMOVE = "alerts/remove",
-}
-
-export interface IActionAlertsCreate {
-  type: typeof ActionTypesAlerts.CREATE;
-  payload: {
-    id: string;
-    message: string;
-  };
-}
-
-export interface IActionAlertsRemove {
-  type: typeof ActionTypesAlerts.REMOVE;
-  payload: {
-    id: string;
-  };
-}
-
-export const alertsCreate = (id: string, message: string): IActionAlertsCreate => ({
-  type: ActionTypesAlerts.CREATE,
-  payload: {
-    id,
-    message,
-  },
-});
-
-export const alertsRemove = (id: string): IActionAlertsRemove => ({
-  type: ActionTypesAlerts.REMOVE,
-  payload: {
-    id,
-  },
-});
-
-export type ActionAlerts = IActionAlertsCreate | IActionAlertsRemove;
+  alertsCreate,
+  alertsReducer,
+  IActionAlertsCreate,
+} from "./features/alerts/alertsSlice";
 
 /* authSlice - "auth/createUser/" action creators */
 enum ActionTypesCreateUser {
@@ -722,49 +682,6 @@ export const signOut = (message: string) => {
     const id: string = uuidv4();
     dispatch(alertsCreate(id, message));
   };
-};
-
-/* alertsSlice - reducer */
-export const alertsReducer = (
-  stateAlerts: IStateAlerts = initialStateAlerts,
-  action: ActionAlerts
-): IStateAlerts => {
-  switch (action.type) {
-    case ActionTypesAlerts.CREATE:
-      const id: string = action.payload.id;
-      const message: string = action.payload.message;
-
-      const newIds: string[] = [id, ...stateAlerts.ids];
-
-      const newEntities: { [alertId: string]: IAlert } = { ...stateAlerts.entities };
-      newEntities[id] = {
-        id,
-        message,
-      };
-
-      return {
-        ids: newIds,
-        entities: newEntities,
-      };
-
-    case ActionTypesAlerts.REMOVE:
-      const idOfDeletedAlert: string = action.payload.id;
-
-      const remainingIds: string[] = stateAlerts.ids.filter(
-        (id) => id !== idOfDeletedAlert
-      );
-
-      const remainingEntities = { ...stateAlerts.entities };
-      delete remainingEntities[idOfDeletedAlert];
-
-      return {
-        ids: remainingIds,
-        entities: remainingEntities,
-      };
-
-    default:
-      return stateAlerts;
-  }
 };
 
 /* authSlice - reducer */

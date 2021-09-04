@@ -24,20 +24,22 @@ import { URL_FOR_FIRST_PAGE_OF_EXAMPLES } from "./constants";
 
 import {
   ActionAlerts,
+  alertsCreate,
+  alertsRemove,
+  IActionAlertsCreate,
+} from "./features/alerts/alertsSlice";
+import {
   ActionCreateUser,
   ActionDeleteEntry,
   ActionEditEntry,
   ActionFetchProfile,
   ActionIssueJWSToken,
-  alertsCreate,
-  alertsRemove,
   createEntry,
   createUser,
   deleteEntry,
   editEntry,
   fetchEntries,
   fetchProfile,
-  IActionAlertsCreate,
   IActionClearAuthSlice,
   issueJWSToken,
   selectAlertsEntities,
