@@ -1181,7 +1181,7 @@ describe(
             return res.once(
               ctx.status(400),
               ctx.json({
-                error: "[mocked-response] Failed to create a new User resource",
+                error: "mocked-Failed to create a new User resource",
               })
             );
           })
@@ -1199,7 +1199,7 @@ describe(
 
         // Assert.
         await expect(createUserPromise).rejects.toEqual(
-          "[mocked-response] Failed to create a new User resource"
+          "mocked-Failed to create a new User resource"
         );
         expect(storeMock.getActions()).toEqual([
           {
@@ -1207,7 +1207,7 @@ describe(
           },
           {
             type: "auth/createUser/rejected",
-            error: "[mocked-response] Failed to create a new User resource",
+            error: "mocked-Failed to create a new User resource",
           },
         ]);
       }
@@ -1250,7 +1250,7 @@ describe(
 
         // Assert.
         await expect(issueJWSTokenPromise).rejects.toEqual(
-          "[mocked] authentication required"
+          "mocked-authentication required"
         );
         expect(storeMock.getActions()).toEqual([
           {
@@ -1258,7 +1258,7 @@ describe(
           },
           {
             type: "auth/issueJWSToken/rejected",
-            error: "[mocked] authentication required",
+            error: "mocked-authentication required",
           },
         ]);
       }
@@ -1329,7 +1329,7 @@ describe(
 
         // Assert.
         await expect(fetchProfilePromise).rejects.toEqual(
-          "[mocked] authentication required"
+          "mocked-authentication required"
         );
         expect(storeMock.getActions()).toEqual([
           {
@@ -1337,7 +1337,7 @@ describe(
           },
           {
             type: "auth/fetchProfile/rejected",
-            error: "[mocked] authentication required",
+            error: "mocked-authentication required",
           },
         ]);
       }
@@ -1390,7 +1390,7 @@ describe(
           },
           {
             type: "entries/fetchEntries/rejected",
-            error: "[mocked] authentication required",
+            error: "mocked-authentication required",
           },
         ]);
       }
@@ -1436,7 +1436,7 @@ describe(
             return res.once(
               ctx.status(400),
               ctx.json({
-                error: "[mocked-response] Failed to create a new Entry resource",
+                error: "mocked-Failed to create a new Entry resource",
               })
             );
           })
@@ -1457,7 +1457,7 @@ describe(
           },
           {
             type: "entries/createEntry/rejected",
-            error: "[mocked-response] Failed to create a new Entry resource",
+            error: "mocked-Failed to create a new Entry resource",
           },
         ]);
       }
@@ -1600,7 +1600,7 @@ describe(
           },
           {
             type: "entries/deleteEntry/rejected",
-            error: "[mocked] authentication required",
+            error: "mocked-authentication required",
           },
         ]);
       }

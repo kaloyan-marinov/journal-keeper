@@ -621,7 +621,7 @@ describe(
             return res.once(
               ctx.status(400),
               ctx.json({
-                error: "[mocked-response] Failed to create a new User resource",
+                error: "mocked-Failed to create a new User resource",
               })
             );
           })
@@ -678,17 +678,17 @@ describe(
 
         /*
         // This throws, causing the test to FAIL:
-        getByText("[mocked-response] Failed to create a new User resource");
+        getByText("mocked-Failed to create a new User resource");
         */
         // This causes the test to PASS:
         /*
         await waitFor(() => {
-          screen.getByText("[mocked-response] Failed to create a new User resource");
+          screen.getByText("mocked-Failed to create a new User resource");
         });
         */
         // as does this:
         const element: HTMLElement = await screen.findByText(
-          "[mocked-response] Failed to create a new User resource"
+          "mocked-Failed to create a new User resource"
         );
         expect(element).toBeInTheDocument();
       }
@@ -912,7 +912,7 @@ describe(
         fireEvent.click(button);
 
         // Assert.
-        const element = await screen.findByText("[mocked] authentication required");
+        const element = await screen.findByText("mocked-authentication required");
         expect(element).toBeInTheDocument();
       }
     );
@@ -1047,11 +1047,11 @@ describe("<JournalEntries>", () => {
             ...initialStateAuth,
             signedInUserProfile: {
               id: 17,
-              username: "[mocked] jd",
-              name: "[mocked] John Doe",
-              email: "[mocked] john.doe@protonmail.com",
-              createdAt: "[mocked] 2021-05-24T20:10:17.000Z",
-              updatedAt: "[mocked] 2021-05-24T20:10:17.000Z",
+              username: "mocked-jd",
+              name: "mocked-John Doe",
+              email: "mocked-john.doe@protonmail.com",
+              createdAt: "mocked-2021-05-24T20:10:17.000Z",
+              updatedAt: "mocked-2021-05-24T20:10:17.000Z",
             },
           },
           entries: {
@@ -1097,7 +1097,7 @@ describe("<JournalEntries>", () => {
               ctx.status(400),
               ctx.json({
                 error:
-                  "[mocked-response] Encountered an error," +
+                  "mocked-Encountered an error," +
                   " which is not related to authentication",
               })
             );
@@ -1121,8 +1121,7 @@ describe("<JournalEntries>", () => {
 
         // Assert.
         const element: HTMLElement = await screen.findByText(
-          "[mocked-response] Encountered an error," +
-            " which is not related to authentication"
+          "mocked-Encountered an error," + " which is not related to authentication"
         );
         expect(element).toBeInTheDocument();
       }
@@ -1144,11 +1143,11 @@ describe("<JournalEntries>", () => {
             ...initialStateAuth,
             signedInUserProfile: {
               id: 17,
-              username: "[mocked] jd",
-              name: "[mocked] John Doe",
-              email: "[mocked] john.doe@protonmail.com",
-              createdAt: "[mocked] 2021-05-24T20:10:17.000Z",
-              updatedAt: "[mocked] 2021-05-24T20:10:17.000Z",
+              username: "mocked-jd",
+              name: "mocked-John Doe",
+              email: "mocked-john.doe@protonmail.com",
+              createdAt: "mocked-2021-05-24T20:10:17.000Z",
+              updatedAt: "mocked-2021-05-24T20:10:17.000Z",
             },
           },
           entries: {
@@ -1458,7 +1457,7 @@ describe(
             return res.once(
               ctx.status(400),
               ctx.json({
-                error: "[mocked-response] Failed to create a new Entry resource",
+                error: "mocked-Failed to create a new Entry resource",
               })
             );
           })
@@ -1491,7 +1490,7 @@ describe(
 
         // Assert.
         const element: HTMLElement = await screen.findByText(
-          "[mocked-response] Failed to create a new Entry resource"
+          "mocked-Failed to create a new Entry resource"
         );
         expect(element).toBeInTheDocument();
       }
@@ -1744,7 +1743,7 @@ describe("<EditEntry>", () => {
             return res.once(
               ctx.status(400),
               ctx.json({
-                error: "[mocked-response] Failed to edit the targeted Entry resource",
+                error: "mocked-Failed to edit the targeted Entry resource",
               })
             );
           })
@@ -1767,7 +1766,7 @@ describe("<EditEntry>", () => {
 
         // Assert.
         const element: HTMLElement = await screen.findByText(
-          "[mocked-response] Failed to edit the targeted Entry resource"
+          "mocked-Failed to edit the targeted Entry resource"
         );
         expect(element).toBeInTheDocument();
       }
@@ -2040,7 +2039,7 @@ describe("<DeleteEntry>", () => {
               ctx.status(400),
               ctx.json({
                 error:
-                  "[mocked-response] Encountered an error," +
+                  "mocked-Encountered an error," +
                   " which is not related to authentication",
               })
             );
@@ -2064,8 +2063,7 @@ describe("<DeleteEntry>", () => {
 
         // Assert.
         const element: HTMLElement = await screen.findByText(
-          "[mocked-response] Encountered an error," +
-            " which is not related to authentication"
+          "mocked-Encountered an error," + " which is not related to authentication"
         );
         expect(element).toBeInTheDocument();
       }

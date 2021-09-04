@@ -96,7 +96,7 @@ const mockMultipleFailures = (
   return res(
     ctx.status(401),
     ctx.json({
-      error: "[mocked] authentication required",
+      error: "mocked-authentication required",
     })
   );
 };
