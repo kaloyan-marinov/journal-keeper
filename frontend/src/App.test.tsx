@@ -99,17 +99,6 @@ describe("<App>", () => {
   });
 
   test("initial render (i.e. before/without any user interaction)", async () => {
-    quasiServer.use(
-      rest.get("/api/user-profile", (req, res, ctx) => {
-        return res(
-          ctx.status(401),
-          ctx.json({
-            error: "[mocked-response] You have not signed in yet!",
-          })
-        );
-      })
-    );
-
     const realStore = createStore(rootReducer, enhancer);
     render(
       <Provider store={realStore}>
@@ -239,19 +228,6 @@ describe("<App>", () => {
       initState.auth.token = localStorage.getItem(JOURNAL_APP_TOKEN);
 
       const realStore = createStore(rootReducer, initState, enhancer);
-
-      quasiServer.use(
-        rest.get("/api/user-profile", (req, res, ctx) => {
-          return res(
-            ctx.status(401),
-            ctx.json({
-              error:
-                "[mocked-response] Although state.auth.token is not `null`," +
-                " it is invalid",
-            })
-          );
-        })
-      );
 
       // Act.
       render(
@@ -642,7 +618,7 @@ describe(
         // Arrange.
         quasiServer.use(
           rest.post("/api/users", (req, res, ctx) => {
-            return res(
+            return res.once(
               ctx.status(400),
               ctx.json({
                 error: "[mocked-response] Failed to create a new User resource",
@@ -918,19 +894,6 @@ describe(
         " the form was filled out in an invalid way",
       async () => {
         // Arrange.
-        quasiServer.use(
-          rest.post("/api/tokens", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error:
-                  "[mocked response] Authenticaiton failed" +
-                  " - incorrect email and/or password",
-              })
-            );
-          })
-        );
-
         render(
           <Provider store={realStore}>
             <Alerts />
@@ -949,9 +912,7 @@ describe(
         fireEvent.click(button);
 
         // Assert.
-        const element = await screen.findByText(
-          "[mocked response] Authenticaiton failed - incorrect email and/or password"
-        );
+        const element = await screen.findByText("[mocked] authentication required");
         expect(element).toBeInTheDocument();
       }
     );
@@ -1078,17 +1039,6 @@ describe("<JournalEntries>", () => {
         " the client-provided authentication credential as invalid",
       async () => {
         // Arrange.
-        quasiServer.use(
-          rest.get("/api/entries", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error: "[mocked-response] Failed to authenticate you as an HTTP client",
-              })
-            );
-          })
-        );
-
         const initState = {
           alerts: {
             ...initialStateAlerts,
@@ -1143,7 +1093,7 @@ describe("<JournalEntries>", () => {
         // Arrange.
         quasiServer.use(
           rest.get("/api/entries", (req, res, ctx) => {
-            return res(
+            return res.once(
               ctx.status(400),
               ctx.json({
                 error:
@@ -1505,7 +1455,7 @@ describe(
         // Arrange.
         quasiServer.use(
           rest.post("/api/entries", (req, res, ctx) => {
-            return res(
+            return res.once(
               ctx.status(400),
               ctx.json({
                 error: "[mocked-response] Failed to create a new Entry resource",
@@ -1553,17 +1503,6 @@ describe(
         " the user's JWS Token is no longer valid",
       async () => {
         // Arrange.
-        quasiServer.use(
-          rest.post("/api/entries", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error: "[mocked-response] Your JWS Token is no longer valid",
-              })
-            );
-          })
-        );
-
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
 
@@ -1802,7 +1741,7 @@ describe("<EditEntry>", () => {
         // Arrange.
         quasiServer.use(
           rest.put("/api/entries/:id", (req, res, ctx) => {
-            return res(
+            return res.once(
               ctx.status(400),
               ctx.json({
                 error: "[mocked-response] Failed to edit the targeted Entry resource",
@@ -1840,17 +1779,6 @@ describe("<EditEntry>", () => {
         " the user's JWS Token is no longer valid",
       async () => {
         // Arrange.
-        quasiServer.use(
-          rest.put("/api/entries/:id", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error: "[mocked-response] Your JWS Token is no longer valid",
-              })
-            );
-          })
-        );
-
         render(
           <Provider store={realStore}>
             <Router history={history}>
@@ -2069,17 +1997,6 @@ describe("<DeleteEntry>", () => {
         " the user's JWS Token is no longer valid",
       async () => {
         // Arrange.
-        quasiServer.use(
-          rest.delete("/api/entries/:id", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error: "[mocked-response] Your JWS Token is no longer valid",
-              })
-            );
-          })
-        );
-
         render(
           <Provider store={realStore}>
             <Router history={history}>
@@ -2119,7 +2036,7 @@ describe("<DeleteEntry>", () => {
         // Arrange.
         quasiServer.use(
           rest.delete("/api/entries/:id", (req, res, ctx) => {
-            return res(
+            return res.once(
               ctx.status(400),
               ctx.json({
                 error:
@@ -2147,7 +2064,8 @@ describe("<DeleteEntry>", () => {
 
         // Assert.
         const element: HTMLElement = await screen.findByText(
-          "[mocked-response] Encountered an error, which is not related to authentication"
+          "[mocked-response] Encountered an error," +
+            " which is not related to authentication"
         );
         expect(element).toBeInTheDocument();
       }
