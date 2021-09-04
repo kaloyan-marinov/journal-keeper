@@ -1,6 +1,7 @@
 import { IAlert, IStateAlerts } from "../../types";
 import { initialStateAlerts } from "../../constants";
 
+/* Action creators. */
 enum ActionTypesAlerts {
   CREATE = "alerts/create",
   REMOVE = "alerts/remove",
@@ -38,7 +39,7 @@ export const alertsRemove = (id: string): IActionAlertsRemove => ({
 
 export type ActionAlerts = IActionAlertsCreate | IActionAlertsRemove;
 
-/* alertsSlice - reducer */
+/* Reducer. */
 export const alertsReducer = (
   stateAlerts: IStateAlerts = initialStateAlerts,
   action: ActionAlerts

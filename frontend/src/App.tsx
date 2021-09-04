@@ -30,18 +30,20 @@ import {
 } from "./features/alerts/alertsSlice";
 import {
   ActionCreateUser,
-  ActionDeleteEntry,
-  ActionEditEntry,
   ActionFetchProfile,
   ActionIssueJWSToken,
-  createEntry,
   createUser,
-  deleteEntry,
-  editEntry,
-  fetchEntries,
   fetchProfile,
   IActionClearAuthSlice,
   issueJWSToken,
+} from "./features/auth/authSlice";
+import {
+  ActionDeleteEntry,
+  ActionEditEntry,
+  createEntry,
+  deleteEntry,
+  editEntry,
+  fetchEntries,
   selectAlertsEntities,
   selectAlertsIds,
   selectAuthRequestStatus,
