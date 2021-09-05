@@ -1,38 +1,36 @@
-# Brief introductory remarks
+# Table of contents
 
-1. concerning the `backend` subfolder:
+This repository's documentation is organized as follows.
 
-   - note the version of TypeScript:
+1. [Introduction](#introduction)
 
-      ```
-      backend $ ./node_modules/.bin/tsc --version
-      Version 4.2.3
-      backend $ ll ./node_modules/.bin/tsc 
-      lrwxr-xr-x  1 <user>  <group>    21B Apr  7 07:07 ./node_modules/.bin/tsc@ -> ../typescript/bin/tsc
-      ```
+2. [Motivation](#motivation)
 
-   - recall the values for `"rootDir"` and `"outDir"` that are specified in the `backend/tsconfig.json` file
+3. [The functionality provided by the web application](#the-functionality-provided-by-the-web-application)
 
-   - recognize that the `backend/src` folder contains a(n admittedly small) backend web application, which is written in valid TypeScript; uses Koa.js and SQLite; and includes a test suite
+4. [How to set up the project for local development](#how-to-set-up-the-project-for-local-development)
 
-      ```
-      $ tree backend/src/
-      backend/src/
-      ├── entities.ts
-      ├── migration
-      │   ├── 1618138069642-createUsersTable.ts
-      │   ├── 1618908389832-createEntriesTable.ts
-      │   └── 1619667023165-switchToStoringPasswordsInHashedForm.ts
-      └── server.ts
+5. [Different options for serving our backend application](#different-options-for-serving-our-backend-application)
 
-      1 directory, 5 files
-      ```
+6. [Future plans](#future-plans)
 
-2. concerning the `frontend` subfolder:
+# Introduction
 
-   - TBD
+`JournalKeeper` is a web application that allows the user to keep a personal journal online.
 
-# How to set up the project locally
+I decided to build such an application, because (a) sometimes I will journal about past or present expriences; (b) occasionally I will write down a particularly vivid dream; and (c) I regularly take notes about things that strike me as important or interesting.
+
+As of September 2021, my journaling has used up several notebooks. My plan is for this web application to provide a centralized place for my future journal entries.
+
+# The functionality provided by the web application
+
+In a nutshell, `JournalKeeper` allows the user to keep a personal journal online.
+
+The first step is for you to create a `JournalKeeper` account, which will store and protect your data.
+
+Next, you can log into your account and create your own journal entries therein.
+
+# How to set up the project for local development
 
 1. clone this repository, and navigate into your local repository
 
@@ -73,16 +71,16 @@
 
       ```
       $ ./node_modules/.bin/ts-node \
-      ./node_modules/typeorm/cli.js \
-      migration:run \
-      -c connection-to-db-for-dev
+         ./node_modules/typeorm/cli.js \
+         migration:run \
+         -c connection-to-db-for-dev
       ```
 
       or
 
       ```
       $ npm run migration:run -- \
-      -c connection-to-db-for-dev
+         -c connection-to-db-for-dev
       ```
 
    - verify that the previous step was successful by issuing `$ sqlite3 <the-value-of-DATABASE_URL-in-your-.env-file>` and then issuing:
@@ -113,7 +111,8 @@
          "created_at" datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP),
          "updated_at" datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP),
          "user_id" integer NOT NULL,
-         CONSTRAINT "FK_73b250bca5e5a24e1343da56168" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE NO ACTION);
+         CONSTRAINT "FK_73b250bca5e5a24e1343da56168" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
+      );
       ```
 
    - launch a terminal instance and, in it, start a process responsible for serving the backend application instance; the ways of starting such a process can be broken down into the following categories:
@@ -360,3 +359,17 @@
       which will create a `coverage` folder with a report of test coverage; to view that report, open `coverage/index.html` in your web browser
 
       (to run the tests in watch mode, issue any one of the following: `frontend $ npm test -- --coverage --watchAll`; each re-run of which will update the contents of the `coverage` folder)
+
+# Different options for serving our backend application
+
+TBD
+
+# Future plans
+
+- implement a password-reset functionality
+
+- allow each user to export their personal data in JSON format
+
+- require every newly-created user to confirm their email address
+
+- implement a functionality for assigning tags to a post (i.e. enable the user to create categories/tags and to label each of his/her posts with 1 or several categories/tags)
