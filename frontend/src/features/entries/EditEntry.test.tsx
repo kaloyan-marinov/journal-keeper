@@ -21,7 +21,7 @@ import { requestHandlers } from "../../testHelpers";
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { setupServer } from "msw/node";
 import { SignIn } from "../auth/SignIn";
-import { PrivateRoute } from "../../App";
+import { PrivateRoute } from "../auth/PrivateRoute";
 
 describe("<EditEntry>", () => {
   let history;

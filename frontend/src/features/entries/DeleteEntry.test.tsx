@@ -16,7 +16,7 @@ import {
   MOCK_LINKS,
   MOCK_META,
 } from "../../testHelpers";
-import { PrivateRoute } from "../../App";
+import { PrivateRoute } from "../auth/PrivateRoute";
 import { DeleteEntry } from "./DeleteEntry";
 import { JournalEntries } from "./JournalEntries";
 import { Alerts } from "../alerts/Alerts";
