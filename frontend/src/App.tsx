@@ -24,22 +24,28 @@ import { URL_FOR_FIRST_PAGE_OF_EXAMPLES } from "./constants";
 
 import {
   ActionAlerts,
-  ActionCreateUser,
-  ActionDeleteEntry,
-  ActionEditEntry,
-  ActionFetchProfile,
-  ActionIssueJWSToken,
   alertsCreate,
   alertsRemove,
-  createEntry,
+  IActionAlertsCreate,
+} from "./features/alerts/alertsSlice";
+import {
+  ActionCreateUser,
+  ActionFetchProfile,
+  ActionIssueJWSToken,
   createUser,
+  fetchProfile,
+  IActionClearAuthSlice,
+  issueJWSToken,
+} from "./features/auth/authSlice";
+import {
+  ActionDeleteEntry,
+  ActionEditEntry,
+  createEntry,
   deleteEntry,
   editEntry,
   fetchEntries,
-  fetchProfile,
-  IActionAlertsCreate,
-  IActionClearAuthSlice,
-  issueJWSToken,
+} from "./features/entries/entriesSlice";
+import {
   selectAlertsEntities,
   selectAlertsIds,
   selectAuthRequestStatus,
