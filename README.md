@@ -4,15 +4,13 @@ This repository's documentation is organized as follows.
 
 1. [Introduction](#introduction)
 
-2. [Motivation](#motivation)
+2. [The functionality provided by the web application](#the-functionality-provided-by-the-web-application)
 
-3. [The functionality provided by the web application](#the-functionality-provided-by-the-web-application)
+3. [How to set up the project for local development](#how-to-set-up-the-project-for-local-development)
 
-4. [How to set up the project for local development](#how-to-set-up-the-project-for-local-development)
+4. [Different options for serving our backend application](#different-options-for-serving-our-backend-application)
 
-5. [Different options for serving our backend application](#different-options-for-serving-our-backend-application)
-
-6. [Future plans](#future-plans)
+5. [Future plans](#future-plans)
 
 # Introduction
 
@@ -125,18 +123,18 @@ Next, you can log into your account and create your own journal entries therein.
 
       (b) in such a way that the project is re-started whenever changes are made
 
-        - (approach b.1): directly run the compiled project by issuing `$ ./node_modules/.bin/nodemon` or `$ npm run start` (or, even more succunctly, `$ npm start` ); _this approach ensures that the project will be re-started whenever changes are made to the `src/server.ts` file_
+        - (approach b.1): directly run the compiled project by issuing `$ ./node_modules/.bin/nodemon` or `$ npm run dev`; _this approach ensures that the project will be re-started whenever changes are made to the `src/server.ts` file_
 
    - launch another terminal window and, in it, issue the following requests:
 
       ```
       $ curl \
-      -v \
-      -X POST \
-      -H "Content-Type: application/json" \
-      -d '{"username": "jd", "name": "John Doe", "email": "john.doe@protonmail.com", "password": "123"}' \
-      localhost:5000/api/users \
-      | json_pp
+         -v \
+         -X POST \
+         -H "Content-Type: application/json" \
+         -d '{"username": "jd", "name": "John Doe", "email": "john.doe@protonmail.com", "password": "123"}' \
+         localhost:5000/api/users \
+         | json_pp
 
       ...
       < HTTP/1.1 201 Created
@@ -156,21 +154,37 @@ Next, you can log into your account and create your own journal entries therein.
 
       ```
       $ curl \
-      -v \
-      localhost:5000/api/users \
-      | json_pp
+         -v \
+         localhost:5000/api/users \
+         | json_pp
 
       ...
       < HTTP/1.1 200 OK
       < Content-Type: application/json; charset=utf-8
-      < Content-Length: 36
-      < Date: Sun, 18 Apr 2021 07:36:42 GMT
+      < Content-Length: 248
+      < Date: Sun, 05 Sep 2021 07:36:45 GMT
       < Connection: keep-alive
       < Keep-Alive: timeout=5
-      <
-      ...
+      < 
+      { [248 bytes data]
+      100   248  100   248    0     0   9920      0 --:--:-- --:--:-- --:--:--  9920
+      * Connection #0 to host localhost left intact
+      * Closing connection 0
       {
-         "users" : [
+         "_links" : {
+            "first" : "/api/users?perPage=10&page=1",
+            "last" : "/api/users?perPage=10&page=1",
+            "next" : null,
+            "prev" : null,
+            "self" : "/api/users?perPage=10&page=1"
+         },
+         "_meta" : {
+            "page" : 1,
+            "perPage" : 10,
+            "totalItems" : 1,
+            "totalPages" : 1
+         },
+         "items" : [
             {
                "id" : 1,
                "username" : "jd"
@@ -181,12 +195,12 @@ Next, you can log into your account and create your own journal entries therein.
 
       ```
       $ curl \
-      -v \
-      -X POST \
-      -H "Content-Type: application/json" \
-      -d '{"username": "ms", "name": "Mary Smith", "email": "mary.smith@protonmail.com", "password": "456"}' \
-      localhost:5000/api/users \
-      | json_pp
+         -v \
+         -X POST \
+         -H "Content-Type: application/json" \
+         -d '{"username": "ms", "name": "Mary Smith", "email": "mary.smith@protonmail.com", "password": "456"}' \
+         localhost:5000/api/users \
+         | json_pp
 
       ...
       < HTTP/1.1 201 Created
@@ -206,28 +220,44 @@ Next, you can log into your account and create your own journal entries therein.
 
       ```
       $ curl \
-      -v \
-      localhost:5000/api/users \
-      | json_pp
+         -v \
+         localhost:5000/api/users \
+         | json_pp
       
       ...
       < HTTP/1.1 200 OK
       < Content-Type: application/json; charset=utf-8
-      < Content-Length: 61
-      < Date: Sun, 18 Apr 2021 07:41:22 GMT
+      < Content-Length: 273
+      < Date: Sun, 05 Sep 2021 07:37:28 GMT
       < Connection: keep-alive
       < Keep-Alive: timeout=5
       < 
-      ...
+      { [273 bytes data]
+      100   273  100   273    0     0  13650      0 --:--:-- --:--:-- --:--:-- 13650
+      * Connection #0 to host localhost left intact
+      * Closing connection 0
       {
-         "users" : [
+         "_links" : {
+            "first" : "/api/users?perPage=10&page=1",
+            "last" : "/api/users?perPage=10&page=1",
+            "next" : null,
+            "prev" : null,
+            "self" : "/api/users?perPage=10&page=1"
+         },
+         "_meta" : {
+            "page" : 1,
+            "perPage" : 10,
+            "totalItems" : 2,
+            "totalPages" : 1
+         },
+         "items" : [
             {
                "id" : 1,
                "username" : "jd"
             },
             {
-               "username" : "ms",
-               "id" : 2
+               "id" : 2,
+               "username" : "ms"
             }
          ]
       }
@@ -287,21 +317,38 @@ Next, you can log into your account and create your own journal entries therein.
       ...
       < HTTP/1.1 200 OK
       < Content-Type: application/json; charset=utf-8
-      < Content-Length: 244
-      < Date: Sat, 01 May 2021 06:35:22 GMT
+      < Content-Length: 460
+      < Date: Sun, 05 Sep 2021 07:38:56 GMT
       < Connection: keep-alive
       < Keep-Alive: timeout=5
-      ...
+      < 
+      { [460 bytes data]
+      100   460  100   460    0     0  10952      0 --:--:-- --:--:-- --:--:-- 10952
+      * Connection #0 to host localhost left intact
+      * Closing connection 0
       {
-         "entries" : [
+         "_links" : {
+            "first" : "/api/entries?perPage=10&page=1",
+            "last" : "/api/entries?perPage=10&page=1",
+            "next" : null,
+            "prev" : null,
+            "self" : "/api/entries?perPage=10&page=1"
+         },
+         "_meta" : {
+            "page" : 1,
+            "perPage" : 10,
+            "totalItems" : 1,
+            "totalPages" : 1
+         },
+         "items" : [
             {
-               "timestampInUTC" : "2020-12-01T15:17:00.000Z",
-               "createdAt" : "2021-04-29T05:10:56.000Z",
-               "userId" : 1,
                "content" : "Then it dawned on me: there is no finish line!",
-               "utcZoneOfTimestamp" : "+02:00",
+               "createdAt" : "2021-09-05T07:38:32.000Z",
                "id" : 1,
-               "updatedAt" : "2021-04-29T05:10:56.000Z"
+               "timestampInUTC" : "2020-12-01T15:17:00.000Z",
+               "updatedAt" : "2021-09-05T07:38:32.000Z",
+               "userId" : 1,
+               "utcZoneOfTimestamp" : "+02:00"
             }
          ]
       }
@@ -317,22 +364,38 @@ Next, you can log into your account and create your own journal entries therein.
       ...
       < HTTP/1.1 200 OK
       < Content-Type: application/json; charset=utf-8
-      < Content-Length: 235
-      < Date: Sat, 01 May 2021 06:35:31 GMT
+      < Content-Length: 451
+      < Date: Sun, 05 Sep 2021 07:39:27 GMT
       < Connection: keep-alive
       < Keep-Alive: timeout=5
       < 
-      ...
+      { [451 bytes data]
+      100   451  100   451    0     0  12885      0 --:--:-- --:--:-- --:--:-- 12885
+      * Connection #0 to host localhost left intact
+      * Closing connection 0
       {
-         "entries" : [
+         "_links" : {
+            "first" : "/api/entries?perPage=10&page=1",
+            "last" : "/api/entries?perPage=10&page=1",
+            "next" : null,
+            "prev" : null,
+            "self" : "/api/entries?perPage=10&page=1"
+         },
+         "_meta" : {
+            "page" : 1,
+            "perPage" : 10,
+            "totalItems" : 1,
+            "totalPages" : 1
+         },
+         "items" : [
             {
-               "timestampInUTC" : "2019-08-20T13:17:00.000Z",
-               "utcZoneOfTimestamp" : "+01:00",
-               "id" : 2,
-               "userId" : 2,
                "content" : "Mallorca has beautiful sunny beaches!",
-               "createdAt" : "2021-04-29T05:11:01.000Z",
-               "updatedAt" : "2021-04-29T05:11:01.000Z"
+               "createdAt" : "2021-09-05T07:38:51.000Z",
+               "id" : 2,
+               "timestampInUTC" : "2019-08-20T13:17:00.000Z",
+               "updatedAt" : "2021-09-05T07:38:51.000Z",
+               "userId" : 2,
+               "utcZoneOfTimestamp" : "+01:00"
             }
          ]
       }
@@ -356,7 +419,7 @@ Next, you can log into your account and create your own journal entries therein.
       frontend $ npm test -- --coverage
       ```
 
-      which will create a `coverage` folder with a report of test coverage; to view that report, open `coverage/index.html` in your web browser
+      which will create a `coverage` folder with a report of test coverage; to view that report, open `coverage/lcov-report/index.html` in your web browser
 
       (to run the tests in watch mode, issue any one of the following: `frontend $ npm test -- --coverage --watchAll`; each re-run of which will update the contents of the `coverage` folder)
 
