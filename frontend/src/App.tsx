@@ -1,5 +1,5 @@
 import React from "react";
-import { Switch, Route, Link, useHistory } from "react-router-dom";
+import { Switch, Route, useHistory } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
@@ -11,14 +11,7 @@ import { useParams } from "react-router-dom";
 import moment from "moment";
 
 import { Redirect } from "react-router-dom";
-import {
-  IEntry,
-  IPaginationLinks,
-  IPaginationMeta,
-  IState,
-  RequestStatus,
-} from "./types";
-import { URL_FOR_FIRST_PAGE_OF_EXAMPLES } from "./constants";
+import { IEntry, IState, RequestStatus } from "./types";
 
 import {
   ActionAlerts,
@@ -36,14 +29,10 @@ import {
   createEntry,
   deleteEntry,
   editEntry,
-  fetchEntries,
 } from "./features/entries/entriesSlice";
 import {
   selectAuthRequestStatus,
   selectEntriesEntities,
-  selectEntriesIds,
-  selectEntriesLinks,
-  selectEntriesMeta,
   selectHasValidToken,
   signOut,
 } from "./store";
@@ -53,7 +42,6 @@ import { NavigationBar } from "./features/NavigationBar";
 import { SignUp } from "./features/auth/SignUp";
 import { SignIn } from "./features/auth/SignIn";
 import { SingleJournalEntry } from "./features/entries/SingleJournalEntry";
-import { DeleteEntryLink } from "./features/entries/DeleteEntryLink";
 import { JournalEntries } from "./features/entries/JournalEntries";
 
 const App = () => {
