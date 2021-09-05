@@ -43,32 +43,33 @@ Next, you can log into your account and create your own journal entries therein.
 3. set up the backend:
 
    - install the Node.js dependencies:
+
       ```
-      $ npm install
+      backend $ npm install
       ```
 
    - ensure that running the tests results in a PASS by issuing any one of the following:
 
       ```
-      $ ./node_modules/.bin/jest
+      backend $ ./node_modules/.bin/jest
       ```
 
       ```
-      $ npm run test
+      backend $ npm run test
       ```
 
       ```
-      $ npm test
+      backend $ npm test
       ```
 
-      which will create a `coverage` folder with a report of test coverage; to view that report, open `coverage/index.html` in your web browser
+      which will create a `coverage` subfolder with a report of test coverage; to view that report, open `coverage/index.html` in your web browser
 
-      (to run the tests in watch mode, issue any one of the following: `$ ./node_modules/.bin/jest --watchAll` or `$ npm run test--watchAll`; each re-run of which will update the contents of the `coverage` folder)
+      (to run the tests in watch mode, issue any one of the following: `backend $ ./node_modules/.bin/jest --watchAll` or `backend $ npm run test--watchAll`; each re-run of which will update the contents of the `coverage` subfolder)
 
    - create an empty SQLite database and apply all database migrations by issuing one of the following:
 
       ```
-      $ ./node_modules/.bin/ts-node \
+      backend $ ./node_modules/.bin/ts-node \
          ./node_modules/typeorm/cli.js \
          migration:run \
          -c connection-to-db-for-dev
@@ -77,7 +78,7 @@ Next, you can log into your account and create your own journal entries therein.
       or
 
       ```
-      $ npm run migration:run -- \
+      backend $ npm run migration:run -- \
          -c connection-to-db-for-dev
       ```
 
@@ -117,13 +118,13 @@ Next, you can log into your account and create your own journal entries therein.
 
       (a) without re-starting the project when changes are made
       
-        - (approach a.1): first, compile the whole project by issuing `$ ./node_modules/.bin/tsc`, which is going to create a `dist` folder containing JavaScript files (as the result result of the compilation process) as well as an `ormconfig.js` file; second, run the compiled project by issuing `$ NODE_ENV=production node dist/server.js`
+        - (approach a.1): first, compile the whole project by issuing `backend $ ./node_modules/.bin/tsc`, which is going to create a `dist` subfolder containing JavaScript files (as the result result of the compilation process) as well as an `ormconfig.js` file; second, run the compiled project by issuing `backend $ NODE_ENV=production node dist/server.js`
 
-        - (approach a.2): directly run the whole project by issuing `$ ./node_modules/.bin/ts-node src/server.ts` or `$ npm run serve`
+        - (approach a.2): directly run the whole project by issuing `backend $ ./node_modules/.bin/ts-node src/server.ts` or `backend $ npm run serve`
 
       (b) in such a way that the project is re-started whenever changes are made
 
-        - (approach b.1): directly run the compiled project by issuing `$ ./node_modules/.bin/nodemon` or `$ npm run dev`; _this approach ensures that the project will be re-started whenever changes are made to the `src/server.ts` file_
+        - (approach b.1): directly run the compiled project by issuing `backend $ ./node_modules/.bin/nodemon` or `backend $ npm run dev`; _this approach ensures that the project will be re-started whenever changes are made to the `src/server.ts` file_
 
    - launch another terminal window and, in it, issue the following requests:
 
@@ -403,12 +404,8 @@ Next, you can log into your account and create your own journal entries therein.
 
 4. set up the frontend:
 
-   - navigate into the the `frontend` subfolder:
-      ```
-      $ cd frontend
-      ```
-
    - install the Node.js dependencies:
+
       ```
       frontend $ npm install
       ```
@@ -419,9 +416,15 @@ Next, you can log into your account and create your own journal entries therein.
       frontend $ npm test -- --coverage
       ```
 
-      which will create a `coverage` folder with a report of test coverage; to view that report, open `coverage/lcov-report/index.html` in your web browser
+      which will create a `coverage` subfolder with a report of test coverage; to view that report, open `coverage/lcov-report/index.html` in your web browser
 
-      (to run the tests in watch mode, issue any one of the following: `frontend $ npm test -- --coverage --watchAll`; each re-run of which will update the contents of the `coverage` folder)
+      (to run the tests in watch mode, issue any one of the following: `frontend $ npm test -- --coverage --watchAll`; each re-run of which will update the contents of the `coverage` subfolder)
+
+   - launch a terminal instance and, in it, start a process responsible for serving the frontend application:
+
+      ```
+      frontend $ npm start
+      ```
 
 # Different options for serving our backend application
 
