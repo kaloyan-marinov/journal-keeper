@@ -6,7 +6,7 @@
     "serve": "ts-node src/server.ts",
     "migration:generate": "ts-node ./node_modules/typeorm/cli.js migration:generate",
     "migration:run": "ts-node ./node_modules/typeorm/cli.js migration:run",
-    "start": "nodemon",
+    "dev": "nodemon",
     "test": "NODE_ENV=test jest",
     "test--watchAll": "NODE_ENV=test jest --watchAll"
   },
