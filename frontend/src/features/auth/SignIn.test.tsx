@@ -1,3 +1,4 @@
+import "@testing-library/jest-dom";
 import { render, screen, fireEvent } from "@testing-library/react";
 import thunkMiddleware from "redux-thunk";
 import { Provider } from "react-redux";
