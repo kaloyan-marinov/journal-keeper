@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/react";
 
 import { IState, RequestStatus } from "./types";
 
@@ -33,7 +33,6 @@ import {
 import { rest } from "msw";
 
 import {
-  mockFetchEntries,
   MOCK_ENTRIES_ENTITIES,
   MOCK_ENTRIES_IDS,
   MOCK_ENTRY_10,
@@ -41,13 +40,26 @@ import {
   MOCK_LINKS,
   MOCK_META,
   MOCK_PROFILE_1,
-  requestHandlersToMock,
+  requestHandlers,
 } from "./testHelpers";
 
 import { rootReducer, store } from "./store";
 
 /* Create an MSW "request-interception layer". */
-const quasiServer = setupServer(...requestHandlersToMock);
+const requestInterceptionLayer = [
+  rest.post("/api/users", requestHandlers.mockMultipleFailures),
+
+  rest.post("/api/tokens", requestHandlers.mockMultipleFailures),
+
+  rest.get("/api/user-profile", requestHandlers.mockMultipleFailures),
+
+  rest.get("/api/entries", requestHandlers.mockMultipleFailures),
+  rest.post("/api/entries", requestHandlers.mockMultipleFailures),
+  rest.put("/api/entries/:id", requestHandlers.mockMultipleFailures),
+  rest.delete("/api/entries/:id", requestHandlers.mockMultipleFailures),
+];
+
+const quasiServer = setupServer(...requestInterceptionLayer);
 
 describe("<App>", () => {
   let enhancer: any;
@@ -87,17 +99,6 @@ describe("<App>", () => {
   });
 
   test("initial render (i.e. before/without any user interaction)", async () => {
-    quasiServer.use(
-      rest.get("/api/user-profile", (req, res, ctx) => {
-        return res(
-          ctx.status(401),
-          ctx.json({
-            error: "[mocked-response] You have not signed in yet!",
-          })
-        );
-      })
-    );
-
     const realStore = createStore(rootReducer, enhancer);
     render(
       <Provider store={realStore}>
@@ -122,6 +123,10 @@ describe("<App>", () => {
 
   test("render after the user has signed in", async () => {
     // Arrange.
+    quasiServer.use(
+      rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
+    );
+
     const realStore = createStore(rootReducer, initState, enhancer);
 
     // Act.
@@ -146,7 +151,12 @@ describe("<App>", () => {
 
   test("after the user has signed in, the user clicks on 'Sign Out'", async () => {
     // Arrange.
+    quasiServer.use(
+      rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
+    );
+
     const realStore = createStore(rootReducer, initState, enhancer);
+
     render(
       <Provider store={realStore}>
         <Router history={history}>
@@ -219,19 +229,6 @@ describe("<App>", () => {
 
       const realStore = createStore(rootReducer, initState, enhancer);
 
-      quasiServer.use(
-        rest.get("/api/user-profile", (req, res, ctx) => {
-          return res(
-            ctx.status(401),
-            ctx.json({
-              error:
-                "[mocked-response] Although state.auth.token is not `null`," +
-                " it is invalid",
-            })
-          );
-        })
-      );
-
       // Act.
       render(
         <Provider store={realStore}>
@@ -256,15 +253,19 @@ describe("<App>", () => {
     }
   );
 
-  test(
+  xtest(
     "if a user signs in" +
       " and goes on to manually change the URL in her browser's address bar" +
       " to /journal-entries ," +
-      " the frontend application should display only the following navigation links:" +
-      " 'Home', 'JournalEntries', and 'Sign Out'",
+      " the frontend application should redirect to / (but keep the user signed in)",
     async () => {
       // Arrange.
-      quasiServer.use(rest.get("/api/entries", mockFetchEntries));
+      quasiServer.use(
+        rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
+
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
+      );
 
       const realStore = createStore(rootReducer, initState, enhancer);
 
@@ -281,12 +282,22 @@ describe("<App>", () => {
         </Provider>
       );
 
+      let element: HTMLElement;
+
+      element = await screen.findByText("Hello, mocked-John Doe!");
+      expect(element).toBeInTheDocument();
+
       // - unamount React trees that were mounted with render
       cleanup();
 
       // - navigate to the /journal-entries URL,
       //   and mount the application's entire React tree
+      console.log("[the test case is]");
+      console.log("navigating to the /journal-entries URL");
+      console.log("and mounting the application's entire React tree");
+
       history.push("/journal-entries");
+
       render(
         <Provider store={realStore}>
           <Router history={history}>
@@ -296,13 +307,11 @@ describe("<App>", () => {
       );
 
       // Assert.
-      let element: HTMLElement;
+      await waitFor(() => {
+        expect(history.location.pathname).toEqual("/");
+      });
 
-      element = await screen.findByText("Sign Out");
-      expect(element).toBeInTheDocument();
-      element = screen.getByText("JournalEntries");
-      expect(element).toBeInTheDocument();
-      element = screen.getByText("Home");
+      element = screen.getByText("Hello, mocked-John Doe!");
       expect(element).toBeInTheDocument();
     }
   );
@@ -529,7 +538,9 @@ describe(
         });
         fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 123" } });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create an account for me",
+        });
         fireEvent.click(button);
 
         // Assert.
@@ -569,7 +580,9 @@ describe(
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
         fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 456" } });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create an account for me",
+        });
         fireEvent.click(button);
 
         // Assert.
@@ -605,10 +618,10 @@ describe(
         // Arrange.
         quasiServer.use(
           rest.post("/api/users", (req, res, ctx) => {
-            return res(
+            return res.once(
               ctx.status(400),
               ctx.json({
-                error: "[mocked-response] Failed to create a new User resource",
+                error: "mocked-Failed to create a new User resource",
               })
             );
           })
@@ -641,7 +654,9 @@ describe(
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
         fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 123" } });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create an account for me",
+        });
         fireEvent.click(button);
 
         // Assert.
@@ -663,17 +678,17 @@ describe(
 
         /*
         // This throws, causing the test to FAIL:
-        getByText("[mocked-response] Failed to create a new User resource");
+        getByText("mocked-Failed to create a new User resource");
         */
         // This causes the test to PASS:
         /*
         await waitFor(() => {
-          screen.getByText("[mocked-response] Failed to create a new User resource");
+          screen.getByText("mocked-Failed to create a new User resource");
         });
         */
         // as does this:
         const element: HTMLElement = await screen.findByText(
-          "[mocked-response] Failed to create a new User resource"
+          "mocked-Failed to create a new User resource"
         );
         expect(element).toBeInTheDocument();
       }
@@ -685,6 +700,8 @@ describe(
         " the form submission was accepted as valid and processed",
       async () => {
         // Arrange.
+        quasiServer.use(rest.post("/api/users", requestHandlers.mockCreateUser));
+
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
 
@@ -712,7 +729,9 @@ describe(
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
         fireEvent.change(repeatPasswordInput, { target: { value: "[f-e] 123" } });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create an account for me",
+        });
         fireEvent.click(button);
 
         // Assert.
@@ -836,7 +855,7 @@ describe(
         fireEvent.change(emailInput, { target: { value: "" } });
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", { name: "Sign me in" });
         fireEvent.click(button);
 
         // Assert.
@@ -875,19 +894,6 @@ describe(
         " the form was filled out in an invalid way",
       async () => {
         // Arrange.
-        quasiServer.use(
-          rest.post("/api/tokens", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error:
-                  "[mocked response] Authenticaiton failed" +
-                  " - incorrect email and/or password",
-              })
-            );
-          })
-        );
-
         render(
           <Provider store={realStore}>
             <Alerts />
@@ -902,13 +908,11 @@ describe(
         fireEvent.change(emailInput, { target: { value: "[f-e] jd" } });
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", { name: "Sign me in" });
         fireEvent.click(button);
 
         // Assert.
-        const element = await screen.findByText(
-          "[mocked response] Authenticaiton failed - incorrect email and/or password"
-        );
+        const element = await screen.findByText("mocked-authentication required");
         expect(element).toBeInTheDocument();
       }
     );
@@ -919,6 +923,8 @@ describe(
         " the form submission was accepted as valid and processed",
       async () => {
         // Arrange.
+        quasiServer.use(rest.post("/api/tokens", requestHandlers.mockIssueJWSToken));
+
         const history = createMemoryHistory();
         history.push("/sign-in");
 
@@ -942,7 +948,7 @@ describe(
         fireEvent.change(emailInput, { target: { value: "[f-e] jd" } });
         fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", { name: "Sign me in" });
         fireEvent.click(button);
 
         // Assert.
@@ -1033,17 +1039,6 @@ describe("<JournalEntries>", () => {
         " the client-provided authentication credential as invalid",
       async () => {
         // Arrange.
-        quasiServer.use(
-          rest.get("/api/entries", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error: "[mocked-response] Failed to authenticate you as an HTTP client",
-              })
-            );
-          })
-        );
-
         const initState = {
           alerts: {
             ...initialStateAlerts,
@@ -1052,11 +1047,11 @@ describe("<JournalEntries>", () => {
             ...initialStateAuth,
             signedInUserProfile: {
               id: 17,
-              username: "[mocked] jd",
-              name: "[mocked] John Doe",
-              email: "[mocked] john.doe@protonmail.com",
-              createdAt: "[mocked] 2021-05-24T20:10:17.000Z",
-              updatedAt: "[mocked] 2021-05-24T20:10:17.000Z",
+              username: "mocked-jd",
+              name: "mocked-John Doe",
+              email: "mocked-john.doe@protonmail.com",
+              createdAt: "mocked-2021-05-24T20:10:17.000Z",
+              updatedAt: "mocked-2021-05-24T20:10:17.000Z",
             },
           },
           entries: {
@@ -1098,11 +1093,11 @@ describe("<JournalEntries>", () => {
         // Arrange.
         quasiServer.use(
           rest.get("/api/entries", (req, res, ctx) => {
-            return res(
+            return res.once(
               ctx.status(400),
               ctx.json({
                 error:
-                  "[mocked-response] Encountered an error," +
+                  "mocked-Encountered an error," +
                   " which is not related to authentication",
               })
             );
@@ -1126,8 +1121,7 @@ describe("<JournalEntries>", () => {
 
         // Assert.
         const element: HTMLElement = await screen.findByText(
-          "[mocked-response] Encountered an error," +
-            " which is not related to authentication"
+          "mocked-Encountered an error," + " which is not related to authentication"
         );
         expect(element).toBeInTheDocument();
       }
@@ -1139,7 +1133,7 @@ describe("<JournalEntries>", () => {
         " the client-provided authentication credential as valid",
       async () => {
         // Arrange.
-        quasiServer.use(rest.get("/api/entries", mockFetchEntries));
+        quasiServer.use(rest.get("/api/entries", requestHandlers.mockFetchEntries));
 
         const initState = {
           alerts: {
@@ -1149,11 +1143,11 @@ describe("<JournalEntries>", () => {
             ...initialStateAuth,
             signedInUserProfile: {
               id: 17,
-              username: "[mocked] jd",
-              name: "[mocked] John Doe",
-              email: "[mocked] john.doe@protonmail.com",
-              createdAt: "[mocked] 2021-05-24T20:10:17.000Z",
-              updatedAt: "[mocked] 2021-05-24T20:10:17.000Z",
+              username: "mocked-jd",
+              name: "mocked-John Doe",
+              email: "mocked-john.doe@protonmail.com",
+              createdAt: "mocked-2021-05-24T20:10:17.000Z",
+              updatedAt: "mocked-2021-05-24T20:10:17.000Z",
             },
           },
           entries: {
@@ -1200,12 +1194,12 @@ describe("<JournalEntries>", () => {
     test("the user interacts with the pagination-controlling buttons", async () => {
       // Arrange.
       quasiServer.use(
-        rest.get("/api/entries", mockFetchEntries),
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
 
-        rest.get("/api/entries", mockFetchEntries),
-        rest.get("/api/entries", mockFetchEntries),
-        rest.get("/api/entries", mockFetchEntries),
-        rest.get("/api/entries", mockFetchEntries)
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.get("/api/entries", requestHandlers.mockFetchEntries)
       );
 
       const enhancer = applyMiddleware(thunkMiddleware);
@@ -1422,7 +1416,9 @@ describe(
           },
         });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create entry",
+        });
         fireEvent.click(button);
 
         // Assert.
@@ -1458,10 +1454,10 @@ describe(
         // Arrange.
         quasiServer.use(
           rest.post("/api/entries", (req, res, ctx) => {
-            return res(
+            return res.once(
               ctx.status(400),
               ctx.json({
-                error: "[mocked-response] Failed to create a new Entry resource",
+                error: "mocked-Failed to create a new Entry resource",
               })
             );
           })
@@ -1487,12 +1483,14 @@ describe(
           target: { value: "some insightful content" },
         });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create entry",
+        });
         fireEvent.click(button);
 
         // Assert.
         const element: HTMLElement = await screen.findByText(
-          "[mocked-response] Failed to create a new Entry resource"
+          "mocked-Failed to create a new Entry resource"
         );
         expect(element).toBeInTheDocument();
       }
@@ -1504,17 +1502,6 @@ describe(
         " the user's JWS Token is no longer valid",
       async () => {
         // Arrange.
-        quasiServer.use(
-          rest.post("/api/entries", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error: "[mocked-response] Your JWS Token is no longer valid",
-              })
-            );
-          })
-        );
-
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
 
@@ -1535,7 +1522,9 @@ describe(
           target: { value: "some insightful content" },
         });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create entry",
+        });
         fireEvent.click(button);
 
         // Assert.
@@ -1552,6 +1541,8 @@ describe(
         " the form submission was accepted as valid and processed",
       async () => {
         // Arrange.
+        quasiServer.use(rest.post("/api/entries", requestHandlers.mockCreateEntry));
+
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
 
@@ -1579,7 +1570,9 @@ describe(
           target: { value: "some insightful content " },
         });
 
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", {
+          name: "Create entry",
+        });
         fireEvent.click(button);
 
         // Assert.
@@ -1712,7 +1705,9 @@ describe("<EditEntry>", () => {
           const timezoneSelect = screen.getByRole("combobox");
           fireEvent.change(timezoneSelect, { target: { value: "" } });
 
-          const button = screen.getByRole("button");
+          const button: HTMLElement = screen.getByRole("button", {
+            name: "Edit entry",
+          });
           fireEvent.click(button);
 
           // Assert.
@@ -1745,10 +1740,10 @@ describe("<EditEntry>", () => {
         // Arrange.
         quasiServer.use(
           rest.put("/api/entries/:id", (req, res, ctx) => {
-            return res(
+            return res.once(
               ctx.status(400),
               ctx.json({
-                error: "[mocked-response] Failed to edit the targeted Entry resource",
+                error: "mocked-Failed to edit the targeted Entry resource",
               })
             );
           })
@@ -1766,12 +1761,12 @@ describe("<EditEntry>", () => {
         );
 
         // Act.
-        const button = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", { name: "Edit entry" });
         fireEvent.click(button);
 
         // Assert.
         const element: HTMLElement = await screen.findByText(
-          "[mocked-response] Failed to edit the targeted Entry resource"
+          "mocked-Failed to edit the targeted Entry resource"
         );
         expect(element).toBeInTheDocument();
       }
@@ -1783,17 +1778,6 @@ describe("<EditEntry>", () => {
         " the user's JWS Token is no longer valid",
       async () => {
         // Arrange.
-        quasiServer.use(
-          rest.put("/api/entries/:id", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error: "[mocked-response] Your JWS Token is no longer valid",
-              })
-            );
-          })
-        );
-
         render(
           <Provider store={realStore}>
             <Router history={history}>
@@ -1809,7 +1793,7 @@ describe("<EditEntry>", () => {
         );
 
         // Act.
-        const button: HTMLElement = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", { name: "Edit entry" });
         fireEvent.click(button);
 
         // Assert.
@@ -1826,6 +1810,8 @@ describe("<EditEntry>", () => {
         " the form submission was accepted as valid and processed",
       async () => {
         // Arrange.
+        quasiServer.use(rest.put("/api/entries/:id", requestHandlers.mockEditEntry));
+
         render(
           <Provider store={realStore}>
             <Router history={history}>
@@ -1840,7 +1826,7 @@ describe("<EditEntry>", () => {
         );
 
         // Act.
-        const button: HTMLElement = screen.getByRole("button");
+        const button: HTMLElement = screen.getByRole("button", { name: "Edit entry" });
         fireEvent.click(button);
 
         // Assert.
@@ -2010,17 +1996,6 @@ describe("<DeleteEntry>", () => {
         " the user's JWS Token is no longer valid",
       async () => {
         // Arrange.
-        quasiServer.use(
-          rest.delete("/api/entries/:id", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error: "[mocked-response] Your JWS Token is no longer valid",
-              })
-            );
-          })
-        );
-
         render(
           <Provider store={realStore}>
             <Router history={history}>
@@ -2060,11 +2035,11 @@ describe("<DeleteEntry>", () => {
         // Arrange.
         quasiServer.use(
           rest.delete("/api/entries/:id", (req, res, ctx) => {
-            return res(
+            return res.once(
               ctx.status(400),
               ctx.json({
                 error:
-                  "[mocked-response] Encountered an error," +
+                  "mocked-Encountered an error," +
                   " which is not related to authentication",
               })
             );
@@ -2088,7 +2063,7 @@ describe("<DeleteEntry>", () => {
 
         // Assert.
         const element: HTMLElement = await screen.findByText(
-          "[mocked-response] Encountered an error, which is not related to authentication"
+          "mocked-Encountered an error," + " which is not related to authentication"
         );
         expect(element).toBeInTheDocument();
       }
@@ -2100,6 +2075,10 @@ describe("<DeleteEntry>", () => {
         " the DELETE request was accepted as valid and processed",
       async () => {
         // Arrange.
+        quasiServer.use(
+          rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry)
+        );
+
         render(
           <Provider store={realStore}>
             <Router history={history}>

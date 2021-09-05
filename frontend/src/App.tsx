@@ -457,7 +457,7 @@ export const PrivateRoute = (props: any) => {
   console.log(`    ${hasValidToken}`);
 
   if (authRequestStatus === RequestStatus.LOADING) {
-    console.log(`    authRequestStatus="${RequestStatus.LOADING}"`);
+    console.log(`    rendering <div>"<childComponentName> - Loading..."</div>`);
     return React.Children.map(props.children, (child) => (
       <div>{`<${child.type.name}>`} - Loading...</div>
     ));

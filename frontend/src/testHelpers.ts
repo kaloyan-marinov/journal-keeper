@@ -3,7 +3,6 @@ import {
   DefaultRequestBody,
   RequestParams,
   ResponseComposition,
-  rest,
   RestContext,
   RestRequest,
 } from "msw";
@@ -88,7 +87,8 @@ export const MOCK_LINKS: IPaginationLinks = {
   last: `/api/entries?perPage=10&page=${MOCK_META.totalPages}`,
 };
 
-export const mockMultpleFailures = (
+/* Mock handlers for HTTP requests. */
+const mockMultipleFailures = (
   req: RestRequest<DefaultRequestBody, RequestParams>,
   res: ResponseComposition<any>,
   ctx: RestContext
@@ -96,12 +96,41 @@ export const mockMultpleFailures = (
   return res(
     ctx.status(401),
     ctx.json({
-      error: "[mocked] authentication required",
+      error: "mocked-authentication required",
     })
   );
 };
 
-export const mockFetchEntries = (
+const mockCreateUser = (
+  req: RestRequest<DefaultRequestBody, RequestParams>,
+  res: ResponseComposition<any>,
+  ctx: RestContext
+) => {
+  return res.once(ctx.status(201), ctx.json(MOCK_USER_1));
+};
+
+const mockIssueJWSToken = (
+  req: RestRequest<DefaultRequestBody, RequestParams>,
+  res: ResponseComposition<any>,
+  ctx: RestContext
+) => {
+  return res.once(
+    ctx.status(200),
+    ctx.json({
+      token: "mocked-json-web-signature-token",
+    })
+  );
+};
+
+const mockFetchUserProfile = (
+  req: RestRequest<DefaultRequestBody, RequestParams>,
+  res: ResponseComposition<any>,
+  ctx: RestContext
+) => {
+  return res.once(ctx.status(200), ctx.json(MOCK_PROFILE_1));
+};
+
+const mockFetchEntries = (
   req: RestRequest<DefaultRequestBody, RequestParams>,
   res: ResponseComposition<any>,
   ctx: RestContext
@@ -141,47 +170,50 @@ export const mockFetchEntries = (
   );
 };
 
-/* Describe what requests should be mocked. */
-export const requestHandlersToMock = [
-  rest.post("/api/users", (req, res, ctx) => {
-    return res(ctx.status(201), ctx.json(MOCK_USER_1));
-  }),
+const mockCreateEntry = (
+  req: RestRequest<DefaultRequestBody, RequestParams>,
+  res: ResponseComposition<any>,
+  ctx: RestContext
+) => {
+  return res.once(ctx.status(201), ctx.json(MOCK_ENTRY_10));
+};
 
-  rest.post("/api/tokens", (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({
-        token: "mocked-json-web-signature-token",
-      })
-    );
-  }),
+const mockEditEntry = (
+  req: RestRequest<DefaultRequestBody, RequestParams>,
+  res: ResponseComposition<any>,
+  ctx: RestContext
+) => {
+  const { id: entryIdStr } = req.params;
+  const entryId: number = parseInt(entryIdStr);
 
-  rest.get("/api/user-profile", (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(MOCK_PROFILE_1));
-  }),
+  const editedEntry = entryId !== MOCK_ENTRY_10.id ? MOCK_ENTRY_10 : MOCK_ENTRY_20;
 
-  rest.get("/api/entries", mockMultpleFailures),
+  return res.once(
+    ctx.status(200),
+    ctx.json({
+      ...editedEntry,
+      id: entryId,
+    })
+  );
+};
 
-  rest.post("/api/entries", (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(MOCK_ENTRY_10));
-  }),
+const mockDeleteEntry = (
+  req: RestRequest<DefaultRequestBody, RequestParams>,
+  res: ResponseComposition<any>,
+  ctx: RestContext
+) => {
+  return res.once(ctx.status(204));
+};
 
-  rest.put("/api/entries/:id", (req, res, ctx) => {
-    const { id: entryIdStr } = req.params;
-    const entryId: number = parseInt(entryIdStr);
+export const requestHandlers = {
+  mockMultipleFailures,
 
-    const editedEntry = entryId !== MOCK_ENTRY_10.id ? MOCK_ENTRY_10 : MOCK_ENTRY_20;
+  mockCreateUser,
+  mockIssueJWSToken,
+  mockFetchUserProfile,
 
-    return res(
-      ctx.status(200),
-      ctx.json({
-        ...editedEntry,
-        id: entryId,
-      })
-    );
-  }),
-
-  rest.delete("/api/entries/:id", (req, res, ctx) => {
-    return res(ctx.status(204));
-  }),
-];
+  mockCreateEntry,
+  mockFetchEntries,
+  mockEditEntry,
+  mockDeleteEntry,
+};

@@ -24,7 +24,6 @@ import {
 } from "./constants";
 
 import {
-  mockFetchEntries,
   MOCK_ALERT_17,
   MOCK_ALERT_34,
   MOCK_ENTRIES,
@@ -36,7 +35,7 @@ import {
   MOCK_LINKS,
   MOCK_META,
   MOCK_PROFILE_1,
-  requestHandlersToMock,
+  requestHandlers,
 } from "./testHelpers";
 import {
   createUserPending,
@@ -1110,7 +1109,20 @@ describe("reducers", () => {
 });
 
 /* Create an MSW "request-interception layer". */
-const quasiServer = setupServer(...requestHandlersToMock);
+const requestInterceptionLayer = [
+  rest.post("/api/users", requestHandlers.mockMultipleFailures),
+
+  rest.post("/api/tokens", requestHandlers.mockMultipleFailures),
+
+  rest.get("/api/user-profile", requestHandlers.mockMultipleFailures),
+
+  rest.get("/api/entries", requestHandlers.mockMultipleFailures),
+  rest.post("/api/entries", requestHandlers.mockMultipleFailures),
+  rest.put("/api/entries/:id", requestHandlers.mockMultipleFailures),
+  rest.delete("/api/entries/:id", requestHandlers.mockMultipleFailures),
+];
+
+const quasiServer = setupServer(...requestInterceptionLayer);
 
 const createStoreMock = configureMockStore([thunkMiddleware]);
 
@@ -1166,10 +1178,10 @@ describe(
         // (Prepend a request handler to the request-interception layer.)
         quasiServer.use(
           rest.post("/api/users", (req, res, ctx) => {
-            return res(
+            return res.once(
               ctx.status(400),
               ctx.json({
-                error: "[mocked-response] Failed to create a new User resource",
+                error: "mocked-Failed to create a new User resource",
               })
             );
           })
@@ -1187,7 +1199,7 @@ describe(
 
         // Assert.
         await expect(createUserPromise).rejects.toEqual(
-          "[mocked-response] Failed to create a new User resource"
+          "mocked-Failed to create a new User resource"
         );
         expect(storeMock.getActions()).toEqual([
           {
@@ -1195,7 +1207,7 @@ describe(
           },
           {
             type: "auth/createUser/rejected",
-            error: "[mocked-response] Failed to create a new User resource",
+            error: "mocked-Failed to create a new User resource",
           },
         ]);
       }
@@ -1205,6 +1217,10 @@ describe(
       "createUser(username, ...)" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
+        // Arrange.
+        quasiServer.use(rest.post("/api/users", requestHandlers.mockCreateUser));
+
+        // Act.
         const createUserPromise = storeMock.dispatch(
           createUser(
             "mocked-request-username",
@@ -1214,6 +1230,7 @@ describe(
           )
         );
 
+        // Assert.
         await expect(createUserPromise).resolves.toEqual(undefined);
         expect(storeMock.getActions()).toEqual([
           { type: "auth/createUser/pending" },
@@ -1226,18 +1243,6 @@ describe(
       "issueJWSToken(email, password)" +
         " + the HTTP request issued by that thunk-action is mocked to fail",
       async () => {
-        // Arrange.
-        quasiServer.use(
-          rest.post("/api/tokens", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error: "[mocked-response] Failed to issue a JWS token",
-              })
-            );
-          })
-        );
-
         // Act.
         const issueJWSTokenPromise = storeMock.dispatch(
           issueJWSToken("mocked-request-email", "mocked-request-password")
@@ -1245,7 +1250,7 @@ describe(
 
         // Assert.
         await expect(issueJWSTokenPromise).rejects.toEqual(
-          "[mocked-response] Failed to issue a JWS token"
+          "mocked-authentication required"
         );
         expect(storeMock.getActions()).toEqual([
           {
@@ -1253,7 +1258,7 @@ describe(
           },
           {
             type: "auth/issueJWSToken/rejected",
-            error: "[mocked-response] Failed to issue a JWS token",
+            error: "mocked-authentication required",
           },
         ]);
       }
@@ -1263,10 +1268,15 @@ describe(
       "issueJWSToken(email, password)" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
+        // Arrange.
+        quasiServer.use(rest.post("/api/tokens", requestHandlers.mockIssueJWSToken));
+
+        // Act.
         const issueJWSTokenPromise = storeMock.dispatch(
           issueJWSToken("mocked-request-email", "mocked-request-password")
         );
 
+        // Assert.
         await expect(issueJWSTokenPromise).resolves.toEqual(undefined);
         expect(storeMock.getActions()).toEqual([
           {
@@ -1314,25 +1324,12 @@ describe(
       "fetchProfile()" +
         " + the HTTP request issued by that thunk-action is mocked to fail",
       async () => {
-        // Arrange.
-        quasiServer.use(
-          rest.get("/api/user-profile", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error:
-                  "[mocked-response] Failed to authenticated you as an HTTP client",
-              })
-            );
-          })
-        );
-
         // Act.
         const fetchProfilePromise = storeMock.dispatch(fetchProfile());
 
         // Assert.
         await expect(fetchProfilePromise).rejects.toEqual(
-          "[mocked-response] Failed to authenticated you as an HTTP client"
+          "mocked-authentication required"
         );
         expect(storeMock.getActions()).toEqual([
           {
@@ -1340,7 +1337,7 @@ describe(
           },
           {
             type: "auth/fetchProfile/rejected",
-            error: "[mocked-response] Failed to authenticated you as an HTTP client",
+            error: "mocked-authentication required",
           },
         ]);
       }
@@ -1350,8 +1347,15 @@ describe(
       "fetchProfile()" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
+        );
+
+        // Act.
         const fetchProfilePromise = storeMock.dispatch(fetchProfile());
 
+        // Assert.
         await expect(fetchProfilePromise).resolves.toEqual(undefined);
         expect(storeMock.getActions()).toEqual([
           {
@@ -1371,18 +1375,6 @@ describe(
       "fetchEntries()" +
         " + the HTTP request issued by that thunk-action is mocked to fail",
       async () => {
-        // Arrange.
-        quasiServer.use(
-          rest.get("/api/entries", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error: "[mocked-response] Failed to authenticate you as an HTTP client",
-              })
-            );
-          })
-        );
-
         // Act.
         const fetchEntriesPromise = storeMock.dispatch(
           fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES)
@@ -1398,7 +1390,7 @@ describe(
           },
           {
             type: "entries/fetchEntries/rejected",
-            error: "[mocked-response] Failed to authenticate you as an HTTP client",
+            error: "mocked-authentication required",
           },
         ]);
       }
@@ -1409,7 +1401,7 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(rest.get("/api/entries", mockFetchEntries));
+        quasiServer.use(rest.get("/api/entries", requestHandlers.mockFetchEntries));
 
         // Act.
         const fetchEntriesPromise = storeMock.dispatch(
@@ -1441,10 +1433,10 @@ describe(
         // Arrange.
         quasiServer.use(
           rest.post("/api/entries", (req, res, ctx) => {
-            return res(
+            return res.once(
               ctx.status(400),
               ctx.json({
-                error: "[mocked-response] Failed to create a new Entry resource",
+                error: "mocked-Failed to create a new Entry resource",
               })
             );
           })
@@ -1465,7 +1457,7 @@ describe(
           },
           {
             type: "entries/createEntry/rejected",
-            error: "[mocked-response] Failed to create a new Entry resource",
+            error: "mocked-Failed to create a new Entry resource",
           },
         ]);
       }
@@ -1475,6 +1467,10 @@ describe(
       "createEntry(localTime, ...)" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
+        // Arrange.
+        quasiServer.use(rest.post("/api/entries", requestHandlers.mockCreateEntry));
+
+        // Act.
         const createEntryPromise = storeMock.dispatch(
           createEntry(
             MOCK_ENTRY_10.localTime,
@@ -1483,6 +1479,7 @@ describe(
           )
         );
 
+        // Assert.
         await expect(createEntryPromise).resolves.toEqual(undefined);
         expect(storeMock.getActions()).toEqual([
           {
@@ -1505,7 +1502,7 @@ describe(
         // Arrange.
         quasiServer.use(
           rest.put("/api/entries/:id", (req, res, ctx) => {
-            return res(
+            return res.once(
               ctx.status(400),
               ctx.json({
                 error: "[mocked response] Failed to edit the targeted Entry resource",
@@ -1547,7 +1544,12 @@ describe(
       "editEntry(entryId, ...)" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
+        // Arrange.
+        quasiServer.use(rest.put("/api/entries/:id", requestHandlers.mockEditEntry));
+
         const targetedEntryId: number = MOCK_ENTRY_10.id;
+
+        // Act.
         const editEntryPromise = storeMock.dispatch(
           editEntry(
             targetedEntryId,
@@ -1557,6 +1559,7 @@ describe(
           )
         );
 
+        // Assert.
         await expect(editEntryPromise).resolves.toEqual(undefined);
 
         expect(storeMock.getActions()).toEqual([
@@ -1581,17 +1584,6 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to fail",
       async () => {
         // Arrange.
-        quasiServer.use(
-          rest.delete("/api/entries/:id", (req, res, ctx) => {
-            return res(
-              ctx.status(401),
-              ctx.json({
-                error: "[mocked-response] Failed to delete the targeted Entry resource",
-              })
-            );
-          })
-        );
-
         const targetedEntryId: number = MOCK_ENTRY_10.id;
 
         // Act.
@@ -1608,7 +1600,7 @@ describe(
           },
           {
             type: "entries/deleteEntry/rejected",
-            error: "[mocked-response] Failed to delete the targeted Entry resource",
+            error: "mocked-authentication required",
           },
         ]);
       }
@@ -1618,10 +1610,17 @@ describe(
       "deleteEntry(entryId)" +
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
+        // Arrange.
+        quasiServer.use(
+          rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry)
+        );
+
         const targetedEntryId: number = MOCK_ENTRY_10.id;
 
+        // Act.
         const deleteEntryPromise = storeMock.dispatch(deleteEntry(targetedEntryId));
 
+        // Assert.
         await expect(deleteEntryPromise).resolves.toEqual(undefined);
 
         expect(storeMock.getActions()).toEqual([
