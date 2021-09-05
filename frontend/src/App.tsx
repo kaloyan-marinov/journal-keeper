@@ -52,6 +52,7 @@ import { Home } from "./features/Home";
 import { NavigationBar } from "./features/NavigationBar";
 import { SignUp } from "./features/auth/SignUp";
 import { SignIn } from "./features/auth/SignIn";
+import { SingleJournalEntry } from "./features/entries/SingleJournalEntry";
 
 const App = () => {
   console.log(`${new Date().toISOString()} - ${__filename} - React is rendering <App>`);
@@ -312,23 +313,6 @@ export const JournalEntries = () => {
       <div>Review JournalEntries!</div>
       {paginationControllingButtons}
       {entries}
-    </React.Fragment>
-  );
-};
-
-type SingleJournalEntryProps = {
-  timestampInUTC: string;
-  content: string;
-};
-
-const SingleJournalEntry = (props: SingleJournalEntryProps) => {
-  return (
-    <React.Fragment>
-      {"<SingleJournalEntry>"}
-      <h3>
-        {moment.utc(props.timestampInUTC).format("YYYY-MM-DD HH:mm")} (UTC +00:00)
-      </h3>
-      <p>{props.content}</p>
     </React.Fragment>
   );
 };
