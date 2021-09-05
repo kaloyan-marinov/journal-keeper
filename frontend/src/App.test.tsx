@@ -4,7 +4,7 @@ import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/re
 import { IState, RequestStatus } from "./types";
 
 import { PrivateRoute } from "./App";
-import App, { Home, SignUp, SignIn, JournalEntries, CreateEntry } from "./App";
+import App, { SignUp, SignIn, JournalEntries, CreateEntry } from "./App";
 
 import { Provider } from "react-redux";
 
@@ -45,6 +45,7 @@ import {
 
 import { rootReducer, store } from "./store";
 import { Alerts } from "./features/alerts/Alerts";
+import { Home } from "./features/Home";
 
 /* Create an MSW "request-interception layer". */
 const requestInterceptionLayer = [
@@ -854,62 +855,6 @@ describe(
     );
   }
 );
-
-describe("<Home>", () => {
-  test("initial render (i.e. before/without any user interaction)", async () => {
-    // Arrange.
-    const initState = {
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
-        ...initialStateAuth,
-        signedInUserProfile: null,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    };
-    const enhancer = applyMiddleware(thunkMiddleware);
-    const realStore = createStore(rootReducer, initState, enhancer);
-
-    render(
-      <Provider store={realStore}>
-        <Home />
-      </Provider>
-    );
-
-    // Assert.
-    screen.getByText("Welcome to JournalEntries!");
-  });
-
-  test("render after a user has successfully signed in", async () => {
-    // Arrange.
-    const initState = {
-      alerts: {
-        ...initialStateAlerts,
-      },
-      auth: {
-        ...initialStateAuth,
-        signedInUserProfile: MOCK_PROFILE_1,
-      },
-      entries: {
-        ...initialStateEntries,
-      },
-    };
-    const enhancer = applyMiddleware(thunkMiddleware);
-    const realStore = createStore(rootReducer, initState, enhancer);
-
-    render(
-      <Provider store={realStore}>
-        <Home />
-      </Provider>
-    );
-
-    // Assert.
-    screen.getByText("Hello, mocked-John Doe!");
-  });
-});
 
 describe("<JournalEntries>", () => {
   beforeAll(() => {

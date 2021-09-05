@@ -12,11 +12,9 @@ import moment from "moment";
 
 import { Redirect } from "react-router-dom";
 import {
-  IAlert,
   IEntry,
   IPaginationLinks,
   IPaginationMeta,
-  IProfile,
   IState,
   RequestStatus,
 } from "./types";
@@ -51,10 +49,10 @@ import {
   selectEntriesLinks,
   selectEntriesMeta,
   selectHasValidToken,
-  selectSignedInUserProfile,
   signOut,
 } from "./store";
 import { Alerts } from "./features/alerts/Alerts";
+import { Home } from "./features/Home";
 
 const App = () => {
   console.log(`${new Date().toISOString()} - ${__filename} - React is rendering <App>`);
@@ -113,28 +111,6 @@ const App = () => {
           <DeleteEntry />
         </PrivateRoute>
       </Switch>
-    </React.Fragment>
-  );
-};
-
-export const Home = () => {
-  console.log(
-    `${new Date().toISOString()}` + ` - ${__filename}` + ` - React is rendering <Home>`
-  );
-
-  const signedInUserProfile: IProfile | null = useSelector(selectSignedInUserProfile);
-  console.log("    signedInUserProfile:");
-  console.log(`    ${JSON.stringify(signedInUserProfile)}`);
-
-  const greeting =
-    signedInUserProfile !== null
-      ? `Hello, ${signedInUserProfile.name}!`
-      : "Welcome to JournalEntries!";
-
-  return (
-    <React.Fragment>
-      {"<Home>"}
-      <div>{greeting}</div>
     </React.Fragment>
   );
 };
