@@ -53,6 +53,7 @@ import {
 } from "./store";
 import { Alerts } from "./features/alerts/Alerts";
 import { Home } from "./features/Home";
+import { NavigationBar } from "./features/NavigationBar";
 
 const App = () => {
   console.log(`${new Date().toISOString()} - ${__filename} - React is rendering <App>`);
@@ -111,45 +112,6 @@ const App = () => {
           <DeleteEntry />
         </PrivateRoute>
       </Switch>
-    </React.Fragment>
-  );
-};
-
-export const NavigationBar = () => {
-  console.log(
-    `${new Date().toISOString()}` +
-      ` - ${__filename}` +
-      ` - React is rendering <NavigationBar>`
-  );
-
-  const hasValidToken: boolean | null = useSelector(selectHasValidToken);
-  console.log("    hasValidToken:");
-  console.log(`    ${hasValidToken}`);
-
-  const dispatch = useDispatch();
-
-  const handleClick = () => {
-    dispatch(signOut("SIGN-OUT SUCCESSFUL"));
-  };
-
-  const navigationLinks = !hasValidToken ? (
-    <React.Fragment>
-      <Link to="/">Home</Link> | <Link to="/sign-in">Sign In</Link> |{" "}
-      <Link to="/sign-up">Sign Up</Link>
-    </React.Fragment>
-  ) : (
-    <React.Fragment>
-      <Link to="/">Home</Link> | <Link to="/journal-entries">JournalEntries</Link> |{" "}
-      <a href="#!" onClick={() => handleClick()}>
-        Sign Out
-      </a>
-    </React.Fragment>
-  );
-
-  return (
-    <React.Fragment>
-      <div>{"<NavigationBar>"}</div>
-      <div>{navigationLinks}</div>
     </React.Fragment>
   );
 };
