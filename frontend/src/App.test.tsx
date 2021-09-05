@@ -19,8 +19,6 @@ import { applyMiddleware } from "redux";
 import { createMemoryHistory } from "history";
 import { Router, Switch, Route } from "react-router-dom";
 
-import { DeleteEntry } from "./App";
-
 import {
   initialStateAlerts,
   JOURNAL_APP_TOKEN,
@@ -43,6 +41,7 @@ import { rootReducer } from "./store";
 import { Alerts } from "./features/alerts/Alerts";
 import { SignIn } from "./features/auth/SignIn";
 import { JournalEntries } from "./features/entries/JournalEntries";
+import { DeleteEntry } from "./features/entries/DeleteEntry";
 
 /* Create an MSW "request-interception layer". */
 const requestInterceptionLayer: RestHandler<MockedRequest<DefaultRequestBody>>[] = [
