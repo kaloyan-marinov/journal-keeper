@@ -4,7 +4,7 @@ import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/re
 import { IState, RequestStatus } from "./types";
 
 import { PrivateRoute } from "./App";
-import App, { CreateEntry } from "./App";
+import App from "./App";
 
 import { Provider } from "react-redux";
 
@@ -45,6 +45,7 @@ import { rootReducer, store } from "./store";
 import { Alerts } from "./features/alerts/Alerts";
 import { SignIn } from "./features/auth/SignIn";
 import { JournalEntries } from "./features/entries/JournalEntries";
+import { CreateEntry } from "./features/entries/CreateEntry";
 
 /* Create an MSW "request-interception layer". */
 const requestInterceptionLayer: RestHandler<MockedRequest<DefaultRequestBody>>[] = [
