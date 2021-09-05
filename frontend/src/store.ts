@@ -11,21 +11,21 @@ import { IState } from "./types";
 import { JOURNAL_APP_TOKEN } from "./constants";
 import {
   alertsCreate,
-  alertsReducer,
   IActionAlertsCreate,
+  alertsReducer,
 } from "./features/alerts/alertsSlice";
 import {
-  authReducer,
   clearAuthSlice,
   IActionClearAuthSlice,
+  authReducer,
 } from "./features/auth/authSlice";
 import {
   clearEntriesSlice,
-  entriesReducer,
   IActionClearEntriesSlice,
+  entriesReducer,
 } from "./features/entries/entriesSlice";
 
-/* authSlice + entriesSlice - "authSlice + entriesSlice" thunk-action creator */
+/* "authSlice + entriesSlice + alertsSlice" thunk-action creator */
 export const signOut = (message: string) => {
   /*
   Create a thunk-action.

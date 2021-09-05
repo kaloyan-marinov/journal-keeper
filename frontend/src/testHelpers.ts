@@ -20,6 +20,13 @@ export const MOCK_ALERT_34: IAlert = {
   message: "once-again-the-undertaken-action-is-illegitimate",
 };
 
+export const MOCK_ALERTS_IDS: string[] = [MOCK_ALERT_17.id, MOCK_ALERT_34.id];
+
+export const MOCK_ALERTS_ENTITIES: { [alertId: string]: IAlert } = {
+  [MOCK_ALERT_17.id]: MOCK_ALERT_17,
+  [MOCK_ALERT_34.id]: MOCK_ALERT_34,
+};
+
 export const MOCK_USER_1 = {
   id: 1,
   username: "mocked-jd",

@@ -2,11 +2,120 @@ import { MockStoreEnhanced } from "redux-mock-store";
 import configureMockStore from "redux-mock-store";
 import thunkMiddleware from "redux-thunk";
 
-import { IState, RequestStatus } from "./types";
+import {
+  IAlert,
+  IEntry,
+  IPaginationLinks,
+  IPaginationMeta,
+  IProfile,
+  IState,
+  RequestStatus,
+} from "./types";
 import { initialStateAuth, initialStateEntries } from "./constants";
 
-import { MOCK_ALERT_17 } from "./testHelpers";
-import { rootReducer, signOut, store } from "./store";
+import {
+  MOCK_ALERTS_ENTITIES,
+  MOCK_ALERTS_IDS,
+  MOCK_ALERT_17,
+  MOCK_ENTRIES_ENTITIES,
+  MOCK_ENTRIES_IDS,
+  MOCK_LINKS,
+  MOCK_META,
+  MOCK_PROFILE_1,
+} from "./testHelpers";
+import {
+  rootReducer,
+  selectAlertsEntities,
+  selectAlertsIds,
+  selectAuthRequestStatus,
+  selectEntriesEntities,
+  selectEntriesIds,
+  selectEntriesLinks,
+  selectEntriesMeta,
+  selectHasValidToken,
+  selectSignedInUserProfile,
+  signOut,
+  store,
+} from "./store";
+
+describe("selectors", () => {
+  const initSt: IState = {
+    alerts: {
+      ids: MOCK_ALERTS_IDS,
+      entities: MOCK_ALERTS_ENTITIES,
+    },
+    auth: {
+      requestStatus: RequestStatus.SUCCEEDED,
+      requestError: null,
+      token: "a-jws-token-issued-by-the-backend",
+      hasValidToken: true,
+      signedInUserProfile: MOCK_PROFILE_1,
+    },
+    entries: {
+      requestStatus: RequestStatus.SUCCEEDED,
+      requestError: null,
+      _meta: MOCK_META,
+      _links: MOCK_LINKS,
+      ids: MOCK_ENTRIES_IDS,
+      entities: MOCK_ENTRIES_ENTITIES,
+    },
+  };
+
+  test("selectAlertsIds", () => {
+    const alertsIds: string[] = selectAlertsIds(initSt);
+
+    expect(alertsIds).toEqual(MOCK_ALERTS_IDS);
+  });
+
+  test("selectAlertsEntities", () => {
+    const alertsEntities: { [alertId: string]: IAlert } = selectAlertsEntities(initSt);
+
+    expect(alertsEntities).toEqual(MOCK_ALERTS_ENTITIES);
+  });
+
+  test("selectAuthRequestStatus", () => {
+    const authRequestStatus: RequestStatus = selectAuthRequestStatus(initSt);
+
+    expect(authRequestStatus).toEqual(RequestStatus.SUCCEEDED);
+  });
+
+  test("selectHasValidToken", () => {
+    const hasValidToken: boolean | null = selectHasValidToken(initSt);
+
+    expect(hasValidToken).toEqual(true);
+  });
+
+  test("selectSignedInUserProfile", () => {
+    const signedInUserProfile: IProfile | null = selectSignedInUserProfile(initSt);
+
+    expect(signedInUserProfile).toEqual(MOCK_PROFILE_1);
+  });
+
+  test("selectEntriesMeta", () => {
+    const entriesMeta: IPaginationMeta = selectEntriesMeta(initSt);
+
+    expect(entriesMeta).toEqual(MOCK_META);
+  });
+
+  test("selectEntriesLinks", () => {
+    const entriesLinks: IPaginationLinks = selectEntriesLinks(initSt);
+
+    expect(entriesLinks).toEqual(MOCK_LINKS);
+  });
+
+  test("selectEntriesIds", () => {
+    const entriesIds: number[] = selectEntriesIds(initSt);
+
+    expect(entriesIds).toEqual(MOCK_ENTRIES_IDS);
+  });
+
+  test("selectEntriesEntities", () => {
+    const entriesEntities: { [entryId: string]: IEntry } =
+      selectEntriesEntities(initSt);
+
+    expect(entriesEntities).toEqual(MOCK_ENTRIES_ENTITIES);
+  });
+});
 
 describe("reducers", () => {
   let initState: IState;
