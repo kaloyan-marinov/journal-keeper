@@ -1,35 +1,25 @@
 import "@testing-library/jest-dom";
 import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/react";
-
-import { IState } from "./types";
-
-import App from "./App";
-
-import { Provider } from "react-redux";
-
-import { createStore } from "redux";
-
-import { setupServer } from "msw/node";
-
-import thunkMiddleware from "redux-thunk";
-
 import { applyMiddleware } from "redux";
-
-import { createMemoryHistory } from "history";
+import thunkMiddleware from "redux-thunk";
+import { createStore } from "redux";
+import { Provider } from "react-redux";
 import { Router } from "react-router-dom";
 
+import { IState } from "./types";
 import {
   initialStateAlerts,
   JOURNAL_APP_TOKEN,
   initialStateAuth,
   initialStateEntries,
 } from "./constants";
-
-import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
+import App from "./App";
+import { rootReducer } from "./store";
 
 import { requestHandlers } from "./testHelpers";
-
-import { rootReducer } from "./store";
+import { createMemoryHistory } from "history";
+import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
+import { setupServer } from "msw/node";
 
 /* Create an MSW "request-interception layer". */
 const requestInterceptionLayer: RestHandler<MockedRequest<DefaultRequestBody>>[] = [
