@@ -20,7 +20,7 @@ import { createMemoryHistory } from "history";
 import { Router, Switch, Route } from "react-router-dom";
 import { EditEntry } from "./App";
 
-import { DeleteEntryLink, DeleteEntry } from "./App";
+import { DeleteEntry } from "./App";
 
 import {
   initialStateAlerts,
@@ -45,6 +45,7 @@ import {
 import { rootReducer, store } from "./store";
 import { Alerts } from "./features/alerts/Alerts";
 import { SignIn } from "./features/auth/SignIn";
+import { DeleteEntryLink } from "./features/entries/DeleteEntryLink";
 
 /* Create an MSW "request-interception layer". */
 const requestInterceptionLayer: RestHandler<MockedRequest<DefaultRequestBody>>[] = [

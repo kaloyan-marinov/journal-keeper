@@ -53,6 +53,7 @@ import { NavigationBar } from "./features/NavigationBar";
 import { SignUp } from "./features/auth/SignUp";
 import { SignIn } from "./features/auth/SignIn";
 import { SingleJournalEntry } from "./features/entries/SingleJournalEntry";
+import { DeleteEntryLink } from "./features/entries/DeleteEntryLink";
 
 const App = () => {
   console.log(`${new Date().toISOString()} - ${__filename} - React is rendering <App>`);
@@ -313,35 +314,6 @@ export const JournalEntries = () => {
       <div>Review JournalEntries!</div>
       {paginationControllingButtons}
       {entries}
-    </React.Fragment>
-  );
-};
-
-export const DeleteEntryLink = (props: { to: string }) => {
-  const targetURL: string = props.to;
-
-  console.log(
-    `${new Date().toISOString()}` +
-      ` - ${__filename}` +
-      ` - React is rendering <DeleteEntryLink to=${targetURL}>`
-  );
-
-  const [shouldDisplayHint, setShouldshouldDisplayHint] = React.useState(false);
-
-  const hint = (
-    <span> (HINT: After clicking, you will be asked to confirm your choice.)</span>
-  );
-
-  return (
-    <React.Fragment>
-      <Link
-        to={targetURL}
-        onMouseEnter={() => setShouldshouldDisplayHint(true)}
-        onMouseLeave={() => setShouldshouldDisplayHint(false)}
-      >
-        Delete
-      </Link>
-      {shouldDisplayHint && hint}
     </React.Fragment>
   );
 };
