@@ -123,7 +123,7 @@ describe("action creators", () => {
   });
 });
 
-describe("authReducer", () => {
+describe("reducer", () => {
   let initStAuth: IStateAuth;
 
   beforeEach(() => {
@@ -344,9 +344,7 @@ describe("authReducer", () => {
 /* Create an MSW "request-interception layer". */
 const requestInterceptionLayer = [
   rest.post("/api/users", requestHandlers.mockMultipleFailures),
-
   rest.post("/api/tokens", requestHandlers.mockMultipleFailures),
-
   rest.get("/api/user-profile", requestHandlers.mockMultipleFailures),
 ];
 

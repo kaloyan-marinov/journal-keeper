@@ -25,7 +25,7 @@ describe("action creators", () => {
   });
 });
 
-describe("alertsReducer", () => {
+describe("reducer", () => {
   let initStAlerts: IStateAlerts;
 
   beforeEach(() => {

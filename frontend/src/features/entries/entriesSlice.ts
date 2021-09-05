@@ -207,7 +207,7 @@ export const clearEntriesSlice = (): IActionClearEntriesSlice => ({
   type: ACTION_TYPE_CLEAR_ENTRIES_SLICE,
 });
 
-/* entriesSlice - reducer */
+/* Reducer. */
 export const entriesReducer = (
   stateEntries: IStateEntries = initialStateEntries,
   action:

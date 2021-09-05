@@ -1121,7 +1121,7 @@ describe("<JournalEntries>", () => {
 
         // Assert.
         const element: HTMLElement = await screen.findByText(
-          "mocked-Encountered an error," + " which is not related to authentication"
+          "mocked-Encountered an error, which is not related to authentication"
         );
         expect(element).toBeInTheDocument();
       }
@@ -2063,7 +2063,7 @@ describe("<DeleteEntry>", () => {
 
         // Assert.
         const element: HTMLElement = await screen.findByText(
-          "mocked-Encountered an error," + " which is not related to authentication"
+          "mocked-Encountered an error, which is not related to authentication"
         );
         expect(element).toBeInTheDocument();
       }

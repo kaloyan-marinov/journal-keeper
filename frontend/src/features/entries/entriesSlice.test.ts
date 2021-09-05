@@ -35,6 +35,7 @@ import configureMockStore from "redux-mock-store";
 import thunkMiddleware from "redux-thunk";
 import { rest } from "msw";
 import { IState } from "../../types";
+import { URL_FOR_FIRST_PAGE_OF_EXAMPLES, PER_PAGE_DEFAULT } from "../../constants";
 import {
   requestHandlers,
   MOCK_META,
@@ -43,7 +44,6 @@ import {
   MOCK_ENTRY_20_LOCAL_TIME,
 } from "../../testHelpers";
 import { store } from "../../store";
-import { URL_FOR_FIRST_PAGE_OF_EXAMPLES, PER_PAGE_DEFAULT } from "../../constants";
 import { createEntry, editEntry, deleteEntry, fetchEntries } from "./entriesSlice";
 
 describe("action creators", () => {
@@ -225,7 +225,7 @@ describe("action creators", () => {
   });
 });
 
-describe("entriesReducer", () => {
+describe("reducer", () => {
   let initStateEntries: IStateEntries;
 
   beforeEach(() => {

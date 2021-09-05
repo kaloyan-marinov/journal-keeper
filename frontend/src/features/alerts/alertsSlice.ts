@@ -1,7 +1,7 @@
 import { IAlert, IStateAlerts } from "../../types";
 import { initialStateAlerts } from "../../constants";
 
-/* Action creators. */
+/* Action creators - "alerts/" */
 enum ActionTypesAlerts {
   CREATE = "alerts/create",
   REMOVE = "alerts/remove",
