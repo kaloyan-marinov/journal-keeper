@@ -14,14 +14,14 @@ import {
   issueJWSTokenRejected,
 } from "./authSlice";
 
-import { setupServer } from "msw/node";
+import { setupServer, SetupServerApi } from "msw/node";
 import { MockStoreEnhanced } from "redux-mock-store";
 import configureMockStore from "redux-mock-store";
 import thunkMiddleware from "redux-thunk";
-import { rest } from "msw";
+import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { IState, RequestStatus } from "../../types";
 import { MOCK_PROFILE_1, requestHandlers } from "../../testHelpers";
-import { store } from "../../store";
+import { initialState } from "../../store";
 import { createUser, issueJWSToken, fetchProfile } from "./authSlice";
 
 describe("action creators", () => {
@@ -342,13 +342,13 @@ describe("reducer", () => {
 });
 
 /* Create an MSW "request-interception layer". */
-const requestInterceptionLayer = [
+const restHandlers: RestHandler<MockedRequest<DefaultRequestBody>>[] = [
   rest.post("/api/users", requestHandlers.mockMultipleFailures),
   rest.post("/api/tokens", requestHandlers.mockMultipleFailures),
   rest.get("/api/user-profile", requestHandlers.mockMultipleFailures),
 ];
 
-const quasiServer = setupServer(...requestInterceptionLayer);
+const requestInterceptionLayer: SetupServerApi = setupServer(...restHandlers);
 
 const createStoreMock = configureMockStore([thunkMiddleware]);
 
@@ -363,12 +363,12 @@ describe(
     beforeAll(() => {
       // Establish the created request-interception layer
       // (= Enable API mocking).
-      quasiServer.listen();
+      requestInterceptionLayer.listen();
     });
 
     beforeEach(() => {
       initSt = {
-        ...store.getState(),
+        ...initialState,
       };
       storeMock = createStoreMock(initSt);
     });
@@ -376,7 +376,7 @@ describe(
     afterEach(() => {
       // Remove any request handlers that may have been added at runtime
       // (by individual tests after the initial `setupServer` call).
-      quasiServer.resetHandlers();
+      requestInterceptionLayer.resetHandlers();
     });
 
     afterAll(() => {
@@ -385,7 +385,7 @@ describe(
       // by tearing down that layer
       // (= by stopping request interception)
       // (= disabling API mocking).
-      quasiServer.close();
+      requestInterceptionLayer.close();
     });
 
     test(
@@ -394,7 +394,7 @@ describe(
       async () => {
         // Arrange.
         // (Prepend a request handler to the request-interception layer.)
-        quasiServer.use(
+        requestInterceptionLayer.use(
           rest.post("/api/users", (req, res, ctx) => {
             return res.once(
               ctx.status(400),
@@ -436,7 +436,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(rest.post("/api/users", requestHandlers.mockCreateUser));
+        requestInterceptionLayer.use(
+          rest.post("/api/users", requestHandlers.mockCreateUser)
+        );
 
         // Act.
         const createUserPromise = storeMock.dispatch(
@@ -487,7 +489,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(rest.post("/api/tokens", requestHandlers.mockIssueJWSToken));
+        requestInterceptionLayer.use(
+          rest.post("/api/tokens", requestHandlers.mockIssueJWSToken)
+        );
 
         // Act.
         const issueJWSTokenPromise = storeMock.dispatch(
@@ -538,7 +542,7 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(
+        requestInterceptionLayer.use(
           rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
         );
 

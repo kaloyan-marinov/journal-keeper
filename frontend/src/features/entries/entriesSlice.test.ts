@@ -29,11 +29,11 @@ import {
   fetchEntriesRejected,
 } from "./entriesSlice";
 
-import { setupServer } from "msw/node";
+import { setupServer, SetupServerApi } from "msw/node";
 import { MockStoreEnhanced } from "redux-mock-store";
 import configureMockStore from "redux-mock-store";
 import thunkMiddleware from "redux-thunk";
-import { rest } from "msw";
+import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { IState } from "../../types";
 import { URL_FOR_FIRST_PAGE_OF_EXAMPLES, PER_PAGE_DEFAULT } from "../../constants";
 import {
@@ -43,7 +43,7 @@ import {
   MOCK_ENTRIES,
   MOCK_ENTRY_20_LOCAL_TIME,
 } from "../../testHelpers";
-import { store } from "../../store";
+import { initialState } from "../../store";
 import { createEntry, editEntry, deleteEntry, fetchEntries } from "./entriesSlice";
 
 describe("action creators", () => {
@@ -638,14 +638,14 @@ describe("reducer", () => {
 });
 
 /* Create an MSW "request-interception layer". */
-const requestInterceptionLayer = [
+const restHandlers: RestHandler<MockedRequest<DefaultRequestBody>>[] = [
   rest.get("/api/entries", requestHandlers.mockMultipleFailures),
   rest.post("/api/entries", requestHandlers.mockMultipleFailures),
   rest.put("/api/entries/:id", requestHandlers.mockMultipleFailures),
   rest.delete("/api/entries/:id", requestHandlers.mockMultipleFailures),
 ];
 
-const quasiServer = setupServer(...requestInterceptionLayer);
+const requestInterceptionLayer: SetupServerApi = setupServer(...restHandlers);
 
 const createStoreMock = configureMockStore([thunkMiddleware]);
 
@@ -660,12 +660,12 @@ describe(
     beforeAll(() => {
       // Establish the created request-interception layer
       // (= Enable API mocking).
-      quasiServer.listen();
+      requestInterceptionLayer.listen();
     });
 
     beforeEach(() => {
       initSt = {
-        ...store.getState(),
+        ...initialState,
       };
       storeMock = createStoreMock(initSt);
     });
@@ -673,7 +673,7 @@ describe(
     afterEach(() => {
       // Remove any request handlers that may have been added at runtime
       // (by individual tests after the initial `setupServer` call).
-      quasiServer.resetHandlers();
+      requestInterceptionLayer.resetHandlers();
     });
 
     afterAll(() => {
@@ -682,7 +682,7 @@ describe(
       // by tearing down that layer
       // (= by stopping request interception)
       // (= disabling API mocking).
-      quasiServer.close();
+      requestInterceptionLayer.close();
     });
 
     test(
@@ -715,7 +715,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(rest.get("/api/entries", requestHandlers.mockFetchEntries));
+        requestInterceptionLayer.use(
+          rest.get("/api/entries", requestHandlers.mockFetchEntries)
+        );
 
         // Act.
         const fetchEntriesPromise = storeMock.dispatch(
@@ -745,7 +747,7 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to fail",
       async () => {
         // Arrange.
-        quasiServer.use(
+        requestInterceptionLayer.use(
           rest.post("/api/entries", (req, res, ctx) => {
             return res.once(
               ctx.status(400),
@@ -782,7 +784,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(rest.post("/api/entries", requestHandlers.mockCreateEntry));
+        requestInterceptionLayer.use(
+          rest.post("/api/entries", requestHandlers.mockCreateEntry)
+        );
 
         // Act.
         const createEntryPromise = storeMock.dispatch(
@@ -814,7 +818,7 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to fail",
       async () => {
         // Arrange.
-        quasiServer.use(
+        requestInterceptionLayer.use(
           rest.put("/api/entries/:id", (req, res, ctx) => {
             return res.once(
               ctx.status(400),
@@ -859,7 +863,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(rest.put("/api/entries/:id", requestHandlers.mockEditEntry));
+        requestInterceptionLayer.use(
+          rest.put("/api/entries/:id", requestHandlers.mockEditEntry)
+        );
 
         const targetedEntryId: number = MOCK_ENTRY_10.id;
 
@@ -925,7 +931,7 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(
+        requestInterceptionLayer.use(
           rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry)
         );
 

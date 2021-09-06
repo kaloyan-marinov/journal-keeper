@@ -67,6 +67,8 @@ const composedEnhancer = composeWithDevTools(
 );
 export const store = createStore(rootReducer, composedEnhancer);
 
+export const initialState: IState = store.getState();
+
 /* Define selector functions. */
 export const selectAlertsIds = (state: IState) => state.alerts.ids;
 export const selectAlertsEntities = (state: IState) => state.alerts.entities;

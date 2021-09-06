@@ -11,7 +11,6 @@ import {
   IState,
   RequestStatus,
 } from "./types";
-import { initialStateAuth, initialStateEntries } from "./constants";
 
 import {
   MOCK_ALERTS_ENTITIES,
@@ -35,7 +34,7 @@ import {
   selectHasValidToken,
   selectSignedInUserProfile,
   signOut,
-  store,
+  initialState,
 } from "./store";
 
 describe("selectors", () => {
@@ -117,34 +116,27 @@ describe("selectors", () => {
   });
 });
 
-describe("reducers", () => {
-  let initState: IState;
-
-  beforeEach(() => {
-    initState = {
-      ...store.getState(),
-    };
-  });
-
+describe("rootReducer", () => {
   test(
     "an action, which the rootReducer doesn't specifically handle," +
       " should not modify the state",
     () => {
       const initState: IState = {
         alerts: {
+          ...initialState.alerts,
           ids: [MOCK_ALERT_17.id],
           entities: {
             [MOCK_ALERT_17.id]: MOCK_ALERT_17,
           },
         },
         auth: {
-          ...initialStateAuth,
+          ...initialState.auth,
           requestStatus: RequestStatus.FAILED,
           requestError: "original-error",
           token: null,
         },
         entries: {
-          ...initialStateEntries,
+          ...initialState.entries,
         },
       };
       const action = {
@@ -161,7 +153,7 @@ describe("reducers", () => {
 const createStoreMock = configureMockStore([thunkMiddleware]);
 
 describe(
-  "dispatching of async thunk-actions," +
+  "dispatching of sync thunk-actions," +
     " with each test case focusing on the action-related logic only" +
     " (and thus completely disregarding the reducer-related logic) ",
   () => {
@@ -170,7 +162,7 @@ describe(
 
     beforeEach(() => {
       initSt = {
-        ...store.getState(),
+        ...initialState,
       };
       storeMock = createStoreMock(initSt);
     });
