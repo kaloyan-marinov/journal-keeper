@@ -1,5 +1,5 @@
 import { IStateAuth } from "../../types";
-import { initialStateAuth } from "../../constants";
+import { INITIAL_STATE_AUTH } from "../../constants";
 import {
   authReducer,
   clearAuthSlice,
@@ -21,7 +21,7 @@ import thunkMiddleware from "redux-thunk";
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { IState, RequestStatus } from "../../types";
 import { MOCK_PROFILE_1, requestHandlers } from "../../testHelpers";
-import { initialState } from "../../store";
+import { INITIAL_STATE } from "../../store";
 import { createUser, issueJWSToken, fetchProfile } from "./authSlice";
 
 describe("action creators", () => {
@@ -127,7 +127,7 @@ describe("reducer", () => {
   let initStAuth: IStateAuth;
 
   beforeEach(() => {
-    initStAuth = { ...initialStateAuth };
+    initStAuth = { ...INITIAL_STATE_AUTH };
   });
 
   test("auth/createUser/pending", () => {
@@ -368,7 +368,7 @@ describe(
 
     beforeEach(() => {
       initSt = {
-        ...initialState,
+        ...INITIAL_STATE,
       };
       storeMock = createStoreMock(initSt);
     });

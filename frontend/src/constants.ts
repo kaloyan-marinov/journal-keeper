@@ -1,13 +1,13 @@
 import { IStateAlerts, IStateAuth, IStateEntries, RequestStatus } from "./types";
 
-export const initialStateAlerts: IStateAlerts = {
+export const INITIAL_STATE_ALERTS: IStateAlerts = {
   ids: [],
   entities: {},
 };
 
 export const JOURNAL_APP_TOKEN = "token-4-journal-app";
 
-export const initialStateAuth: IStateAuth = {
+export const INITIAL_STATE_AUTH: IStateAuth = {
   requestStatus: RequestStatus.IDLE,
   requestError: null,
   token: localStorage.getItem(JOURNAL_APP_TOKEN),
@@ -15,7 +15,7 @@ export const initialStateAuth: IStateAuth = {
   signedInUserProfile: null,
 };
 
-export const initialStateEntries: IStateEntries = {
+export const INITIAL_STATE_ENTRIES: IStateEntries = {
   requestStatus: RequestStatus.IDLE,
   requestError: null,
   _meta: {

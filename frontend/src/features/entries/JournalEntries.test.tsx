@@ -7,9 +7,9 @@ import thunkMiddleware from "redux-thunk";
 
 import { IState } from "../../types";
 import {
-  initialStateAlerts,
-  initialStateAuth,
-  initialStateEntries,
+  INITIAL_STATE_ALERTS,
+  INITIAL_STATE_AUTH,
+  INITIAL_STATE_ENTRIES,
   PER_PAGE_DEFAULT,
 } from "../../constants";
 import { rootReducer } from "../../store";
@@ -52,10 +52,10 @@ describe("<JournalEntries>", () => {
         // Arrange.
         const initState: IState = {
           alerts: {
-            ...initialStateAlerts,
+            ...INITIAL_STATE_ALERTS,
           },
           auth: {
-            ...initialStateAuth,
+            ...INITIAL_STATE_AUTH,
             signedInUserProfile: {
               id: 17,
               username: "mocked-jd",
@@ -66,7 +66,7 @@ describe("<JournalEntries>", () => {
             },
           },
           entries: {
-            ...initialStateEntries,
+            ...INITIAL_STATE_ENTRIES,
           },
         };
         const enhancer = applyMiddleware(thunkMiddleware);
@@ -148,10 +148,10 @@ describe("<JournalEntries>", () => {
 
         const initState = {
           alerts: {
-            ...initialStateAlerts,
+            ...INITIAL_STATE_ALERTS,
           },
           auth: {
-            ...initialStateAuth,
+            ...INITIAL_STATE_AUTH,
             signedInUserProfile: {
               id: 17,
               username: "mocked-jd",
@@ -162,7 +162,7 @@ describe("<JournalEntries>", () => {
             },
           },
           entries: {
-            ...initialStateEntries,
+            ...INITIAL_STATE_ENTRIES,
           },
         };
         const enhancer = applyMiddleware(thunkMiddleware);

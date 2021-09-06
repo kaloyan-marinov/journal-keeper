@@ -6,7 +6,7 @@ import {
   IStateEntries,
   RequestStatus,
 } from "../../types";
-import { initialStateEntries, JOURNAL_APP_TOKEN } from "../../constants";
+import { INITIAL_STATE_ENTRIES, JOURNAL_APP_TOKEN } from "../../constants";
 
 import { ThunkAction } from "redux-thunk";
 import { Dispatch } from "redux";
@@ -209,7 +209,7 @@ export const clearEntriesSlice = (): IActionClearEntriesSlice => ({
 
 /* Reducer. */
 export const entriesReducer = (
-  stateEntries: IStateEntries = initialStateEntries,
+  stateEntries: IStateEntries = INITIAL_STATE_ENTRIES,
   action:
     | ActionFetchEntries
     | ActionCreateEntry
@@ -272,7 +272,7 @@ export const entriesReducer = (
 
     case ActionTypesCreateEntry.FULFILLED: {
       const newMeta: IPaginationMeta = {
-        ...initialStateEntries._meta,
+        ...INITIAL_STATE_ENTRIES._meta,
         totalItems:
           stateEntries._meta.totalItems !== null
             ? stateEntries._meta.totalItems + 1
@@ -280,7 +280,7 @@ export const entriesReducer = (
       };
 
       const newLinks: IPaginationLinks = {
-        ...initialStateEntries._links,
+        ...INITIAL_STATE_ENTRIES._links,
       };
 
       const entry: IEntry = action.payload.entry;

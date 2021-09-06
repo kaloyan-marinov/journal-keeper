@@ -8,10 +8,10 @@ import { Router } from "react-router-dom";
 
 import { IState } from "./types";
 import {
-  initialStateAlerts,
+  INITIAL_STATE_ALERTS,
   JOURNAL_APP_TOKEN,
-  initialStateAuth,
-  initialStateEntries,
+  INITIAL_STATE_AUTH,
+  INITIAL_STATE_ENTRIES,
 } from "./constants";
 import App from "./App";
 import { rootReducer } from "./store";
@@ -52,13 +52,13 @@ describe("<App>", () => {
 
     initState = {
       alerts: {
-        ...initialStateAlerts,
+        ...INITIAL_STATE_ALERTS,
       },
       auth: {
-        ...initialStateAuth,
+        ...INITIAL_STATE_AUTH,
       },
       entries: {
-        ...initialStateEntries,
+        ...INITIAL_STATE_ENTRIES,
       },
     };
 

@@ -8,9 +8,9 @@ import { createMemoryHistory } from "history";
 
 import { IState, RequestStatus } from "../../types";
 import {
-  initialStateAlerts,
-  initialStateAuth,
-  initialStateEntries,
+  INITIAL_STATE_ALERTS,
+  INITIAL_STATE_AUTH,
+  INITIAL_STATE_ENTRIES,
 } from "../../constants";
 import { MOCK_ENTRY_10, MOCK_ENTRY_10_LOCAL_TIME } from "../../testHelpers";
 import { EditEntry } from "./EditEntry";
@@ -30,16 +30,16 @@ describe("<EditEntry>", () => {
   beforeEach(() => {
     const initState: IState = {
       alerts: {
-        ...initialStateAlerts,
+        ...INITIAL_STATE_ALERTS,
       },
       auth: {
-        ...initialStateAuth,
+        ...INITIAL_STATE_AUTH,
         requestStatus: RequestStatus.SUCCEEDED,
         token: "token-issued-by-the-backend",
         hasValidToken: true,
       },
       entries: {
-        ...initialStateEntries,
+        ...INITIAL_STATE_ENTRIES,
         requestStatus: RequestStatus.SUCCEEDED,
         ids: [MOCK_ENTRY_10.id],
         entities: {

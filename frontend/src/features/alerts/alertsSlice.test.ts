@@ -1,5 +1,5 @@
 import { IStateAlerts } from "../../types";
-import { initialStateAlerts } from "../../constants";
+import { INITIAL_STATE_ALERTS } from "../../constants";
 import { MOCK_ALERT_17, MOCK_ALERT_34 } from "../../testHelpers";
 import { alertsCreate, alertsReducer, alertsRemove } from "./alertsSlice";
 
@@ -29,7 +29,7 @@ describe("reducer", () => {
   let initStAlerts: IStateAlerts;
 
   beforeEach(() => {
-    initStAlerts = { ...initialStateAlerts };
+    initStAlerts = { ...INITIAL_STATE_ALERTS };
   });
 
   test("alerts/create", () => {

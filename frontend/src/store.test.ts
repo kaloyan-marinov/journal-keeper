@@ -34,7 +34,7 @@ import {
   selectHasValidToken,
   selectSignedInUserProfile,
   signOut,
-  initialState,
+  INITIAL_STATE,
 } from "./store";
 
 describe("selectors", () => {
@@ -123,20 +123,20 @@ describe("rootReducer", () => {
     () => {
       const initState: IState = {
         alerts: {
-          ...initialState.alerts,
+          ...INITIAL_STATE.alerts,
           ids: [MOCK_ALERT_17.id],
           entities: {
             [MOCK_ALERT_17.id]: MOCK_ALERT_17,
           },
         },
         auth: {
-          ...initialState.auth,
+          ...INITIAL_STATE.auth,
           requestStatus: RequestStatus.FAILED,
           requestError: "original-error",
           token: null,
         },
         entries: {
-          ...initialState.entries,
+          ...INITIAL_STATE.entries,
         },
       };
       const action = {
@@ -162,7 +162,7 @@ describe(
 
     beforeEach(() => {
       initSt = {
-        ...initialState,
+        ...INITIAL_STATE,
       };
       storeMock = createStoreMock(initSt);
     });

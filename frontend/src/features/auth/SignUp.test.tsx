@@ -8,9 +8,9 @@ import { createMemoryHistory } from "history";
 
 import { IState } from "../../types";
 import {
-  initialStateAlerts,
-  initialStateAuth,
-  initialStateEntries,
+  INITIAL_STATE_ALERTS,
+  INITIAL_STATE_AUTH,
+  INITIAL_STATE_ENTRIES,
   JOURNAL_APP_TOKEN,
 } from "../../constants";
 import { rootReducer, store } from "../../store";
@@ -86,16 +86,16 @@ describe("<SignUp> + <Home>", () => {
 
       const initState: IState = {
         alerts: {
-          ...initialStateAlerts,
+          ...INITIAL_STATE_ALERTS,
         },
         auth: {
-          ...initialStateAuth,
+          ...INITIAL_STATE_AUTH,
           token,
           hasValidToken: true,
           signedInUserProfile: MOCK_PROFILE_1,
         },
         entries: {
-          ...initialStateEntries,
+          ...INITIAL_STATE_ENTRIES,
         },
       };
       const enhancer = applyMiddleware(thunkMiddleware);

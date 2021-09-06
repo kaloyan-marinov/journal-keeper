@@ -5,7 +5,7 @@ import {
   IStateEntries,
   RequestStatus,
 } from "../../types";
-import { initialStateEntries } from "../../constants";
+import { INITIAL_STATE_ENTRIES } from "../../constants";
 import {
   MOCK_ENTRIES_ENTITIES,
   MOCK_ENTRIES_IDS,
@@ -43,7 +43,7 @@ import {
   MOCK_ENTRIES,
   MOCK_ENTRY_20_LOCAL_TIME,
 } from "../../testHelpers";
-import { initialState } from "../../store";
+import { INITIAL_STATE } from "../../store";
 import { createEntry, editEntry, deleteEntry, fetchEntries } from "./entriesSlice";
 
 describe("action creators", () => {
@@ -229,7 +229,7 @@ describe("reducer", () => {
   let initStateEntries: IStateEntries;
 
   beforeEach(() => {
-    initStateEntries = { ...initialStateEntries };
+    initStateEntries = { ...INITIAL_STATE_ENTRIES };
   });
 
   test("entries/fetchEntries/pending", () => {
@@ -242,8 +242,8 @@ describe("reducer", () => {
     expect(newStateEntries).toEqual({
       requestStatus: "loading",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [],
       entities: {},
     });
@@ -260,8 +260,8 @@ describe("reducer", () => {
     expect(newStateEntries).toEqual({
       requestStatus: "failed",
       requestError: "entries-fetchEntries-rejected",
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [],
       entities: {},
     });
@@ -333,8 +333,8 @@ describe("reducer", () => {
     expect(newState).toEqual({
       requestStatus: "loading",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [],
       entities: {},
     });
@@ -342,7 +342,7 @@ describe("reducer", () => {
 
   test("entries/createEntry/rejected", () => {
     initStateEntries = {
-      ...initialStateEntries,
+      ...INITIAL_STATE_ENTRIES,
       requestStatus: RequestStatus.LOADING,
     };
     const action = {
@@ -355,8 +355,8 @@ describe("reducer", () => {
     expect(newState).toEqual({
       requestStatus: "failed",
       requestError: "entries-createEntry-rejected",
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [],
       entities: {},
     });
@@ -364,7 +364,7 @@ describe("reducer", () => {
 
   test("entries/createEntry/fulfilled", () => {
     initStateEntries = {
-      ...initialStateEntries,
+      ...INITIAL_STATE_ENTRIES,
       requestStatus: RequestStatus.LOADING,
       ids: [1],
       entities: {
@@ -399,8 +399,8 @@ describe("reducer", () => {
     expect(newState).toEqual({
       requestStatus: "succeeded",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [1, 17],
       entities: {
         1: {
@@ -433,8 +433,8 @@ describe("reducer", () => {
     expect(newState).toEqual({
       requestStatus: "loading",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [],
       entities: {},
     });
@@ -448,8 +448,8 @@ describe("reducer", () => {
     expect(newState).toEqual({
       requestStatus: "failed",
       requestError: "entries-editEntry-rejected",
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [],
       entities: {},
     });
@@ -457,7 +457,7 @@ describe("reducer", () => {
 
   test("entries/editEntry/fulfilled", () => {
     initStateEntries = {
-      ...initialStateEntries,
+      ...INITIAL_STATE_ENTRIES,
       requestStatus: RequestStatus.LOADING,
       ids: [1],
       entities: {
@@ -492,8 +492,8 @@ describe("reducer", () => {
     expect(newState).toEqual({
       requestStatus: "succeeded",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [1],
       entities: {
         1: {
@@ -511,7 +511,7 @@ describe("reducer", () => {
 
   test("entries/deleteEntry/pending", () => {
     initStateEntries = {
-      ...initialStateEntries,
+      ...INITIAL_STATE_ENTRIES,
       requestStatus: RequestStatus.SUCCEEDED,
       ids: [MOCK_ENTRY_10.id],
       entities: {
@@ -525,8 +525,8 @@ describe("reducer", () => {
     expect(newState).toEqual({
       requestStatus: "loading",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [MOCK_ENTRY_10.id],
       entities: {
         [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
@@ -536,7 +536,7 @@ describe("reducer", () => {
 
   test("entries/deleteEntry/rejected", () => {
     initStateEntries = {
-      ...initialStateEntries,
+      ...INITIAL_STATE_ENTRIES,
       requestStatus: RequestStatus.SUCCEEDED,
       ids: [MOCK_ENTRY_10.id],
       entities: {
@@ -550,8 +550,8 @@ describe("reducer", () => {
     expect(newState).toEqual({
       requestStatus: "failed",
       requestError: "entries-deleteEntry-rejected",
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [MOCK_ENTRY_10.id],
       entities: {
         [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
@@ -561,7 +561,7 @@ describe("reducer", () => {
 
   test("entries/deleteEntry/fulfilled", () => {
     initStateEntries = {
-      ...initialStateEntries,
+      ...INITIAL_STATE_ENTRIES,
       requestStatus: RequestStatus.LOADING,
       ids: [MOCK_ENTRY_10.id, MOCK_ENTRY_20.id],
       entities: {
@@ -576,8 +576,8 @@ describe("reducer", () => {
     expect(newState).toEqual({
       requestStatus: "succeeded",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [MOCK_ENTRY_10.id],
       entities: {
         [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
@@ -587,7 +587,7 @@ describe("reducer", () => {
 
   test("entries/clearEntriesSlice", () => {
     initStateEntries = {
-      ...initialStateEntries,
+      ...INITIAL_STATE_ENTRIES,
       requestStatus: RequestStatus.SUCCEEDED,
       ids: MOCK_ENTRIES_IDS,
       entities: MOCK_ENTRIES_ENTITIES,
@@ -599,8 +599,8 @@ describe("reducer", () => {
     expect(newState).toEqual({
       requestStatus: "succeeded",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [],
       entities: {},
     });
@@ -665,7 +665,7 @@ describe(
 
     beforeEach(() => {
       initSt = {
-        ...initialState,
+        ...INITIAL_STATE,
       };
       storeMock = createStoreMock(initSt);
     });

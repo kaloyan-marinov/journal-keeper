@@ -3,7 +3,7 @@ import { Provider } from "react-redux";
 import { createStore } from "redux";
 
 import { IState } from "../../types";
-import { initialStateAuth, initialStateEntries } from "../../constants";
+import { INITIAL_STATE_AUTH, INITIAL_STATE_ENTRIES } from "../../constants";
 import { Alerts } from "./Alerts";
 import { rootReducer, store } from "../../store";
 
@@ -88,10 +88,10 @@ describe("<Alerts>", () => {
           },
         },
         auth: {
-          ...initialStateAuth,
+          ...INITIAL_STATE_AUTH,
         },
         entries: {
-          ...initialStateEntries,
+          ...INITIAL_STATE_ENTRIES,
         },
       };
       const storeWithAlerts = createStore(rootReducer, initState);

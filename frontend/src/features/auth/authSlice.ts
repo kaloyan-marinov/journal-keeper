@@ -1,5 +1,5 @@
 import { IProfile, IState, IStateAuth, RequestStatus } from "../../types";
-import { initialStateAuth, JOURNAL_APP_TOKEN } from "../../constants";
+import { INITIAL_STATE_AUTH, JOURNAL_APP_TOKEN } from "../../constants";
 
 import { ThunkAction } from "redux-thunk";
 import { Dispatch } from "redux";
@@ -148,7 +148,7 @@ export const clearAuthSlice = (): IActionClearAuthSlice => ({
 
 /* Reducer. */
 export const authReducer = (
-  stateAuth: IStateAuth = initialStateAuth,
+  stateAuth: IStateAuth = INITIAL_STATE_AUTH,
   action:
     | ActionCreateUser
     | ActionIssueJWSToken

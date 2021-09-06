@@ -4,7 +4,11 @@ import thunkMiddleware from "redux-thunk";
 import { Provider } from "react-redux";
 
 import { IState } from "./types";
-import { initialStateAlerts, initialStateAuth, initialStateEntries } from "./constants";
+import {
+  INITIAL_STATE_ALERTS,
+  INITIAL_STATE_AUTH,
+  INITIAL_STATE_ENTRIES,
+} from "./constants";
 import { Home } from "./features/Home";
 import { rootReducer } from "./store";
 import { MOCK_PROFILE_1 } from "./testHelpers";
@@ -14,14 +18,14 @@ describe("<Home>", () => {
     // Arrange.
     const initState: IState = {
       alerts: {
-        ...initialStateAlerts,
+        ...INITIAL_STATE_ALERTS,
       },
       auth: {
-        ...initialStateAuth,
+        ...INITIAL_STATE_AUTH,
         signedInUserProfile: null,
       },
       entries: {
-        ...initialStateEntries,
+        ...INITIAL_STATE_ENTRIES,
       },
     };
     const enhancer = applyMiddleware(thunkMiddleware);
@@ -41,14 +45,14 @@ describe("<Home>", () => {
     // Arrange.
     const initState = {
       alerts: {
-        ...initialStateAlerts,
+        ...INITIAL_STATE_ALERTS,
       },
       auth: {
-        ...initialStateAuth,
+        ...INITIAL_STATE_AUTH,
         signedInUserProfile: MOCK_PROFILE_1,
       },
       entries: {
-        ...initialStateEntries,
+        ...INITIAL_STATE_ENTRIES,
       },
     };
     const enhancer = applyMiddleware(thunkMiddleware);
