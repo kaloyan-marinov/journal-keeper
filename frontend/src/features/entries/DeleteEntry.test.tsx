@@ -7,8 +7,7 @@ import { Route, Router, Switch } from "react-router-dom";
 import { createMemoryHistory } from "history";
 
 import { IState, RequestStatus } from "../../types";
-import { INITIAL_STATE_ALERTS } from "../../constants";
-import { rootReducer } from "../../store";
+import { INITIAL_STATE, rootReducer } from "../../store";
 import {
   MOCK_ENTRIES_ENTITIES,
   MOCK_ENTRIES_IDS,
@@ -31,9 +30,7 @@ let realStore;
 
 beforeEach(() => {
   const initState: IState = {
-    alerts: {
-      ...INITIAL_STATE_ALERTS,
-    },
+    ...INITIAL_STATE,
     auth: {
       requestStatus: RequestStatus.SUCCEEDED,
       requestError: null,
