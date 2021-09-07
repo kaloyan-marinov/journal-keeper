@@ -12,10 +12,6 @@ test("initial render (i.e. before/without any user interaction)", async () => {
   // Arrange.
   const initState: IState = {
     ...INITIAL_STATE,
-    auth: {
-      ...INITIAL_STATE.auth,
-      signedInUserProfile: null,
-    },
   };
   const enhancer = applyMiddleware(thunkMiddleware);
   const realStore = createStore(rootReducer, initState, enhancer);

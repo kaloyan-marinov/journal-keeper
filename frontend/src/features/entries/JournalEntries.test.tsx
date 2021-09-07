@@ -10,7 +10,7 @@ import { PER_PAGE_DEFAULT } from "../../constants";
 import { INITIAL_STATE, rootReducer } from "../../store";
 import { Alerts } from "../alerts/Alerts";
 import { JournalEntries } from "./JournalEntries";
-import { MOCK_ENTRY_10, requestHandlers } from "../../testHelpers";
+import { MOCK_PROFILE_1, MOCK_ENTRY_10, requestHandlers } from "../../testHelpers";
 
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { setupServer, SetupServerApi } from "msw/node";
@@ -48,14 +48,7 @@ describe("initial render", () => {
         ...INITIAL_STATE,
         auth: {
           ...INITIAL_STATE.auth,
-          signedInUserProfile: {
-            id: 17,
-            username: "mocked-jd",
-            name: "mocked-John Doe",
-            email: "mocked-john.doe@protonmail.com",
-            createdAt: "mocked-2021-05-24T20:10:17.000Z",
-            updatedAt: "mocked-2021-05-24T20:10:17.000Z",
-          },
+          signedInUserProfile: MOCK_PROFILE_1,
         },
       };
       const enhancer = applyMiddleware(thunkMiddleware);
@@ -141,14 +134,7 @@ describe("initial render", () => {
         ...INITIAL_STATE,
         auth: {
           ...INITIAL_STATE.auth,
-          signedInUserProfile: {
-            id: 17,
-            username: "mocked-jd",
-            name: "mocked-John Doe",
-            email: "mocked-john.doe@protonmail.com",
-            createdAt: "mocked-2021-05-24T20:10:17.000Z",
-            updatedAt: "mocked-2021-05-24T20:10:17.000Z",
-          },
+          signedInUserProfile: MOCK_PROFILE_1,
         },
       };
       const enhancer = applyMiddleware(thunkMiddleware);
