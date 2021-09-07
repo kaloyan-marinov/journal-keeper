@@ -16,7 +16,7 @@ export const Home = () => {
   const greeting =
     signedInUserProfile !== null
       ? `Hello, ${signedInUserProfile.name}!`
-      : "Welcome to JournalEntries!";
+      : "Welcome to JournalKeeper!";
 
   return (
     <React.Fragment>

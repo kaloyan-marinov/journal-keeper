@@ -4,24 +4,29 @@ import { Provider } from "react-redux";
 import { applyMiddleware, createStore } from "redux";
 import thunkMiddleware from "redux-thunk";
 
-import { rootReducer, store } from "../../store";
+import { rootReducer } from "../../store";
 import { Alerts } from "../alerts/Alerts";
 import { CreateEntry } from "./CreateEntry";
 
 import { requestHandlers } from "../../testHelpers";
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
-import { setupServer } from "msw/node";
+import { setupServer, SetupServerApi } from "msw/node";
 import { createMemoryHistory } from "history";
 import { Route, Router } from "react-router-dom";
 
-describe("<CreateEntry>", () => {
+describe("standalone - as a single component", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
+    // Arrange.
+    const realStore = createStore(rootReducer);
+
+    // Act.
     render(
-      <Provider store={store}>
+      <Provider store={realStore}>
         <CreateEntry />
       </Provider>
     );
 
+    // Assert.
     const textboxes = screen.getAllByRole("textbox");
     expect(textboxes.length).toEqual(2);
 
@@ -39,8 +44,10 @@ describe("<CreateEntry>", () => {
 
   test("the user fills out the form (without submitting it)", () => {
     // Arrange.
+    const realStore = createStore(rootReducer);
+
     render(
-      <Provider store={store}>
+      <Provider store={realStore}>
         <CreateEntry />
       </Provider>
     );
@@ -111,8 +118,7 @@ describe("<CreateEntry>", () => {
 });
 
 describe(
-  "<Alerts> + <CreateEntry>" +
-    " (without the user interaction triggering any network communication)",
+  "+ <Alerts>" + " (without the user interaction triggering any network communication)",
   () => {
     test(
       "the user fills out the form in an invalid way" +
@@ -154,28 +160,27 @@ describe(
 );
 
 /* Create an MSW "request-interception layer". */
-const requestInterceptionLayer: RestHandler<MockedRequest<DefaultRequestBody>>[] = [
+const restHandlers: RestHandler<MockedRequest<DefaultRequestBody>>[] = [
   rest.post("/api/entries", requestHandlers.mockMultipleFailures),
 ];
 
-const quasiServer = setupServer(...requestInterceptionLayer);
+const requestInterceptionLayer: SetupServerApi = setupServer(...restHandlers);
 
 describe(
-  "<Alerts> + <CreateEntry>" +
-    " (with the user interaction triggering network communication)",
+  "+ <Alerts>" + " (with the user interaction triggering network communication)",
   () => {
     beforeAll(() => {
       // Enable API mocking.
-      quasiServer.listen();
+      requestInterceptionLayer.listen();
     });
 
     beforeEach(() => {
-      quasiServer.resetHandlers();
+      requestInterceptionLayer.resetHandlers();
     });
 
     afterAll(() => {
       // Disable API mocking.
-      quasiServer.close();
+      requestInterceptionLayer.close();
     });
 
     test(
@@ -184,7 +189,7 @@ describe(
         " the form was filled out in an invalid way",
       async () => {
         // Arrange.
-        quasiServer.use(
+        requestInterceptionLayer.use(
           rest.post("/api/entries", (req, res, ctx) => {
             return res.once(
               ctx.status(400),
@@ -273,7 +278,9 @@ describe(
         " the form submission was accepted as valid and processed",
       async () => {
         // Arrange.
-        quasiServer.use(rest.post("/api/entries", requestHandlers.mockCreateEntry));
+        requestInterceptionLayer.use(
+          rest.post("/api/entries", requestHandlers.mockCreateEntry)
+        );
 
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);

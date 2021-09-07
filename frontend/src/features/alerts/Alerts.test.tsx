@@ -3,33 +3,35 @@ import { Provider } from "react-redux";
 import { createStore } from "redux";
 
 import { IState } from "../../types";
-import { INITIAL_STATE_AUTH, INITIAL_STATE_ENTRIES } from "../../constants";
 import { Alerts } from "./Alerts";
-import { rootReducer, store } from "../../store";
+import { INITIAL_STATE, rootReducer } from "../../store";
 
-describe("<Alerts>", () => {
-  test("initial render (i.e. before/without any user interaction)", () => {
+test("initial render (i.e. before/without any user interaction)", () => {
+  const realStore = createStore(rootReducer);
+
+  render(
+    <Provider store={realStore}>
+      <Alerts />
+    </Provider>
+  );
+
+  screen.getByText("<Alerts>");
+});
+
+test(
+  "initial render (i.e. before/without any user interaction)" +
+    " - illustration of how to assert that" +
+    " a function (or other block of code) will throw an error",
+  () => {
+    const realStore = createStore(rootReducer);
+
     render(
-      <Provider store={store}>
+      <Provider store={realStore}>
         <Alerts />
       </Provider>
     );
 
-    screen.getByText("<Alerts>");
-  });
-
-  test(
-    "initial render (i.e. before/without any user interaction)" +
-      " - illustration of how to assert that" +
-      " a function (or other block of code) will throw an error",
-    () => {
-      render(
-        <Provider store={store}>
-          <Alerts />
-        </Provider>
-      );
-
-      /*
+    /*
       The official Jest documentation makes the following closely-related statements:
         (
           https://jestjs.io/docs/using-matchers
@@ -60,56 +62,50 @@ describe("<Alerts>", () => {
           _and_ that uncaught error will cause the encompassing test-case to fail.
       */
 
-      /*
+    /*
       // This won't work:
       expect(screen.getByText("some non-existent alert text")).toThrowError();
       */
-      // This works:
-      expect(() => screen.getByText("some non-existent alert text")).toThrowError();
-    }
-  );
+    // This works:
+    expect(() => screen.getByText("some non-existent alert text")).toThrowError();
+  }
+);
 
-  test(
-    "the user clicks on the 'X' button," +
-      " which is associated with a particular alert message",
-    () => {
-      const initState: IState = {
-        alerts: {
-          ids: ["a-id-0", "a-id-1"],
-          entities: {
-            "a-id-0": {
-              id: "a-id-0",
-              message: "Alert Message #0",
-            },
-            "a-id-1": {
-              id: "a-id-1",
-              message: "Alert Message #1",
-            },
+test(
+  "the user clicks on the 'X' button," +
+    " which is associated with a particular alert message",
+  () => {
+    const initState: IState = {
+      ...INITIAL_STATE,
+      alerts: {
+        ids: ["a-id-0", "a-id-1"],
+        entities: {
+          "a-id-0": {
+            id: "a-id-0",
+            message: "Alert Message #0",
+          },
+          "a-id-1": {
+            id: "a-id-1",
+            message: "Alert Message #1",
           },
         },
-        auth: {
-          ...INITIAL_STATE_AUTH,
-        },
-        entries: {
-          ...INITIAL_STATE_ENTRIES,
-        },
-      };
-      const storeWithAlerts = createStore(rootReducer, initState);
-      render(
-        <Provider store={storeWithAlerts}>
-          <Alerts />
-        </Provider>
-      );
+      },
+    };
+    const realStore = createStore(rootReducer, initState);
+    render(
+      <Provider store={realStore}>
+        <Alerts />
+      </Provider>
+    );
 
-      const buttons = screen.getAllByRole("button");
-      fireEvent.click(buttons[0]);
+    const buttons: HTMLElement[] = screen.getAllByRole("button");
+    fireEvent.click(buttons[0]);
 
-      expect(() => {
-        // Use a regex to match a substring:
-        screen.getByText(/Alert Message #0/);
-      }).toThrowError();
-      // Again, use a regex to match a substring:
-      screen.getByText(/Alert Message #1/);
-    }
-  );
-});
+    expect(() => {
+      // Use a regex to match a substring:
+      screen.getByText(/Alert Message #0/);
+    }).toThrowError();
+    // Again, use a regex to match a substring:
+    screen.getByText(/Alert Message #1/);
+  }
+);

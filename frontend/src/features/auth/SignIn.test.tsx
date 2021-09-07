@@ -4,24 +4,29 @@ import thunkMiddleware from "redux-thunk";
 import { Provider } from "react-redux";
 import { applyMiddleware, createStore } from "redux";
 
-import { rootReducer, store } from "../../store";
+import { rootReducer } from "../../store";
 import { SignIn } from "./SignIn";
 import { Alerts } from "../alerts/Alerts";
 import { requestHandlers } from "../../testHelpers";
 import { Route, Router, Switch } from "react-router-dom";
 
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
-import { setupServer } from "msw/node";
+import { setupServer, SetupServerApi } from "msw/node";
 import { createMemoryHistory } from "history";
 
-describe("<SignIn>", () => {
+describe("standalone - as a single component", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
+    // Arrange.
+    const realStore = createStore(rootReducer);
+
+    // Act.
     render(
-      <Provider store={store}>
+      <Provider store={realStore}>
         <SignIn />
       </Provider>
     );
 
+    // Assert.
     screen.getByText("Log in to your account!");
 
     const forms = screen.getAllByRole("form");
@@ -33,12 +38,17 @@ describe("<SignIn>", () => {
   });
 
   test("the user fills out the form (without submitting it)", () => {
+    // Arrange.
+    const realStore = createStore(rootReducer);
+
+    // Act.
     render(
-      <Provider store={store}>
+      <Provider store={realStore}>
         <SignIn />
       </Provider>
     );
 
+    // Assert.
     const emailInput = screen.getByPlaceholderText("Enter your email...");
     const passwordInput = screen.getByPlaceholderText("Enter your password...");
 
@@ -51,16 +61,14 @@ describe("<SignIn>", () => {
 });
 
 describe(
-  "<Alerts> + <SignIn>" +
-    " (without the user interaction triggering any network communication)",
+  "+ <Alerts>" + " (without the user interaction triggering any network communication)",
   () => {
     test(
       "the user fills out the form in an invalid way" +
         " (by failing to fill out all required fields) and submits it",
       () => {
         // Arrange.
-        const enhancer = applyMiddleware(thunkMiddleware);
-        const realStore = createStore(rootReducer, enhancer);
+        const realStore = createStore(rootReducer);
 
         render(
           <Provider store={realStore}>
@@ -87,25 +95,24 @@ describe(
 );
 
 /* Create an MSW "request-interception layer". */
-const requestInterceptionLayer: RestHandler<MockedRequest<DefaultRequestBody>>[] = [
+const restHandlers: RestHandler<MockedRequest<DefaultRequestBody>>[] = [
   rest.post("/api/tokens", requestHandlers.mockMultipleFailures),
 ];
 
-const quasiServer = setupServer(...requestInterceptionLayer);
+const requestInterceptionLayer: SetupServerApi = setupServer(...restHandlers);
 
 describe(
-  "<Alerts> + <SignIn>" +
-    " (with the user interaction triggering network communication)",
+  "+ <Alerts>" + " (with the user interaction triggering network communication)",
   () => {
     let realStore: any;
 
     beforeAll(() => {
       // Enable API mocking.
-      quasiServer.listen();
+      requestInterceptionLayer.listen();
     });
 
     beforeEach(() => {
-      quasiServer.resetHandlers();
+      requestInterceptionLayer.resetHandlers();
 
       const enhancer = applyMiddleware(thunkMiddleware);
       realStore = createStore(rootReducer, enhancer);
@@ -113,7 +120,7 @@ describe(
 
     afterAll(() => {
       // Disable API mocking.
-      quasiServer.close();
+      requestInterceptionLayer.close();
     });
 
     test(
@@ -151,7 +158,9 @@ describe(
         " the form submission was accepted as valid and processed",
       async () => {
         // Arrange.
-        quasiServer.use(rest.post("/api/tokens", requestHandlers.mockIssueJWSToken));
+        requestInterceptionLayer.use(
+          rest.post("/api/tokens", requestHandlers.mockIssueJWSToken)
+        );
 
         const history = createMemoryHistory();
         history.push("/sign-in");

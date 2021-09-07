@@ -7,29 +7,29 @@ import { Route, Router } from "react-router-dom";
 import { createMemoryHistory } from "history";
 
 import { IState } from "../../types";
-import {
-  INITIAL_STATE_ALERTS,
-  INITIAL_STATE_AUTH,
-  INITIAL_STATE_ENTRIES,
-  JOURNAL_APP_TOKEN,
-} from "../../constants";
-import { rootReducer, store } from "../../store";
+import { JOURNAL_APP_TOKEN } from "../../constants";
+import { INITIAL_STATE, rootReducer } from "../../store";
 import { SignUp } from "./SignUp";
 import { Alerts } from "../alerts/Alerts";
 import { MOCK_PROFILE_1, requestHandlers } from "../../testHelpers";
 import { Home } from "../Home";
 
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
-import { setupServer } from "msw/node";
+import { setupServer, SetupServerApi } from "msw/node";
 
-describe("<SignUp>", () => {
+describe("standalone - as a single component", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
+    // Arrange.
+    const realStore = createStore(rootReducer);
+
+    // Act.
     render(
-      <Provider store={store}>
+      <Provider store={realStore}>
         <SignUp />
       </Provider>
     );
 
+    // Assert.
     screen.getByText("Create a new account!");
 
     const forms = screen.getAllByRole("form");
@@ -44,12 +44,17 @@ describe("<SignUp>", () => {
   });
 
   test("the user fills out the form (without submitting it)", () => {
+    // Arrange.
+    const realStore = createStore(rootReducer);
+
+    // Act.
     render(
-      <Provider store={store}>
+      <Provider store={realStore}>
         <SignUp />
       </Provider>
     );
 
+    // Assert.
     const usernameInput = screen.getByPlaceholderText("Choose a username...");
     const nameInput = screen.getByPlaceholderText("Enter your name...");
     const emailInput = screen.getByPlaceholderText("Enter your email address...");
@@ -74,7 +79,7 @@ describe("<SignUp>", () => {
   });
 });
 
-describe("<SignUp> + <Home>", () => {
+describe("+ <Home>", () => {
   test(
     "if a(n already registered) user has already signed in" +
       " and then tries to navigate to /sign-up," +
@@ -85,17 +90,12 @@ describe("<SignUp> + <Home>", () => {
       localStorage.setItem(JOURNAL_APP_TOKEN, token);
 
       const initState: IState = {
-        alerts: {
-          ...INITIAL_STATE_ALERTS,
-        },
+        ...INITIAL_STATE,
         auth: {
-          ...INITIAL_STATE_AUTH,
+          ...INITIAL_STATE.auth,
           token,
           hasValidToken: true,
           signedInUserProfile: MOCK_PROFILE_1,
-        },
-        entries: {
-          ...INITIAL_STATE_ENTRIES,
         },
       };
       const enhancer = applyMiddleware(thunkMiddleware);
@@ -120,22 +120,22 @@ describe("<SignUp> + <Home>", () => {
       );
 
       // Assert.
+      expect(history.location.pathname).toEqual("/");
+
       screen.getByText("Hello, mocked-John Doe!");
     }
   );
 });
 
 describe(
-  "<Alerts> + <SignUp>" +
-    " (without the user interaction triggering any network communication)",
+  "+ <Alerts>" + " (without the user interaction triggering any network communication)",
   () => {
     test(
       "the user fills out the form in an invalid way" +
         " (by failing to fill out all required fields) and submits it",
       () => {
         // Arrange.
-        const enhancer = applyMiddleware(thunkMiddleware);
-        const realStore = createStore(rootReducer, enhancer);
+        const realStore = createStore(rootReducer);
 
         render(
           <Provider store={realStore}>
@@ -174,8 +174,7 @@ describe(
         " (by providing different texts in the 2 password fields) and submits it",
       () => {
         // Arrange.
-        const enhancer = applyMiddleware(thunkMiddleware);
-        const realStore = createStore(rootReducer, enhancer);
+        const realStore = createStore(rootReducer);
 
         render(
           <Provider store={realStore}>
@@ -214,26 +213,25 @@ describe(
 );
 
 /* Create an MSW "request-interception layer". */
-const requestInterceptionLayer: RestHandler<MockedRequest<DefaultRequestBody>>[] = [];
+const restHandlers: RestHandler<MockedRequest<DefaultRequestBody>>[] = [];
 
-const quasiServer = setupServer(...requestInterceptionLayer);
+const requestInterceptionLayer: SetupServerApi = setupServer(...restHandlers);
 
 describe(
-  "<Alerts> + <SignUp>" +
-    " (with the user interaction triggering network communication)",
+  "+ <Alerts>" + " (with the user interaction triggering network communication)",
   () => {
     beforeAll(() => {
       // Enable API mocking.
-      quasiServer.listen();
+      requestInterceptionLayer.listen();
     });
 
     beforeEach(() => {
-      quasiServer.resetHandlers();
+      requestInterceptionLayer.resetHandlers();
     });
 
     afterAll(() => {
       // Disable API mocking.
-      quasiServer.close();
+      requestInterceptionLayer.close();
     });
 
     test(
@@ -242,7 +240,7 @@ describe(
         " the form was filled out in an invalid way",
       async () => {
         // Arrange.
-        quasiServer.use(
+        requestInterceptionLayer.use(
           rest.post("/api/users", (req, res, ctx) => {
             return res.once(
               ctx.status(400),
@@ -326,7 +324,9 @@ describe(
         " the form submission was accepted as valid and processed",
       async () => {
         // Arrange.
-        quasiServer.use(rest.post("/api/users", requestHandlers.mockCreateUser));
+        requestInterceptionLayer.use(
+          rest.post("/api/users", requestHandlers.mockCreateUser)
+        );
 
         const enhancer = applyMiddleware(thunkMiddleware);
         const realStore = createStore(rootReducer, enhancer);
