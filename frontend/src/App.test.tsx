@@ -76,7 +76,10 @@ test("initial render (i.e. before/without any user interaction)", async () => {
   // Assert.
   let element: HTMLElement;
 
-  element = await screen.findByText("Home");
+  element = await screen.findByText("TO CONTINUE, PLEASE SIGN IN");
+  expect(element).toBeInTheDocument();
+
+  element = screen.getByText("Home");
   expect(element).toBeInTheDocument();
   element = screen.getByText("Sign In");
   expect(element).toBeInTheDocument();
@@ -160,6 +163,10 @@ test(
     " - that should update the `localStorage` correctly",
   async () => {
     // Arrange.
+    requestInterceptionLayer.use(
+      rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
+    );
+
     localStorage.setItem(JOURNAL_APP_TOKEN, "a-jws-token-issued-by-the-backend");
     // Strictly speaking, the setup logic for this test case renders
     // the next two statements unnecessary-to-have,
@@ -187,7 +194,7 @@ test(
 
 test(
   "if a user hasn't signed in" +
-    " but manually saves a token in their web-browser's localStorage," +
+    " but manually saves a token in their web-browser's `localStorage`," +
     " the frontend application should display only the following navigation links:" +
     " 'Home', 'Sign In', 'Sign Up'",
   async () => {
@@ -288,7 +295,7 @@ xtest(
   }
 );
 
-test(
+test.only(
   "if a user hasn't signed in" +
     " but manually changes the URL in her browser's address bar" +
     " to /journal-entries ," +
@@ -309,11 +316,12 @@ test(
     );
 
     // Assert.
-    await waitFor(() => {
-      expect(history.location.pathname).toEqual("/sign-in");
-    });
+    const element: HTMLElement = await screen.findByText("TO CONTINUE, PLEASE SIGN IN");
+    expect(element).toBeInTheDocument();
 
-    const elements = screen.queryAllByText("Review JournalEntries!");
+    expect(history.location.pathname).toEqual("/sign-in");
+
+    const elements: HTMLElement[] = screen.queryAllByText("Review JournalEntries!");
     expect(elements.length).toEqual(0);
   }
 );
