@@ -1,11 +1,11 @@
 import "@testing-library/jest-dom";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { createMemoryHistory } from "history";
+import { createMemoryHistory, MemoryHistory } from "history";
 import { Router } from "react-router-dom";
 
 import { DeleteEntryLink } from "./DeleteEntryLink";
 
-let history: any;
+let history: MemoryHistory<unknown>;
 let element: HTMLElement;
 
 beforeEach(() => {

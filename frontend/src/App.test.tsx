@@ -9,10 +9,10 @@ import { Router } from "react-router-dom";
 import { IState } from "./types";
 import { JOURNAL_APP_TOKEN } from "./constants";
 import App from "./App";
-import { INITIAL_STATE, rootReducer } from "./store";
+import { TEnhancer, INITIAL_STATE, rootReducer } from "./store";
 
 import { requestHandlers } from "./testHelpers";
-import { createMemoryHistory } from "history";
+import { createMemoryHistory, MemoryHistory } from "history";
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { setupServer, SetupServerApi } from "msw/node";
 
@@ -32,9 +32,9 @@ const restHandlers: RestHandler<MockedRequest<DefaultRequestBody>>[] = [
 
 const requestInterceptionLayer: SetupServerApi = setupServer(...restHandlers);
 
-let enhancer: any;
+let enhancer: TEnhancer;
 let initState: IState;
-let history: any;
+let history: MemoryHistory<unknown>;
 
 beforeAll(() => {
   // Enable API mocking.

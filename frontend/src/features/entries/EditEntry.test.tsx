@@ -4,12 +4,12 @@ import { Provider } from "react-redux";
 import { Route, Router, Switch } from "react-router-dom";
 import { applyMiddleware, createStore } from "redux";
 import thunkMiddleware from "redux-thunk";
-import { createMemoryHistory } from "history";
+import { createMemoryHistory, MemoryHistory } from "history";
 
 import { IState, RequestStatus } from "../../types";
 import { MOCK_ENTRY_10, MOCK_ENTRY_10_LOCAL_TIME } from "../../testHelpers";
 import { EditEntry } from "./EditEntry";
-import { INITIAL_STATE, rootReducer } from "../../store";
+import { INITIAL_STATE, TStore, rootReducer } from "../../store";
 import { Alerts } from "../alerts/Alerts";
 
 import { requestHandlers } from "../../testHelpers";
@@ -18,8 +18,8 @@ import { setupServer, SetupServerApi } from "msw/node";
 import { SignIn } from "../auth/SignIn";
 import { PrivateRoute } from "../auth/PrivateRoute";
 
-let history;
-let realStore;
+let history: MemoryHistory<unknown>;
+let realStore: TStore;
 
 let element: HTMLElement;
 

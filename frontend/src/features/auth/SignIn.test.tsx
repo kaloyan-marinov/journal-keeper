@@ -4,7 +4,7 @@ import thunkMiddleware from "redux-thunk";
 import { Provider } from "react-redux";
 import { applyMiddleware, createStore } from "redux";
 
-import { rootReducer } from "../../store";
+import { TStore, rootReducer } from "../../store";
 import { SignIn } from "./SignIn";
 import { Alerts } from "../alerts/Alerts";
 import { requestHandlers } from "../../testHelpers";
@@ -104,7 +104,7 @@ const requestInterceptionLayer: SetupServerApi = setupServer(...restHandlers);
 describe(
   "+ <Alerts>" + " (with the user interaction triggering network communication)",
   () => {
-    let realStore: any;
+    let realStore: TStore;
 
     beforeAll(() => {
       // Enable API mocking.

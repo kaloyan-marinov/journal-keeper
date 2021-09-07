@@ -4,10 +4,10 @@ import { applyMiddleware, createStore } from "redux";
 import thunkMiddleware from "redux-thunk";
 import { Provider } from "react-redux";
 import { Route, Router, Switch } from "react-router-dom";
-import { createMemoryHistory } from "history";
+import { createMemoryHistory, MemoryHistory } from "history";
 
 import { IState, RequestStatus } from "../../types";
-import { INITIAL_STATE, rootReducer } from "../../store";
+import { INITIAL_STATE, TStore, rootReducer } from "../../store";
 import {
   MOCK_ENTRIES_ENTITIES,
   MOCK_ENTRIES_IDS,
@@ -25,8 +25,8 @@ import { requestHandlers } from "../../testHelpers";
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { setupServer, SetupServerApi } from "msw/node";
 
-let history;
-let realStore;
+let history: MemoryHistory<unknown>;
+let realStore: TStore;
 
 beforeEach(() => {
   const initState: IState = {
