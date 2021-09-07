@@ -295,7 +295,7 @@ xtest(
   }
 );
 
-test.only(
+test(
   "if a user hasn't signed in" +
     " but manually changes the URL in her browser's address bar" +
     " to /journal-entries ," +
