@@ -15,7 +15,6 @@ import {
 import {
   MOCK_ALERTS_ENTITIES,
   MOCK_ALERTS_IDS,
-  MOCK_ALERT_17,
   MOCK_ENTRIES_ENTITIES,
   MOCK_ENTRIES_IDS,
   MOCK_LINKS,
@@ -23,7 +22,6 @@ import {
   MOCK_PROFILE_1,
 } from "./testHelpers";
 import {
-  rootReducer,
   selectAlertsEntities,
   selectAlertsIds,
   selectAuthRequestStatus,
@@ -114,40 +112,6 @@ describe("selectors", () => {
 
     expect(entriesEntities).toEqual(MOCK_ENTRIES_ENTITIES);
   });
-});
-
-describe("rootReducer", () => {
-  test(
-    "an action, which the rootReducer doesn't specifically handle," +
-      " should not modify the state",
-    () => {
-      const initState: IState = {
-        alerts: {
-          ...INITIAL_STATE.alerts,
-          ids: [MOCK_ALERT_17.id],
-          entities: {
-            [MOCK_ALERT_17.id]: MOCK_ALERT_17,
-          },
-        },
-        auth: {
-          ...INITIAL_STATE.auth,
-          requestStatus: RequestStatus.FAILED,
-          requestError: "original-error",
-          token: null,
-        },
-        entries: {
-          ...INITIAL_STATE.entries,
-        },
-      };
-      const action = {
-        type: "an action, which the rootReducer doesn't specifically handle",
-      };
-
-      const newState = rootReducer(initState, action);
-
-      expect(newState).toEqual(initState);
-    }
-  );
 });
 
 const createStoreMock = configureMockStore([thunkMiddleware]);

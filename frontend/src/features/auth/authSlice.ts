@@ -6,7 +6,7 @@ import { Dispatch } from "redux";
 import axios from "axios";
 
 /* Action creators - "auth/createUser/" */
-enum ActionTypesCreateUser {
+export enum ActionTypesCreateUser {
   PENDING = "auth/createUser/pending",
   REJECTED = "auth/createUser/rejected",
   FULFILLED = "auth/createUser/fulfilled",
@@ -44,7 +44,7 @@ export type ActionCreateUser =
   | IActionCreateUserFulfilled;
 
 /* Action creators - "auth/issueJWSToken/" */
-enum ActionTypesIssueJWSToken {
+export enum ActionTypesIssueJWSToken {
   PENDING = "auth/issueJWSToken/pending",
   REJECTED = "auth/issueJWSToken/rejected",
   FULFILLED = "auth/issueJWSToken/fulfilled",
@@ -90,7 +90,7 @@ export type ActionIssueJWSToken =
   | IActionIssueJWSTokenFulfilled;
 
 /* Action creators - "auth/fetchProfile/" */
-enum ActionTypesFetchProfile {
+export enum ActionTypesFetchProfile {
   PENDING = "auth/fetchProfile/pending",
   REJECTED = "auth/fetchProfile/rejected",
   FULFILLED = "auth/fetchProfile/fulfilled",
@@ -136,7 +136,7 @@ export type ActionFetchProfile =
   | IActionFetchProfileFulfilled;
 
 /* Action creators - "auth/clearAuthSlice" */
-const ACTION_TYPE_CLEAR_AUTH_SLICE = "auth/clearAuthSlice";
+export const ACTION_TYPE_CLEAR_AUTH_SLICE = "auth/clearAuthSlice";
 
 export interface IActionClearAuthSlice {
   type: typeof ACTION_TYPE_CLEAR_AUTH_SLICE;

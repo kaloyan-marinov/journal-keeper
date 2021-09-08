@@ -1,6 +1,10 @@
 import { IStateAuth } from "../../types";
 import { INITIAL_STATE_AUTH } from "../../constants";
 import {
+  ActionTypesCreateUser,
+  ActionTypesFetchProfile,
+  ActionTypesIssueJWSToken,
+  ACTION_TYPE_CLEAR_AUTH_SLICE,
   authReducer,
   clearAuthSlice,
   createUserFulfilled,
@@ -9,6 +13,16 @@ import {
   fetchProfileFulfilled,
   fetchProfilePending,
   fetchProfileRejected,
+  IActionClearAuthSlice,
+  IActionCreateUserFulfilled,
+  IActionCreateUserPending,
+  IActionCreateUserRejected,
+  IActionFetchProfileFulfilled,
+  IActionFetchProfilePending,
+  IActionFetchProfileRejected,
+  IActionIssueJWSTokenFulfilled,
+  IActionIssueJWSTokenPending,
+  IActionIssueJWSTokenRejected,
   issueJWSTokenFulfilled,
   issueJWSTokenPending,
   issueJWSTokenRejected,
@@ -136,8 +150,8 @@ describe("reducer", () => {
       requestStatus: RequestStatus.FAILED,
       requestError: "The previous attempt to create a User resource didn't succeed",
     };
-    const action = {
-      type: "auth/createUser/pending",
+    const action: IActionCreateUserPending = {
+      type: ActionTypesCreateUser.PENDING,
     };
 
     const newSt: IStateAuth = authReducer(initStAuth, action);
@@ -156,8 +170,8 @@ describe("reducer", () => {
       ...initStAuth,
       requestStatus: RequestStatus.LOADING,
     };
-    const action = {
-      type: "auth/createUser/rejected",
+    const action: IActionCreateUserRejected = {
+      type: ActionTypesCreateUser.REJECTED,
       error: "auth-createUser-rejected",
     };
 
@@ -177,8 +191,8 @@ describe("reducer", () => {
       ...initStAuth,
       requestStatus: RequestStatus.LOADING,
     };
-    const action = {
-      type: "auth/createUser/fulfilled",
+    const action: IActionCreateUserFulfilled = {
+      type: ActionTypesCreateUser.FULFILLED,
     };
 
     const newSt: IStateAuth = authReducer(initStAuth, action);
@@ -198,8 +212,8 @@ describe("reducer", () => {
       requestStatus: RequestStatus.FAILED,
       requestError: "The previous attempt to issue a JWS token didn't succeed",
     };
-    const action = {
-      type: "auth/issueJWSToken/pending",
+    const action: IActionIssueJWSTokenPending = {
+      type: ActionTypesIssueJWSToken.PENDING,
     };
 
     const newSt: IStateAuth = authReducer(initStAuth, action);
@@ -218,8 +232,8 @@ describe("reducer", () => {
       ...initStAuth,
       requestStatus: RequestStatus.LOADING,
     };
-    const action = {
-      type: "auth/issueJWSToken/rejected",
+    const action: IActionIssueJWSTokenRejected = {
+      type: ActionTypesIssueJWSToken.REJECTED,
       error: "auth-issueJWSToken-rejected",
     };
 
@@ -239,8 +253,8 @@ describe("reducer", () => {
       ...initStAuth,
       requestStatus: RequestStatus.LOADING,
     };
-    const action = {
-      type: "auth/issueJWSToken/fulfilled",
+    const action: IActionIssueJWSTokenFulfilled = {
+      type: ActionTypesIssueJWSToken.FULFILLED,
       payload: {
         token: "a-jws-token-issued-by-the-backend",
       },
@@ -258,8 +272,8 @@ describe("reducer", () => {
   });
 
   test("auth/fetchProfile/pending", () => {
-    const action = {
-      type: "auth/fetchProfile/pending",
+    const action: IActionFetchProfilePending = {
+      type: ActionTypesFetchProfile.PENDING,
     };
 
     const newSt: IStateAuth = authReducer(initStAuth, action);
@@ -278,8 +292,8 @@ describe("reducer", () => {
       ...initStAuth,
       requestStatus: RequestStatus.LOADING,
     };
-    const action = {
-      type: "auth/fetchProfile/rejected",
+    const action: IActionFetchProfileRejected = {
+      type: ActionTypesFetchProfile.REJECTED,
       error: "auth-fetchProfile-rejected",
     };
 
@@ -301,8 +315,8 @@ describe("reducer", () => {
       requestError: null,
       token: "a-jws-token-issued-by-the-backend",
     };
-    const action = {
-      type: "auth/fetchProfile/fulfilled",
+    const action: IActionFetchProfileFulfilled = {
+      type: ActionTypesFetchProfile.FULFILLED,
       payload: {
         profile: MOCK_PROFILE_1,
       },
@@ -325,8 +339,8 @@ describe("reducer", () => {
       token: "a-jws-token-issued-by-the-backend",
       hasValidToken: true,
     };
-    const action = {
-      type: "auth/clearAuthSlice",
+    const action: IActionClearAuthSlice = {
+      type: ACTION_TYPE_CLEAR_AUTH_SLICE,
     };
 
     const newSt: IStateAuth = authReducer(initStAuth, action);
@@ -339,6 +353,27 @@ describe("reducer", () => {
       signedInUserProfile: null,
     });
   });
+
+  test(
+    "an action, which this reducer doesn't specifically handle," +
+      " should not modify its associated state (slice)",
+    () => {
+      initStAuth = {
+        ...INITIAL_STATE_AUTH,
+        requestStatus: RequestStatus.SUCCEEDED,
+        token: "a-jws-token-issued-by-the-backend",
+        hasValidToken: true,
+        signedInUserProfile: MOCK_PROFILE_1,
+      };
+      const action: any = {
+        type: "an action, which this reducer doesn't specifically handle",
+      };
+
+      const newSt: IStateAuth = authReducer(initStAuth, action);
+
+      expect(newSt).toEqual(initStAuth);
+    }
+  );
 });
 
 /* Create an MSW "request-interception layer". */
