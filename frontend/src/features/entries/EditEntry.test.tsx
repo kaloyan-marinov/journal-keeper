@@ -49,7 +49,7 @@ beforeEach(() => {
   history.push(route);
 });
 
-describe("by itself", () => {
+describe("standalone - as a single component", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
     // Act.
     render(

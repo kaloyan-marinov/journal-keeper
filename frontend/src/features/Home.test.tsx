@@ -3,10 +3,10 @@ import { applyMiddleware, createStore } from "redux";
 import thunkMiddleware from "redux-thunk";
 import { Provider } from "react-redux";
 
-import { IState } from "./types";
-import { Home } from "./features/Home";
-import { INITIAL_STATE, rootReducer } from "./store";
-import { MOCK_PROFILE_1 } from "./testHelpers";
+import { IState } from "../types";
+import { Home } from "../features/Home";
+import { INITIAL_STATE, rootReducer } from "../store";
+import { MOCK_PROFILE_1 } from "../testHelpers";
 
 test("initial render (i.e. before/without any user interaction)", async () => {
   // Arrange.

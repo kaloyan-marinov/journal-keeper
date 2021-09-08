@@ -271,6 +271,20 @@ export const entriesReducer = (
       };
 
     case ActionTypesCreateEntry.FULFILLED: {
+      /*
+      You might wonder why this case computes the new state
+      by mixing `stateEntries` with `INITIAL_STATE_ENTRIES`.
+      Strictly speaking, doing that alone isn't a reasonable way of updating the state.
+
+      However, due to the pagination of Entry resources,
+      a reasonable way of updating the state (i.e. of computing the new state using only
+      `stateEntries`) would require a rather intricate implementation.
+
+      Instead, it's possible to make do with this simple-but-unreasonable
+      implementation - as long as we ensure that,
+      after every time when the frontend dispatches this action,
+      it will also dispatch the `fetchEntries` thunk-action.
+      */
       const newMeta: IPaginationMeta = {
         ...INITIAL_STATE_ENTRIES._meta,
         totalItems:

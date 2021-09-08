@@ -119,6 +119,7 @@ export const JournalEntries = () => {
         Previous page
       </button>
     );
+
     const paginationCtrlBtnNext: JSX.Element = (
       <button
         disabled={entriesLinks.next === null}
