@@ -5,7 +5,7 @@ import {
   IStateEntries,
   RequestStatus,
 } from "../../types";
-import { initialStateEntries } from "../../constants";
+import { INITIAL_STATE_ENTRIES } from "../../constants";
 import {
   MOCK_ENTRIES_ENTITIES,
   MOCK_ENTRIES_IDS,
@@ -13,6 +13,11 @@ import {
   MOCK_ENTRY_20,
 } from "../../testHelpers";
 import {
+  ActionTypesCreateEntry,
+  ActionTypesDeleteEntry,
+  ActionTypesEditEntry,
+  ActionTypesFetchEntries,
+  ACTION_TYPE_CLEAR_ENTRIES_SLICE,
   clearEntriesSlice,
   createEntryFulfilled,
   createEntryPending,
@@ -27,13 +32,26 @@ import {
   fetchEntriesFulfilled,
   fetchEntriesPending,
   fetchEntriesRejected,
+  IActionClearEntriesSlice,
+  IActionCreateEntryFulfilled,
+  IActionCreateEntryPending,
+  IActionCreateEntryRejected,
+  IActionDeleteEntryFulfilled,
+  IActionDeleteEntryPending,
+  IActionDeleteEntryRejected,
+  IActionEditEntryFulfilled,
+  IActionEditEntryPending,
+  IActionEditEntryRejected,
+  IActionFetchEntriesFulfilled,
+  IActionFetchEntriesPending,
+  IActionFetchEntriesRejected,
 } from "./entriesSlice";
 
-import { setupServer } from "msw/node";
+import { setupServer, SetupServerApi } from "msw/node";
 import { MockStoreEnhanced } from "redux-mock-store";
 import configureMockStore from "redux-mock-store";
 import thunkMiddleware from "redux-thunk";
-import { rest } from "msw";
+import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { IState } from "../../types";
 import { URL_FOR_FIRST_PAGE_OF_EXAMPLES, PER_PAGE_DEFAULT } from "../../constants";
 import {
@@ -43,7 +61,7 @@ import {
   MOCK_ENTRIES,
   MOCK_ENTRY_20_LOCAL_TIME,
 } from "../../testHelpers";
-import { store } from "../../store";
+import { INITIAL_STATE } from "../../store";
 import { createEntry, editEntry, deleteEntry, fetchEntries } from "./entriesSlice";
 
 describe("action creators", () => {
@@ -229,12 +247,12 @@ describe("reducer", () => {
   let initStateEntries: IStateEntries;
 
   beforeEach(() => {
-    initStateEntries = { ...initialStateEntries };
+    initStateEntries = { ...INITIAL_STATE_ENTRIES };
   });
 
   test("entries/fetchEntries/pending", () => {
-    const action = {
-      type: "entries/fetchEntries/pending",
+    const action: IActionFetchEntriesPending = {
+      type: ActionTypesFetchEntries.PENDING,
     };
 
     const newStateEntries = entriesReducer(initStateEntries, action);
@@ -242,16 +260,16 @@ describe("reducer", () => {
     expect(newStateEntries).toEqual({
       requestStatus: "loading",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [],
       entities: {},
     });
   });
 
   test("entries/fetchEntries/rejected", () => {
-    const action = {
-      type: "entries/fetchEntries/rejected",
+    const action: IActionFetchEntriesRejected = {
+      type: ActionTypesFetchEntries.REJECTED,
       error: "entries-fetchEntries-rejected",
     };
 
@@ -260,37 +278,34 @@ describe("reducer", () => {
     expect(newStateEntries).toEqual({
       requestStatus: "failed",
       requestError: "entries-fetchEntries-rejected",
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [],
       entities: {},
     });
   });
 
   test("entries/fetchEntries/fulfilled", () => {
-    const action = {
-      type: "entries/fetchEntries/fulfilled",
+    const entries: IEntry[] = [MOCK_ENTRY_10, MOCK_ENTRY_20];
+    const _meta: IPaginationMeta = {
+      totalItems: entries.length,
+      perPage: PER_PAGE_DEFAULT,
+      totalPages: Math.ceil(entries.length / PER_PAGE_DEFAULT),
+      page: 1,
+    };
+    const _links: IPaginationLinks = {
+      self: "/api/entries?perPage=10&page=1",
+      next: null,
+      prev: null,
+      first: "/api/entries?perPage=10&page=1",
+      last: `/api/entries?perPage=10&page=1`,
+    };
+    const action: IActionFetchEntriesFulfilled = {
+      type: ActionTypesFetchEntries.FULFILLED,
       payload: {
-        entries: [
-          {
-            id: 1,
-            timestampInUTC: "2020-12-01T15:17:00.000Z",
-            utcZoneOfTimestamp: "+02:00",
-            content: "[hard-coded] Then it dawned on me: there is no finish line!",
-            createdAt: "2021-04-29T05:10:56.000Z",
-            updatedAt: "2021-04-29T05:10:56.000Z",
-            userId: 1,
-          },
-          {
-            id: 2,
-            timestampInUTC: "2019-08-20T13:17:00.000Z",
-            utcZoneOfTimestamp: "+01:00",
-            content: "[hard-coded] Mallorca has beautiful sunny beaches!",
-            createdAt: "2021-04-29T05:11:01.000Z",
-            updatedAt: "2021-04-29T05:11:01.000Z",
-            userId: 1,
-          },
-        ],
+        _meta,
+        _links,
+        entries,
       },
     };
 
@@ -299,33 +314,19 @@ describe("reducer", () => {
     expect(newStateEntries).toEqual({
       requestStatus: "succeeded",
       requestError: null,
-      ids: [1, 2],
+      _meta,
+      _links,
+      ids: [MOCK_ENTRY_10.id, MOCK_ENTRY_20.id],
       entities: {
-        1: {
-          id: 1,
-          timestampInUTC: "2020-12-01T15:17:00.000Z",
-          utcZoneOfTimestamp: "+02:00",
-          content: "[hard-coded] Then it dawned on me: there is no finish line!",
-          createdAt: "2021-04-29T05:10:56.000Z",
-          updatedAt: "2021-04-29T05:10:56.000Z",
-          userId: 1,
-        },
-        2: {
-          id: 2,
-          timestampInUTC: "2019-08-20T13:17:00.000Z",
-          utcZoneOfTimestamp: "+01:00",
-          content: "[hard-coded] Mallorca has beautiful sunny beaches!",
-          createdAt: "2021-04-29T05:11:01.000Z",
-          updatedAt: "2021-04-29T05:11:01.000Z",
-          userId: 1,
-        },
+        [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
+        [MOCK_ENTRY_20.id]: MOCK_ENTRY_20,
       },
     });
   });
 
   test("entries/createEntry/pending", () => {
-    const action = {
-      type: "entries/createEntry/pending",
+    const action: IActionCreateEntryPending = {
+      type: ActionTypesCreateEntry.PENDING,
     };
 
     const newState = entriesReducer(initStateEntries, action);
@@ -333,8 +334,8 @@ describe("reducer", () => {
     expect(newState).toEqual({
       requestStatus: "loading",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [],
       entities: {},
     });
@@ -342,11 +343,11 @@ describe("reducer", () => {
 
   test("entries/createEntry/rejected", () => {
     initStateEntries = {
-      ...initialStateEntries,
+      ...INITIAL_STATE_ENTRIES,
       requestStatus: RequestStatus.LOADING,
     };
-    const action = {
-      type: "entries/createEntry/rejected",
+    const action: IActionCreateEntryRejected = {
+      type: ActionTypesCreateEntry.REJECTED,
       error: "entries-createEntry-rejected",
     };
 
@@ -355,8 +356,8 @@ describe("reducer", () => {
     expect(newState).toEqual({
       requestStatus: "failed",
       requestError: "entries-createEntry-rejected",
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [],
       entities: {},
     });
@@ -364,33 +365,17 @@ describe("reducer", () => {
 
   test("entries/createEntry/fulfilled", () => {
     initStateEntries = {
-      ...initialStateEntries,
+      ...INITIAL_STATE_ENTRIES,
       requestStatus: RequestStatus.LOADING,
-      ids: [1],
+      ids: [MOCK_ENTRY_10.id],
       entities: {
-        1: {
-          id: 1,
-          timestampInUTC: "2020-12-01T15:17:00.000Z",
-          utcZoneOfTimestamp: "+02:00",
-          content: "[hard-coded] Then it dawned on me: there is no finish line!",
-          createdAt: "2021-04-29T05:10:56.000Z",
-          updatedAt: "2021-04-29T05:10:56.000Z",
-          userId: 1,
-        },
+        [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
       },
     };
-    const action = {
-      type: "entries/createEntry/fulfilled",
+    const action: IActionCreateEntryFulfilled = {
+      type: ActionTypesCreateEntry.FULFILLED,
       payload: {
-        entry: {
-          id: 17,
-          timestampInUTC: "2019-08-20T13:17:00.000Z",
-          utcZoneOfTimestamp: "+01:00",
-          content: "[hard-coded] Mallorca has beautiful sunny beaches!",
-          createdAt: "2021-04-29T05:11:01.000Z",
-          updatedAt: "2021-04-29T05:11:01.000Z",
-          userId: 1,
-        },
+        entry: MOCK_ENTRY_20,
       },
     };
 
@@ -399,57 +384,46 @@ describe("reducer", () => {
     expect(newState).toEqual({
       requestStatus: "succeeded",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
-      ids: [1, 17],
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
+      ids: [MOCK_ENTRY_10.id, MOCK_ENTRY_20.id],
       entities: {
-        1: {
-          id: 1,
-          timestampInUTC: "2020-12-01T15:17:00.000Z",
-          utcZoneOfTimestamp: "+02:00",
-          content: "[hard-coded] Then it dawned on me: there is no finish line!",
-          createdAt: "2021-04-29T05:10:56.000Z",
-          updatedAt: "2021-04-29T05:10:56.000Z",
-          userId: 1,
-        },
-        17: {
-          id: 17,
-          timestampInUTC: "2019-08-20T13:17:00.000Z",
-          utcZoneOfTimestamp: "+01:00",
-          content: "[hard-coded] Mallorca has beautiful sunny beaches!",
-          createdAt: "2021-04-29T05:11:01.000Z",
-          updatedAt: "2021-04-29T05:11:01.000Z",
-          userId: 1,
-        },
+        [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
+        [MOCK_ENTRY_20.id]: MOCK_ENTRY_20,
       },
     });
   });
 
   test("entries/editEntry/pending", () => {
-    const action = editEntryPending();
+    const action: IActionEditEntryPending = {
+      type: ActionTypesEditEntry.PENDING,
+    };
 
     const newState = entriesReducer(initStateEntries, action);
 
     expect(newState).toEqual({
       requestStatus: "loading",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [],
       entities: {},
     });
   });
 
   test("entries/editEntry/rejected", () => {
-    const action = editEntryRejected("entries-editEntry-rejected");
+    const action: IActionEditEntryRejected = {
+      type: ActionTypesEditEntry.REJECTED,
+      error: "entries-editEntry-rejected",
+    };
 
     const newState = entriesReducer(initStateEntries, action);
 
     expect(newState).toEqual({
       requestStatus: "failed",
       requestError: "entries-editEntry-rejected",
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [],
       entities: {},
     });
@@ -457,32 +431,19 @@ describe("reducer", () => {
 
   test("entries/editEntry/fulfilled", () => {
     initStateEntries = {
-      ...initialStateEntries,
+      ...INITIAL_STATE_ENTRIES,
       requestStatus: RequestStatus.LOADING,
-      ids: [1],
+      ids: [MOCK_ENTRY_10.id],
       entities: {
-        1: {
-          id: 1,
-          timestampInUTC: "2020-12-01T15:17:00.000Z",
-          utcZoneOfTimestamp: "+02:00",
-          content: "[hard-coded] Then it dawned on me: there is no finish line!",
-          createdAt: "2021-04-29T05:10:56.000Z",
-          updatedAt: "2021-04-29T05:10:56.000Z",
-          userId: 1,
-        },
+        [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
       },
     };
-    const action = {
-      type: "entries/editEntry/fulfilled",
+    const action: IActionEditEntryFulfilled = {
+      type: ActionTypesEditEntry.FULFILLED,
       payload: {
         entry: {
-          id: 1,
-          timestampInUTC: "2019-08-20T13:17:00.000Z",
-          utcZoneOfTimestamp: "+01:00",
-          content: "[hard-coded] Mallorca has beautiful sunny beaches!",
-          createdAt: "2021-04-29T05:11:01.000Z",
-          updatedAt: "2021-04-29T05:11:01.000Z",
-          userId: 1,
+          ...MOCK_ENTRY_20,
+          id: MOCK_ENTRY_10.id,
         },
       },
     };
@@ -492,18 +453,13 @@ describe("reducer", () => {
     expect(newState).toEqual({
       requestStatus: "succeeded",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
-      ids: [1],
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
+      ids: [MOCK_ENTRY_10.id],
       entities: {
-        1: {
-          id: 1,
-          timestampInUTC: "2019-08-20T13:17:00.000Z",
-          utcZoneOfTimestamp: "+01:00",
-          content: "[hard-coded] Mallorca has beautiful sunny beaches!",
-          createdAt: "2021-04-29T05:11:01.000Z",
-          updatedAt: "2021-04-29T05:11:01.000Z",
-          userId: 1,
+        [MOCK_ENTRY_10.id]: {
+          ...MOCK_ENTRY_20,
+          id: MOCK_ENTRY_10.id,
         },
       },
     });
@@ -511,22 +467,24 @@ describe("reducer", () => {
 
   test("entries/deleteEntry/pending", () => {
     initStateEntries = {
-      ...initialStateEntries,
+      ...INITIAL_STATE_ENTRIES,
       requestStatus: RequestStatus.SUCCEEDED,
       ids: [MOCK_ENTRY_10.id],
       entities: {
         [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
       },
     };
-    const action = deleteEntryPending();
+    const action: IActionDeleteEntryPending = {
+      type: ActionTypesDeleteEntry.PENDING,
+    };
 
     const newState = entriesReducer(initStateEntries, action);
 
     expect(newState).toEqual({
       requestStatus: "loading",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [MOCK_ENTRY_10.id],
       entities: {
         [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
@@ -536,22 +494,25 @@ describe("reducer", () => {
 
   test("entries/deleteEntry/rejected", () => {
     initStateEntries = {
-      ...initialStateEntries,
+      ...INITIAL_STATE_ENTRIES,
       requestStatus: RequestStatus.SUCCEEDED,
       ids: [MOCK_ENTRY_10.id],
       entities: {
         [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
       },
     };
-    const action = deleteEntryRejected("entries-deleteEntry-rejected");
+    const action: IActionDeleteEntryRejected = {
+      type: ActionTypesDeleteEntry.REJECTED,
+      error: "entries-deleteEntry-rejected",
+    };
 
     const newState = entriesReducer(initStateEntries, action);
 
     expect(newState).toEqual({
       requestStatus: "failed",
       requestError: "entries-deleteEntry-rejected",
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [MOCK_ENTRY_10.id],
       entities: {
         [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
@@ -561,7 +522,7 @@ describe("reducer", () => {
 
   test("entries/deleteEntry/fulfilled", () => {
     initStateEntries = {
-      ...initialStateEntries,
+      ...INITIAL_STATE_ENTRIES,
       requestStatus: RequestStatus.LOADING,
       ids: [MOCK_ENTRY_10.id, MOCK_ENTRY_20.id],
       entities: {
@@ -569,15 +530,20 @@ describe("reducer", () => {
         [MOCK_ENTRY_20.id]: MOCK_ENTRY_20,
       },
     };
-    const action = deleteEntryFulfilled(MOCK_ENTRY_20.id);
+    const action: IActionDeleteEntryFulfilled = {
+      type: ActionTypesDeleteEntry.FULFILLED,
+      payload: {
+        entryId: MOCK_ENTRY_20.id,
+      },
+    };
 
     const newState = entriesReducer(initStateEntries, action);
 
     expect(newState).toEqual({
       requestStatus: "succeeded",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [MOCK_ENTRY_10.id],
       entities: {
         [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
@@ -587,20 +553,22 @@ describe("reducer", () => {
 
   test("entries/clearEntriesSlice", () => {
     initStateEntries = {
-      ...initialStateEntries,
+      ...INITIAL_STATE_ENTRIES,
       requestStatus: RequestStatus.SUCCEEDED,
       ids: MOCK_ENTRIES_IDS,
       entities: MOCK_ENTRIES_ENTITIES,
     };
-    const action = clearEntriesSlice();
+    const action: IActionClearEntriesSlice = {
+      type: ACTION_TYPE_CLEAR_ENTRIES_SLICE,
+    };
 
     const newState = entriesReducer(initStateEntries, action);
 
     expect(newState).toEqual({
       requestStatus: "succeeded",
       requestError: null,
-      _meta: { ...initialStateEntries._meta },
-      _links: { ...initialStateEntries._links },
+      _meta: { ...INITIAL_STATE_ENTRIES._meta },
+      _links: { ...INITIAL_STATE_ENTRIES._links },
       ids: [],
       entities: {},
     });
@@ -608,25 +576,34 @@ describe("reducer", () => {
 
   test(
     "an action, which this reducer doesn't specifically handle," +
-      " should not modify (the corresponding slice of) the state",
+      " should not modify its associated state (slice)",
     () => {
+      const entries: IEntry[] = [MOCK_ENTRY_10, MOCK_ENTRY_20];
+      const _meta: IPaginationMeta = {
+        totalItems: entries.length,
+        perPage: PER_PAGE_DEFAULT,
+        totalPages: Math.ceil(entries.length / PER_PAGE_DEFAULT),
+        page: 1,
+      };
+      const _links: IPaginationLinks = {
+        self: "/api/entries?perPage=10&page=1",
+        next: null,
+        prev: null,
+        first: "/api/entries?perPage=10&page=1",
+        last: `/api/entries?perPage=10&page=1`,
+      };
       const initStEntries = {
-        requestStatus: "fulfilled",
+        requestStatus: RequestStatus.SUCCEEDED,
         requestError: null,
-        ids: [17],
+        _meta,
+        _links,
+        ids: [MOCK_ENTRY_10.id, MOCK_ENTRY_20.id],
         entities: {
-          17: {
-            id: 17,
-            timestampInUTC: "2020-12-01T15:17:00.000Z",
-            utcZoneOfTimestamp: "+02:00",
-            content: "[hard-coded] Then it dawned on me: there is no finish line!",
-            createdAt: "2021-04-29T05:10:56.000Z",
-            updatedAt: "2021-04-29T05:10:56.000Z",
-            userId: 1,
-          },
+          [MOCK_ENTRY_10.id]: MOCK_ENTRY_10,
+          [MOCK_ENTRY_20.id]: MOCK_ENTRY_20,
         },
       };
-      const action = {
+      const action: any = {
         type: "an action, which this reducer doesn't specifically handle",
       };
 
@@ -638,14 +615,14 @@ describe("reducer", () => {
 });
 
 /* Create an MSW "request-interception layer". */
-const requestInterceptionLayer = [
+const restHandlers: RestHandler<MockedRequest<DefaultRequestBody>>[] = [
   rest.get("/api/entries", requestHandlers.mockMultipleFailures),
   rest.post("/api/entries", requestHandlers.mockMultipleFailures),
   rest.put("/api/entries/:id", requestHandlers.mockMultipleFailures),
   rest.delete("/api/entries/:id", requestHandlers.mockMultipleFailures),
 ];
 
-const quasiServer = setupServer(...requestInterceptionLayer);
+const requestInterceptionLayer: SetupServerApi = setupServer(...restHandlers);
 
 const createStoreMock = configureMockStore([thunkMiddleware]);
 
@@ -660,12 +637,12 @@ describe(
     beforeAll(() => {
       // Establish the created request-interception layer
       // (= Enable API mocking).
-      quasiServer.listen();
+      requestInterceptionLayer.listen();
     });
 
     beforeEach(() => {
       initSt = {
-        ...store.getState(),
+        ...INITIAL_STATE,
       };
       storeMock = createStoreMock(initSt);
     });
@@ -673,7 +650,7 @@ describe(
     afterEach(() => {
       // Remove any request handlers that may have been added at runtime
       // (by individual tests after the initial `setupServer` call).
-      quasiServer.resetHandlers();
+      requestInterceptionLayer.resetHandlers();
     });
 
     afterAll(() => {
@@ -682,7 +659,7 @@ describe(
       // by tearing down that layer
       // (= by stopping request interception)
       // (= disabling API mocking).
-      quasiServer.close();
+      requestInterceptionLayer.close();
     });
 
     test(
@@ -715,7 +692,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(rest.get("/api/entries", requestHandlers.mockFetchEntries));
+        requestInterceptionLayer.use(
+          rest.get("/api/entries", requestHandlers.mockFetchEntries)
+        );
 
         // Act.
         const fetchEntriesPromise = storeMock.dispatch(
@@ -745,7 +724,7 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to fail",
       async () => {
         // Arrange.
-        quasiServer.use(
+        requestInterceptionLayer.use(
           rest.post("/api/entries", (req, res, ctx) => {
             return res.once(
               ctx.status(400),
@@ -782,7 +761,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(rest.post("/api/entries", requestHandlers.mockCreateEntry));
+        requestInterceptionLayer.use(
+          rest.post("/api/entries", requestHandlers.mockCreateEntry)
+        );
 
         // Act.
         const createEntryPromise = storeMock.dispatch(
@@ -814,7 +795,7 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to fail",
       async () => {
         // Arrange.
-        quasiServer.use(
+        requestInterceptionLayer.use(
           rest.put("/api/entries/:id", (req, res, ctx) => {
             return res.once(
               ctx.status(400),
@@ -859,7 +840,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(rest.put("/api/entries/:id", requestHandlers.mockEditEntry));
+        requestInterceptionLayer.use(
+          rest.put("/api/entries/:id", requestHandlers.mockEditEntry)
+        );
 
         const targetedEntryId: number = MOCK_ENTRY_10.id;
 
@@ -925,7 +908,7 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(
+        requestInterceptionLayer.use(
           rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry)
         );
 

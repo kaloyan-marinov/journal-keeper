@@ -1,6 +1,10 @@
 import { IStateAuth } from "../../types";
-import { initialStateAuth } from "../../constants";
+import { INITIAL_STATE_AUTH } from "../../constants";
 import {
+  ActionTypesCreateUser,
+  ActionTypesFetchProfile,
+  ActionTypesIssueJWSToken,
+  ACTION_TYPE_CLEAR_AUTH_SLICE,
   authReducer,
   clearAuthSlice,
   createUserFulfilled,
@@ -9,19 +13,29 @@ import {
   fetchProfileFulfilled,
   fetchProfilePending,
   fetchProfileRejected,
+  IActionClearAuthSlice,
+  IActionCreateUserFulfilled,
+  IActionCreateUserPending,
+  IActionCreateUserRejected,
+  IActionFetchProfileFulfilled,
+  IActionFetchProfilePending,
+  IActionFetchProfileRejected,
+  IActionIssueJWSTokenFulfilled,
+  IActionIssueJWSTokenPending,
+  IActionIssueJWSTokenRejected,
   issueJWSTokenFulfilled,
   issueJWSTokenPending,
   issueJWSTokenRejected,
 } from "./authSlice";
 
-import { setupServer } from "msw/node";
+import { setupServer, SetupServerApi } from "msw/node";
 import { MockStoreEnhanced } from "redux-mock-store";
 import configureMockStore from "redux-mock-store";
 import thunkMiddleware from "redux-thunk";
-import { rest } from "msw";
+import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { IState, RequestStatus } from "../../types";
 import { MOCK_PROFILE_1, requestHandlers } from "../../testHelpers";
-import { store } from "../../store";
+import { INITIAL_STATE } from "../../store";
 import { createUser, issueJWSToken, fetchProfile } from "./authSlice";
 
 describe("action creators", () => {
@@ -127,7 +141,7 @@ describe("reducer", () => {
   let initStAuth: IStateAuth;
 
   beforeEach(() => {
-    initStAuth = { ...initialStateAuth };
+    initStAuth = { ...INITIAL_STATE_AUTH };
   });
 
   test("auth/createUser/pending", () => {
@@ -136,8 +150,8 @@ describe("reducer", () => {
       requestStatus: RequestStatus.FAILED,
       requestError: "The previous attempt to create a User resource didn't succeed",
     };
-    const action = {
-      type: "auth/createUser/pending",
+    const action: IActionCreateUserPending = {
+      type: ActionTypesCreateUser.PENDING,
     };
 
     const newSt: IStateAuth = authReducer(initStAuth, action);
@@ -156,8 +170,8 @@ describe("reducer", () => {
       ...initStAuth,
       requestStatus: RequestStatus.LOADING,
     };
-    const action = {
-      type: "auth/createUser/rejected",
+    const action: IActionCreateUserRejected = {
+      type: ActionTypesCreateUser.REJECTED,
       error: "auth-createUser-rejected",
     };
 
@@ -177,8 +191,8 @@ describe("reducer", () => {
       ...initStAuth,
       requestStatus: RequestStatus.LOADING,
     };
-    const action = {
-      type: "auth/createUser/fulfilled",
+    const action: IActionCreateUserFulfilled = {
+      type: ActionTypesCreateUser.FULFILLED,
     };
 
     const newSt: IStateAuth = authReducer(initStAuth, action);
@@ -198,8 +212,8 @@ describe("reducer", () => {
       requestStatus: RequestStatus.FAILED,
       requestError: "The previous attempt to issue a JWS token didn't succeed",
     };
-    const action = {
-      type: "auth/issueJWSToken/pending",
+    const action: IActionIssueJWSTokenPending = {
+      type: ActionTypesIssueJWSToken.PENDING,
     };
 
     const newSt: IStateAuth = authReducer(initStAuth, action);
@@ -218,8 +232,8 @@ describe("reducer", () => {
       ...initStAuth,
       requestStatus: RequestStatus.LOADING,
     };
-    const action = {
-      type: "auth/issueJWSToken/rejected",
+    const action: IActionIssueJWSTokenRejected = {
+      type: ActionTypesIssueJWSToken.REJECTED,
       error: "auth-issueJWSToken-rejected",
     };
 
@@ -239,8 +253,8 @@ describe("reducer", () => {
       ...initStAuth,
       requestStatus: RequestStatus.LOADING,
     };
-    const action = {
-      type: "auth/issueJWSToken/fulfilled",
+    const action: IActionIssueJWSTokenFulfilled = {
+      type: ActionTypesIssueJWSToken.FULFILLED,
       payload: {
         token: "a-jws-token-issued-by-the-backend",
       },
@@ -258,8 +272,8 @@ describe("reducer", () => {
   });
 
   test("auth/fetchProfile/pending", () => {
-    const action = {
-      type: "auth/fetchProfile/pending",
+    const action: IActionFetchProfilePending = {
+      type: ActionTypesFetchProfile.PENDING,
     };
 
     const newSt: IStateAuth = authReducer(initStAuth, action);
@@ -278,8 +292,8 @@ describe("reducer", () => {
       ...initStAuth,
       requestStatus: RequestStatus.LOADING,
     };
-    const action = {
-      type: "auth/fetchProfile/rejected",
+    const action: IActionFetchProfileRejected = {
+      type: ActionTypesFetchProfile.REJECTED,
       error: "auth-fetchProfile-rejected",
     };
 
@@ -301,8 +315,8 @@ describe("reducer", () => {
       requestError: null,
       token: "a-jws-token-issued-by-the-backend",
     };
-    const action = {
-      type: "auth/fetchProfile/fulfilled",
+    const action: IActionFetchProfileFulfilled = {
+      type: ActionTypesFetchProfile.FULFILLED,
       payload: {
         profile: MOCK_PROFILE_1,
       },
@@ -325,8 +339,8 @@ describe("reducer", () => {
       token: "a-jws-token-issued-by-the-backend",
       hasValidToken: true,
     };
-    const action = {
-      type: "auth/clearAuthSlice",
+    const action: IActionClearAuthSlice = {
+      type: ACTION_TYPE_CLEAR_AUTH_SLICE,
     };
 
     const newSt: IStateAuth = authReducer(initStAuth, action);
@@ -339,16 +353,37 @@ describe("reducer", () => {
       signedInUserProfile: null,
     });
   });
+
+  test(
+    "an action, which this reducer doesn't specifically handle," +
+      " should not modify its associated state (slice)",
+    () => {
+      initStAuth = {
+        ...INITIAL_STATE_AUTH,
+        requestStatus: RequestStatus.SUCCEEDED,
+        token: "a-jws-token-issued-by-the-backend",
+        hasValidToken: true,
+        signedInUserProfile: MOCK_PROFILE_1,
+      };
+      const action: any = {
+        type: "an action, which this reducer doesn't specifically handle",
+      };
+
+      const newSt: IStateAuth = authReducer(initStAuth, action);
+
+      expect(newSt).toEqual(initStAuth);
+    }
+  );
 });
 
 /* Create an MSW "request-interception layer". */
-const requestInterceptionLayer = [
+const restHandlers: RestHandler<MockedRequest<DefaultRequestBody>>[] = [
   rest.post("/api/users", requestHandlers.mockMultipleFailures),
   rest.post("/api/tokens", requestHandlers.mockMultipleFailures),
   rest.get("/api/user-profile", requestHandlers.mockMultipleFailures),
 ];
 
-const quasiServer = setupServer(...requestInterceptionLayer);
+const requestInterceptionLayer: SetupServerApi = setupServer(...restHandlers);
 
 const createStoreMock = configureMockStore([thunkMiddleware]);
 
@@ -363,12 +398,12 @@ describe(
     beforeAll(() => {
       // Establish the created request-interception layer
       // (= Enable API mocking).
-      quasiServer.listen();
+      requestInterceptionLayer.listen();
     });
 
     beforeEach(() => {
       initSt = {
-        ...store.getState(),
+        ...INITIAL_STATE,
       };
       storeMock = createStoreMock(initSt);
     });
@@ -376,7 +411,7 @@ describe(
     afterEach(() => {
       // Remove any request handlers that may have been added at runtime
       // (by individual tests after the initial `setupServer` call).
-      quasiServer.resetHandlers();
+      requestInterceptionLayer.resetHandlers();
     });
 
     afterAll(() => {
@@ -385,7 +420,7 @@ describe(
       // by tearing down that layer
       // (= by stopping request interception)
       // (= disabling API mocking).
-      quasiServer.close();
+      requestInterceptionLayer.close();
     });
 
     test(
@@ -394,7 +429,7 @@ describe(
       async () => {
         // Arrange.
         // (Prepend a request handler to the request-interception layer.)
-        quasiServer.use(
+        requestInterceptionLayer.use(
           rest.post("/api/users", (req, res, ctx) => {
             return res.once(
               ctx.status(400),
@@ -436,7 +471,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(rest.post("/api/users", requestHandlers.mockCreateUser));
+        requestInterceptionLayer.use(
+          rest.post("/api/users", requestHandlers.mockCreateUser)
+        );
 
         // Act.
         const createUserPromise = storeMock.dispatch(
@@ -487,7 +524,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(rest.post("/api/tokens", requestHandlers.mockIssueJWSToken));
+        requestInterceptionLayer.use(
+          rest.post("/api/tokens", requestHandlers.mockIssueJWSToken)
+        );
 
         // Act.
         const issueJWSTokenPromise = storeMock.dispatch(
@@ -538,7 +577,7 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
-        quasiServer.use(
+        requestInterceptionLayer.use(
           rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
         );
 

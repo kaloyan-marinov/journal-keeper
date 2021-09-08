@@ -6,29 +6,29 @@ import {
   IStateEntries,
   RequestStatus,
 } from "../../types";
-import { initialStateEntries, JOURNAL_APP_TOKEN } from "../../constants";
+import { INITIAL_STATE_ENTRIES, JOURNAL_APP_TOKEN } from "../../constants";
 
 import { ThunkAction } from "redux-thunk";
 import { Dispatch } from "redux";
 import axios from "axios";
 
 /* Action creators - "entries/fetchEntries/" */
-enum ActionTypesFetchEntries {
+export enum ActionTypesFetchEntries {
   PENDING = "entries/fetchEntries/pending",
   REJECTED = "entries/fetchEntries/rejected",
   FULFILLED = "entries/fetchEntries/fulfilled",
 }
 
-export interface IFetchEntriesPending {
+export interface IActionFetchEntriesPending {
   type: typeof ActionTypesFetchEntries.PENDING;
 }
 
-export interface IFetchEntriesRejected {
+export interface IActionFetchEntriesRejected {
   type: typeof ActionTypesFetchEntries.REJECTED;
   error: string;
 }
 
-export interface IFetchEntriesFulfilled {
+export interface IActionFetchEntriesFulfilled {
   type: typeof ActionTypesFetchEntries.FULFILLED;
   payload: {
     _meta: IPaginationMeta;
@@ -37,11 +37,11 @@ export interface IFetchEntriesFulfilled {
   };
 }
 
-export const fetchEntriesPending = (): IFetchEntriesPending => ({
+export const fetchEntriesPending = (): IActionFetchEntriesPending => ({
   type: ActionTypesFetchEntries.PENDING,
 });
 
-export const fetchEntriesRejected = (error: string): IFetchEntriesRejected => ({
+export const fetchEntriesRejected = (error: string): IActionFetchEntriesRejected => ({
   type: ActionTypesFetchEntries.REJECTED,
   error,
 });
@@ -50,7 +50,7 @@ export const fetchEntriesFulfilled = (
   _meta: IPaginationMeta,
   _links: IPaginationLinks,
   items: IEntry[]
-): IFetchEntriesFulfilled => ({
+): IActionFetchEntriesFulfilled => ({
   type: ActionTypesFetchEntries.FULFILLED,
   payload: {
     _meta,
@@ -60,43 +60,43 @@ export const fetchEntriesFulfilled = (
 });
 
 export type ActionFetchEntries =
-  | IFetchEntriesPending
-  | IFetchEntriesRejected
-  | IFetchEntriesFulfilled;
+  | IActionFetchEntriesPending
+  | IActionFetchEntriesRejected
+  | IActionFetchEntriesFulfilled;
 
 /* Action creators - "entries/createEntry/" */
-enum ActionTypesCreateEntry {
+export enum ActionTypesCreateEntry {
   PENDING = "entries/createEntry/pending",
   REJECTED = "entries/createEntry/rejected",
   FULFILLED = "entries/createEntry/fulfilled",
 }
 
-export interface ICreateEntryPending {
+export interface IActionCreateEntryPending {
   type: typeof ActionTypesCreateEntry.PENDING;
 }
 
-export interface ICreateEntryRejected {
+export interface IActionCreateEntryRejected {
   type: typeof ActionTypesCreateEntry.REJECTED;
   error: string;
 }
 
-export interface ICreateEntryFulfilled {
+export interface IActionCreateEntryFulfilled {
   type: typeof ActionTypesCreateEntry.FULFILLED;
   payload: {
     entry: IEntry;
   };
 }
 
-export const createEntryPending = (): ICreateEntryPending => ({
+export const createEntryPending = (): IActionCreateEntryPending => ({
   type: ActionTypesCreateEntry.PENDING,
 });
 
-export const createEntryRejected = (error: string): ICreateEntryRejected => ({
+export const createEntryRejected = (error: string): IActionCreateEntryRejected => ({
   type: ActionTypesCreateEntry.REJECTED,
   error,
 });
 
-export const createEntryFulfilled = (entry: IEntry): ICreateEntryFulfilled => ({
+export const createEntryFulfilled = (entry: IEntry): IActionCreateEntryFulfilled => ({
   type: ActionTypesCreateEntry.FULFILLED,
   payload: {
     entry,
@@ -104,43 +104,43 @@ export const createEntryFulfilled = (entry: IEntry): ICreateEntryFulfilled => ({
 });
 
 export type ActionCreateEntry =
-  | ICreateEntryPending
-  | ICreateEntryRejected
-  | ICreateEntryFulfilled;
+  | IActionCreateEntryPending
+  | IActionCreateEntryRejected
+  | IActionCreateEntryFulfilled;
 
 /* Action creators - "entries/editEntry/" */
-enum ActionTypesEditEntry {
+export enum ActionTypesEditEntry {
   PENDING = "entries/editEntry/pending",
   REJECTED = "entries/editEntry/rejected",
   FULFILLED = "entries/editEntry/fulfilled",
 }
 
-export interface IEditEntryPending {
+export interface IActionEditEntryPending {
   type: typeof ActionTypesEditEntry.PENDING;
 }
 
-export interface IEditEntryRejected {
+export interface IActionEditEntryRejected {
   type: typeof ActionTypesEditEntry.REJECTED;
   error: string;
 }
 
-export interface IEditEntryFulfilled {
+export interface IActionEditEntryFulfilled {
   type: typeof ActionTypesEditEntry.FULFILLED;
   payload: {
     entry: IEntry;
   };
 }
 
-export const editEntryPending = (): IEditEntryPending => ({
+export const editEntryPending = (): IActionEditEntryPending => ({
   type: ActionTypesEditEntry.PENDING,
 });
 
-export const editEntryRejected = (error: string): IEditEntryRejected => ({
+export const editEntryRejected = (error: string): IActionEditEntryRejected => ({
   type: ActionTypesEditEntry.REJECTED,
   error,
 });
 
-export const editEntryFulfilled = (entry: IEntry): IEditEntryFulfilled => ({
+export const editEntryFulfilled = (entry: IEntry): IActionEditEntryFulfilled => ({
   type: ActionTypesEditEntry.FULFILLED,
   payload: {
     entry,
@@ -148,43 +148,43 @@ export const editEntryFulfilled = (entry: IEntry): IEditEntryFulfilled => ({
 });
 
 export type ActionEditEntry =
-  | IEditEntryPending
-  | IEditEntryRejected
-  | IEditEntryFulfilled;
+  | IActionEditEntryPending
+  | IActionEditEntryRejected
+  | IActionEditEntryFulfilled;
 
 /* Action creators - "entries/deleteEntry/" */
-enum ActionTypesDeleteEntry {
+export enum ActionTypesDeleteEntry {
   PENDING = "entries/deleteEntry/pending",
   REJECTED = "entries/deleteEntry/rejected",
   FULFILLED = "entries/deleteEntry/fulfilled",
 }
 
-export interface IDeleteEntryPending {
+export interface IActionDeleteEntryPending {
   type: typeof ActionTypesDeleteEntry.PENDING;
 }
 
-export interface IDeleteEntryRejected {
+export interface IActionDeleteEntryRejected {
   type: typeof ActionTypesDeleteEntry.REJECTED;
   error: string;
 }
 
-export interface IDeleteEntryFulfilled {
+export interface IActionDeleteEntryFulfilled {
   type: typeof ActionTypesDeleteEntry.FULFILLED;
   payload: {
     entryId: number;
   };
 }
 
-export const deleteEntryPending = (): IDeleteEntryPending => ({
+export const deleteEntryPending = (): IActionDeleteEntryPending => ({
   type: ActionTypesDeleteEntry.PENDING,
 });
 
-export const deleteEntryRejected = (error: string): IDeleteEntryRejected => ({
+export const deleteEntryRejected = (error: string): IActionDeleteEntryRejected => ({
   type: ActionTypesDeleteEntry.REJECTED,
   error,
 });
 
-export const deleteEntryFulfilled = (entryId: number): IDeleteEntryFulfilled => ({
+export const deleteEntryFulfilled = (entryId: number): IActionDeleteEntryFulfilled => ({
   type: ActionTypesDeleteEntry.FULFILLED,
   payload: {
     entryId,
@@ -192,12 +192,12 @@ export const deleteEntryFulfilled = (entryId: number): IDeleteEntryFulfilled => 
 });
 
 export type ActionDeleteEntry =
-  | IDeleteEntryPending
-  | IDeleteEntryRejected
-  | IDeleteEntryFulfilled;
+  | IActionDeleteEntryPending
+  | IActionDeleteEntryRejected
+  | IActionDeleteEntryFulfilled;
 
 /* Action creators - "entries/clearEntriesSlice" */
-const ACTION_TYPE_CLEAR_ENTRIES_SLICE = "entries/clearEntriesSlice";
+export const ACTION_TYPE_CLEAR_ENTRIES_SLICE = "entries/clearEntriesSlice";
 
 export interface IActionClearEntriesSlice {
   type: typeof ACTION_TYPE_CLEAR_ENTRIES_SLICE;
@@ -209,7 +209,7 @@ export const clearEntriesSlice = (): IActionClearEntriesSlice => ({
 
 /* Reducer. */
 export const entriesReducer = (
-  stateEntries: IStateEntries = initialStateEntries,
+  stateEntries: IStateEntries = INITIAL_STATE_ENTRIES,
   action:
     | ActionFetchEntries
     | ActionCreateEntry
@@ -271,8 +271,22 @@ export const entriesReducer = (
       };
 
     case ActionTypesCreateEntry.FULFILLED: {
+      /*
+      You might wonder why this case computes the new state
+      by mixing `stateEntries` with `INITIAL_STATE_ENTRIES`.
+      Strictly speaking, doing that alone isn't a reasonable way of updating the state.
+
+      However, due to the pagination of Entry resources,
+      a reasonable way of updating the state (i.e. of computing the new state using only
+      `stateEntries`) would require a rather intricate implementation.
+
+      Instead, it's possible to make do with this simple-but-unreasonable
+      implementation - as long as we ensure that,
+      after every time when the frontend dispatches this action,
+      it will also dispatch the `fetchEntries` thunk-action.
+      */
       const newMeta: IPaginationMeta = {
-        ...initialStateEntries._meta,
+        ...INITIAL_STATE_ENTRIES._meta,
         totalItems:
           stateEntries._meta.totalItems !== null
             ? stateEntries._meta.totalItems + 1
@@ -280,7 +294,7 @@ export const entriesReducer = (
       };
 
       const newLinks: IPaginationLinks = {
-        ...initialStateEntries._links,
+        ...INITIAL_STATE_ENTRIES._links,
       };
 
       const entry: IEntry = action.payload.entry;

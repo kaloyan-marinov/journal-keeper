@@ -11,12 +11,10 @@ import {
   IState,
   RequestStatus,
 } from "./types";
-import { initialStateAuth, initialStateEntries } from "./constants";
 
 import {
   MOCK_ALERTS_ENTITIES,
   MOCK_ALERTS_IDS,
-  MOCK_ALERT_17,
   MOCK_ENTRIES_ENTITIES,
   MOCK_ENTRIES_IDS,
   MOCK_LINKS,
@@ -24,7 +22,6 @@ import {
   MOCK_PROFILE_1,
 } from "./testHelpers";
 import {
-  rootReducer,
   selectAlertsEntities,
   selectAlertsIds,
   selectAuthRequestStatus,
@@ -35,7 +32,7 @@ import {
   selectHasValidToken,
   selectSignedInUserProfile,
   signOut,
-  store,
+  INITIAL_STATE,
 } from "./store";
 
 describe("selectors", () => {
@@ -117,51 +114,10 @@ describe("selectors", () => {
   });
 });
 
-describe("reducers", () => {
-  let initState: IState;
-
-  beforeEach(() => {
-    initState = {
-      ...store.getState(),
-    };
-  });
-
-  test(
-    "an action, which the rootReducer doesn't specifically handle," +
-      " should not modify the state",
-    () => {
-      const initState: IState = {
-        alerts: {
-          ids: [MOCK_ALERT_17.id],
-          entities: {
-            [MOCK_ALERT_17.id]: MOCK_ALERT_17,
-          },
-        },
-        auth: {
-          ...initialStateAuth,
-          requestStatus: RequestStatus.FAILED,
-          requestError: "original-error",
-          token: null,
-        },
-        entries: {
-          ...initialStateEntries,
-        },
-      };
-      const action = {
-        type: "an action, which the rootReducer doesn't specifically handle",
-      };
-
-      const newState = rootReducer(initState, action);
-
-      expect(newState).toEqual(initState);
-    }
-  );
-});
-
 const createStoreMock = configureMockStore([thunkMiddleware]);
 
 describe(
-  "dispatching of async thunk-actions," +
+  "dispatching of sync thunk-actions," +
     " with each test case focusing on the action-related logic only" +
     " (and thus completely disregarding the reducer-related logic) ",
   () => {
@@ -170,7 +126,7 @@ describe(
 
     beforeEach(() => {
       initSt = {
-        ...store.getState(),
+        ...INITIAL_STATE,
       };
       storeMock = createStoreMock(initSt);
     });
