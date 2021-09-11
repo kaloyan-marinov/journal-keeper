@@ -48,6 +48,14 @@ const connectionsOptionsObjects: ConnectionOptions[] = [
     type: "sqlite",
     database: ":memory:",
     entities: [path.join(sourceCodeFolder, "entities.*")],
+    /*
+    If the next line is uncommented but the specified folder is empty,
+    running the test suite results in a PASS.
+
+    Even with the next line commented out,
+    running the test suite results in a PASS.
+    */
+    // migrations: [path.join(sourceCodeFolder, "for-testing", "*.ts")],
   },
 ];
 
