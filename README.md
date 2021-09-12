@@ -36,11 +36,140 @@ Next, you can log into your account and create your own journal entries therein.
     ```
     SECRET_KEY=<specify-a-good-secret-key-here>
 
-    DATABASE_URL=sqlite:///<absolute-path-starting-with-a-leading-slash-and-pointing-to-an-SQLite-file>
+    DATABASE_TYPE=mysql
+    DATABASE_HOSTNAME=localhost
+    DATABASE_PORT=3306
+    DATABASE_USERNAME=<journal-keeper-username>
+    DATABASE_PASSWORD=<journal-keeper-password>
+    DATABASE_NAME=<journal-keeper-database>
     ```
     (For deployment, you should generate a "good secret key" and store that value in `SECRET_KEY` within the `.env` file; to achieve that, take a look at the "How to generate good secret keys" section on https://flask.palletsprojects.com/en/1.1.x/quickstart/ . For local development, something like `keep-this-value-known-only-to-the-deployment-machine` should suffice.)
 
 3. set up the backend:
+
+   - download MySQL Server, install it on your system, and secure the installation (all of which can be accomplished by following the instructions given in [this article](https://linuxize.com/post/how-to-install-mysql-on-ubuntu-18-04/))
+
+   - log in to MySQL Server as the root user in order to: create a new database; create a new user and set an associated password; and grant the new user all privileges on the new database:
+      ```
+      $ sudo mysql
+      [sudo] password for <your-OS-user>
+
+      mysql> SHOW DATABASES;
+      +--------------------+
+      | Database           |
+      +--------------------+
+      | information_schema |
+      | mysql              |
+      | performance_schema |
+      | sys                |
+      +--------------------+
+      4 rows in set (0.01 sec)
+
+      mysql> CREATE DATABASE IF NOT EXISTS `<journal-keeper-database>`;
+      Query OK, 1 row affected (0.04 sec)
+
+      mysql> SHOW DATABASES;
+      +-----------------------+
+      | Database              |
+      +-----------------------+
+      | <journal-keeper-database> |
+      | information_schema    |
+      | mysql                 |
+      | performance_schema    |
+      | sys                   |
+      +-----------------------+
+      5 rows in set (0.01 sec)
+      ```
+
+      ```
+      mysql> CREATE USER IF NOT EXISTS `<journal-keeper-username>`@`localhost` IDENTIFIED BY '<journal-keeper-password>';
+      Query OK, 0 rows affected (0.03 sec)
+
+      mysql> SELECT user, host, plugin FROM mysql.user;
+      +-----------------------+-----------+-----------------------+
+      | user                  | host      | plugin                |
+      +-----------------------+-----------+-----------------------+
+      | debian-sys-maint      | localhost | <omitted>             |
+      | <journal-keeper-username> | localhost | caching_sha2_password |
+      | mysql.infoschema      | localhost | <omitted>             |
+      | mysql.session         | localhost | <omitted>             |
+      | mysql.sys             | localhost | <omitted>             |
+      | root                  | localhost | auth_socket           |
+      +-----------------------+-----------+-----------------------+
+      6 rows in set (0.00 sec)
+      ```
+
+      ```
+      mysql> SHOW GRANTS FOR `<journal-keeper-username>`@`localhost`;
+      +-----------------------------------------------------------+
+      | Grants for <journal-keeper-username>@localhost                |
+      +-----------------------------------------------------------+
+      | GRANT USAGE ON *.* TO `<journal-keeper-username>`@`localhost` |
+      +-----------------------------------------------------------+
+      1 row in set (0.00 sec)
+
+      mysql> GRANT ALL PRIVILEGES ON `<journal-keeper-database>`.* TO `<journal-keeper-username>`@`localhost`;
+      Query OK, 0 rows affected (0.01 sec)
+
+      mysql> SHOW GRANTS FOR `<journal-keeper-username>`@`localhost`;
+      +------------------------------------------------------------------------------------------+
+      | Grants for <journal-keeper-username>@localhost                                               |
+      +------------------------------------------------------------------------------------------+
+      | GRANT USAGE ON *.* TO `<journal-keeper-username>`@`localhost`                                |
+      | GRANT ALL PRIVILEGES ON `<journal-keeper-database>`.* TO `<journal-keeper-username>`@`localhost` |
+      +------------------------------------------------------------------------------------------+
+      2 rows in set (0.00 sec)
+
+      mysql> FLUSH PRIVILEGES;
+      Query OK, 0 rows affected (0.01 sec)
+
+      mysql> SHOW GRANTS FOR `<journal-keeper-username>`@`localhost`;
+      +------------------------------------------------------------------------------------------+
+      | Grants for <journal-keeper-username>@localhost                                               |
+      +------------------------------------------------------------------------------------------+
+      | GRANT USAGE ON *.* TO `<journal-keeper-username>`@`localhost`                                |
+      | GRANT ALL PRIVILEGES ON `<journal-keeper-database>`.* TO `<journal-keeper-username>`@`localhost` |
+      +------------------------------------------------------------------------------------------+
+      2 rows in set (0.00 sec)
+
+      mysql> quit;
+      Bye
+      $
+      ```
+
+   - log in to the MySQL Server as the created user in order to verify that (1) the new user is able to `USE` the new database as well as (2) that the new database does not contain any tables:
+      ```
+      $ mysql -u <journal-keeper-username> -p
+      Enter password:
+      Welcome to the MySQL monitor.  Commands end with ; or \g.
+      Your MySQL connection id is 11
+      Server version: 8.0.23-0ubuntu0.20.04.1 (Ubuntu)
+
+      Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+      Oracle is a registered trademark of Oracle Corporation and/or its
+      affiliates. Other names may be trademarks of their respective
+      owners.
+
+      Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+      mysql> SHOW DATABASES;
+      +-----------------------+
+      | Database              |
+      +-----------------------+
+      | <journal-keeper-database> |
+      | information_schema    |
+      +-----------------------+
+      2 rows in set (0.00 sec)
+
+      mysql> USE <journal-keeper-database>;
+      Database changed
+      mysql> SHOW TABLES;
+      Empty set (0.00 sec)
+
+      mysql> quit;
+      Bye
+      ```
 
    - install the Node.js dependencies:
 
@@ -66,52 +195,88 @@ Next, you can log into your account and create your own journal entries therein.
 
       (to run the tests in watch mode, issue any one of the following: `backend $ ./node_modules/.bin/jest --watchAll` or `backend $ npm run test--watchAll`; each re-run of which will update the contents of the `coverage` subfolder)
 
-   - create an empty SQLite database and apply all database migrations by issuing one of the following:
+   - apply all database migrations to the database, which was created a few steps ago (and is still empty):
 
       ```
+      # Issue either:
       backend $ ./node_modules/.bin/ts-node \
          ./node_modules/typeorm/cli.js \
          migration:run \
          -c connection-to-db-for-dev
-      ```
-
-      or
-
-      ```
+      
+      # or
       backend $ npm run migration:run -- \
          -c connection-to-db-for-dev
       ```
 
-   - verify that the previous step was successful by issuing `$ sqlite3 <the-value-of-DATABASE_URL-in-your-.env-file>` and then issuing:
+   - verify that the previous step was successful by issuing `$ mysql -u <journal-keeper-username> -p` and then issuing:
       
       ```
-      SQLite version 3.32.3 2020-06-18 14:16:19
-      Enter ".help" for usage hints.
-      sqlite> .tables
-      entries     migrations  users     
-      sqlite> .schema users
-      CREATE TABLE IF NOT EXISTS "users" (
-         "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-         "username" varchar(255) NOT NULL,
-         "name" varchar(255) NOT NULL,
-         "email" varchar(255) NOT NULL,
-         "password_hash" varchar(255) NOT NULL,
-         "created_at" datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP),
-         "updated_at" datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP),
-         CONSTRAINT "UQ_fe0bb3f6520ee0469504521e710" UNIQUE ("username"),
-         CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email")
-      );
-      sqlite> .schema entries
-      CREATE TABLE IF NOT EXISTS "entries" (
-         "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-         "timestamp_in_utc" datetime NOT NULL,
-         "utc_zone_of_timestamp" varchar NOT NULL,
-         "content" varchar NOT NULL,
-         "created_at" datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP),
-         "updated_at" datetime NOT NULL DEFAULT (CURRENT_TIMESTAMP),
-         "user_id" integer NOT NULL,
-         CONSTRAINT "FK_73b250bca5e5a24e1343da56168" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
-      );
+      mysql> SHOW DATABASES;
+      +-------------------------+
+      | Database                |
+      +-------------------------+
+      | information_schema      |
+      | journal-keeper-database |
+      +-------------------------+
+      2 rows in set (0.00 sec)
+
+      mysql> USE <journal-keeper-database>;
+      Database changed
+
+      mysql> SHOW TABLES;
+      +-----------------------------------+
+      | Tables_in_journal-keeper-database |
+      +-----------------------------------+
+      | entries                           |
+      | migrations                        |
+      | users                             |
+      +-----------------------------------+
+      3 rows in set (0.00 sec)
+
+      mysql> SHOW CREATE TABLE users;
+      +-------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+      | Table | Create Table                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+      +-------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+      | users | CREATE TABLE `users` (
+      `id` int NOT NULL AUTO_INCREMENT,
+      `username` varchar(255) NOT NULL,
+      `name` varchar(255) NOT NULL,
+      `email` varchar(255) NOT NULL,
+      `password_hash` varchar(255) NOT NULL,
+      `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (`id`),
+      UNIQUE KEY `IDX_fe0bb3f6520ee0469504521e71` (`username`),
+      UNIQUE KEY `IDX_97672ac88f789774dd47f7c8be` (`email`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci |
+      +-------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+      1 row in set (0.01 sec)
+
+      mysql> SHOW CREATE TABLE entries;
+      +---------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+      | Table   | Create Table                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+      +---------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+      | entries | CREATE TABLE `entries` (
+      `id` int NOT NULL AUTO_INCREMENT,
+      `timestamp_in_utc` datetime NOT NULL,
+      `utc_zone_of_timestamp` varchar(255) NOT NULL,
+      `content` varchar(255) NOT NULL,
+      `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      `user_id` int NOT NULL,
+      PRIMARY KEY (`id`),
+      KEY `FK_73b250bca5e5a24e1343da56168` (`user_id`),
+      CONSTRAINT `FK_73b250bca5e5a24e1343da56168` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci |
+      +---------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+      1 row in set (0.00 sec)
+
+      mysql> SELECT * FROM users;
+      Empty set (0.00 sec)
+
+      mysql> SELECT * FROM entries;
+      Empty set (0.00 sec)
       ```
 
    - launch a terminal instance and, in it, start a process responsible for serving the backend application instance; the ways of starting such a process can be broken down into the following categories:
