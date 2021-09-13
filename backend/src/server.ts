@@ -35,7 +35,12 @@ const connectionName: string =
     ? "connection-to-db-for-testing"
     : "connection-to-db-for-dev";
 
-const connectionPromise: Promise<Connection> = createConnection(connectionName);
+const connectionPromise: Promise<Connection> =
+  process.env.NODE_ENV === "test"
+    ? createConnection("connection-to-db-for-testing")
+    : process.env.NODE_ENV === "prod"
+    ? createConnection()
+    : createConnection("connection-to-db-for-dev");
 
 /* Create a Koa application instance. */
 const app: Koa = new Koa();
