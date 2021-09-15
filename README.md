@@ -45,7 +45,7 @@ Next, you can log into your account and create your own journal entries therein.
     ```
     (For deployment, you should generate a "good secret key" and store that value in `SECRET_KEY` within the `.env` file; to achieve that, take a look at the "How to generate good secret keys" section on https://flask.palletsprojects.com/en/1.1.x/quickstart/ . For local development, something like `keep-this-value-known-only-to-the-deployment-machine` should suffice.)
 
-3. set up the backend:
+3. set up the backend
 
    - download MySQL Server, install it on your system, and secure the installation (all of which can be accomplished by following the instructions given in [this article](https://linuxize.com/post/how-to-install-mysql-on-ubuntu-18-04/))
 
@@ -235,16 +235,16 @@ Next, you can log into your account and create your own journal entries therein.
       | Table | Create Table                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
       +-------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
       | users | CREATE TABLE `users` (
-      `id` int NOT NULL AUTO_INCREMENT,
-      `username` varchar(255) NOT NULL,
-      `name` varchar(255) NOT NULL,
-      `email` varchar(255) NOT NULL,
-      `password_hash` varchar(255) NOT NULL,
-      `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      PRIMARY KEY (`id`),
-      UNIQUE KEY `IDX_fe0bb3f6520ee0469504521e71` (`username`),
-      UNIQUE KEY `IDX_97672ac88f789774dd47f7c8be` (`email`)
+         `id` int NOT NULL AUTO_INCREMENT,
+         `username` varchar(255) NOT NULL,
+         `name` varchar(255) NOT NULL,
+         `email` varchar(255) NOT NULL,
+         `password_hash` varchar(255) NOT NULL,
+         `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+         `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+         PRIMARY KEY (`id`),
+         UNIQUE KEY `IDX_fe0bb3f6520ee0469504521e71` (`username`),
+         UNIQUE KEY `IDX_97672ac88f789774dd47f7c8be` (`email`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci |
       +-------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
       1 row in set (0.01 sec)
@@ -254,16 +254,16 @@ Next, you can log into your account and create your own journal entries therein.
       | Table   | Create Table                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
       +---------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
       | entries | CREATE TABLE `entries` (
-      `id` int NOT NULL AUTO_INCREMENT,
-      `timestamp_in_utc` datetime NOT NULL,
-      `utc_zone_of_timestamp` varchar(255) NOT NULL,
-      `content` varchar(255) NOT NULL,
-      `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      `user_id` int NOT NULL,
-      PRIMARY KEY (`id`),
-      KEY `FK_73b250bca5e5a24e1343da56168` (`user_id`),
-      CONSTRAINT `FK_73b250bca5e5a24e1343da56168` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+         `id` int NOT NULL AUTO_INCREMENT,
+         `timestamp_in_utc` datetime NOT NULL,
+         `utc_zone_of_timestamp` varchar(255) NOT NULL,
+         `content` varchar(255) NOT NULL,
+         `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+         `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+         `user_id` int NOT NULL,
+         PRIMARY KEY (`id`),
+         KEY `FK_73b250bca5e5a24e1343da56168` (`user_id`),
+         CONSTRAINT `FK_73b250bca5e5a24e1343da56168` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci |
       +---------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
       1 row in set (0.00 sec)
@@ -562,7 +562,7 @@ Next, you can log into your account and create your own journal entries therein.
       }
       ```
 
-4. set up the frontend:
+4. set up the frontend
 
    - install the Node.js dependencies:
       ```
