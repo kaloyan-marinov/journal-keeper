@@ -172,13 +172,11 @@ Next, you can log into your account and create your own journal entries therein.
       ```
 
    - install the Node.js dependencies:
-
       ```
       backend $ npm install
       ```
 
    - ensure that running the tests results in a PASS by issuing any one of the following:
-
       ```
       backend $ ./node_modules/.bin/jest
       ```
@@ -196,7 +194,6 @@ Next, you can log into your account and create your own journal entries therein.
       (to run the tests in watch mode, issue any one of the following: `backend $ ./node_modules/.bin/jest --watchAll` or `backend $ npm run test--watchAll`; each re-run of which will update the contents of the `coverage` subfolder)
 
    - apply all database migrations to the database, which was created a few steps ago (and is still empty):
-
       ```
       # Issue either:
       backend $ ./node_modules/.bin/ts-node \
@@ -210,7 +207,6 @@ Next, you can log into your account and create your own journal entries therein.
       ```
 
    - verify that the previous step was successful by issuing `$ mysql -u <journal-keeper-username> -p` and then issuing:
-      
       ```
       mysql> SHOW DATABASES;
       +-------------------------+
@@ -292,7 +288,6 @@ Next, you can log into your account and create your own journal entries therein.
         - (approach b.1): directly run the compiled project by issuing `backend $ ./node_modules/.bin/nodemon` or `backend $ npm run dev`; _this approach ensures that the project will be re-started whenever changes are made to the `src/server.ts` file_
 
    - launch another terminal window and, in it, issue the following requests:
-
       ```
       $ curl \
          -v \
@@ -570,13 +565,11 @@ Next, you can log into your account and create your own journal entries therein.
 4. set up the frontend:
 
    - install the Node.js dependencies:
-
       ```
       frontend $ npm install
       ```
 
    - ensure that running the tests results in a PASS by issuing the following:
-
       ```
       frontend $ npm test -- --coverage
       ```
@@ -586,7 +579,6 @@ Next, you can log into your account and create your own journal entries therein.
       (to run the tests in watch mode, issue any one of the following: `frontend $ npm test -- --coverage --watchAll`; each re-run of which will update the contents of the `coverage` subfolder)
 
    - launch a terminal instance and, in it, start a process responsible for serving the frontend application:
-
       ```
       frontend $ npm start
       ```
@@ -596,6 +588,10 @@ Next, you can log into your account and create your own journal entries therein.
 TBD
 
 # Future plans
+
+- modularize the backend
+
+- modularize the frontend
 
 - implement a password-reset functionality
 
