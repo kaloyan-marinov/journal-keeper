@@ -8,9 +8,7 @@ This repository's documentation is organized as follows.
 
 3. [How to set up the project for local development](#how-to-set-up-the-project-for-local-development)
 
-4. [Different options for serving our backend application](#different-options-for-serving-our-backend-application)
-
-5. [Future plans](#future-plans)
+4. [Future plans](#future-plans)
 
 # Introduction
 
@@ -600,10 +598,6 @@ Next, you can log into your account and create your own journal entries therein.
       frontend $ npm start
       ```
       and a tab in your operating system's default web browser should open up and load the address localhost:3000/
-
-# Different options for serving our backend application
-
-TBD
 
 # Future plans
 
