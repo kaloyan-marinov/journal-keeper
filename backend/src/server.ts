@@ -30,12 +30,19 @@ if (SECRET_KEY === undefined) {
   process.exit(1);
 }
 
-const connectionName: string =
+const connectionName: string | undefined =
   process.env.NODE_ENV === "test"
     ? "connection-to-db-for-testing"
+    : process.env.NODE_ENV === "prod"
+    ? undefined
     : "connection-to-db-for-dev";
 
-const connectionPromise: Promise<Connection> = createConnection(connectionName);
+const connectionPromise: Promise<Connection> =
+  process.env.NODE_ENV === "test"
+    ? createConnection("connection-to-db-for-testing")
+    : process.env.NODE_ENV === "prod"
+    ? createConnection()
+    : createConnection("connection-to-db-for-dev");
 
 /* Create a Koa application instance. */
 const app: Koa = new Koa();
