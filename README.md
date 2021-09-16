@@ -173,6 +173,18 @@ Next, you can log into your account and create your own journal entries therein.
 
    - install the Node.js dependencies:
       ```
+      # But first, make sure that you have downloaded the Node.js runtime
+      # and installed it on your system.
+
+      # The version used to develop this project is specified below:
+
+      $ node --version
+      v14.15.0
+      $ npm --version
+      6.14.8
+      ```
+
+      ```
       backend $ npm install
       ```
 
@@ -284,7 +296,8 @@ Next, you can log into your account and create your own journal entries therein.
 
    - ensure that running the tests results in a PASS by issuing the following:
       ```
-      frontend $ npm test -- --coverage
+      frontend $ npm test -- \
+         --coverage
       ```
 
       which will create a `coverage` subfolder with a report of test coverage; to view that report, open `coverage/lcov-report/index.html` in your web browser
