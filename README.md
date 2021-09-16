@@ -275,6 +275,24 @@ Next, you can log into your account and create your own journal entries therein.
       Empty set (0.00 sec)
       ```
 
+4. set up the frontend
+
+   - install the Node.js dependencies:
+      ```
+      frontend $ npm install
+      ```
+
+   - ensure that running the tests results in a PASS by issuing the following:
+      ```
+      frontend $ npm test -- --coverage
+      ```
+
+      which will create a `coverage` subfolder with a report of test coverage; to view that report, open `coverage/lcov-report/index.html` in your web browser
+
+      (to run the tests in watch mode, issue any one of the following: `frontend $ npm test -- --coverage --watchAll`; each re-run of which will update the contents of the `coverage` subfolder)
+
+5. start serving the backend application and the frontend application
+
    - launch a terminal instance and, in it, start a process responsible for serving the backend application instance; the ways of starting such a process can be broken down into the following categories:
 
       (a) without re-starting the project when changes are made
@@ -287,7 +305,9 @@ Next, you can log into your account and create your own journal entries therein.
 
         - (approach b.1): directly run the compiled project by issuing `backend $ ./node_modules/.bin/nodemon` or `backend $ npm run dev`; _this approach ensures that the project will be re-started whenever changes are made to the `src/server.ts` file_
 
-   - launch another terminal window and, in it, issue the following requests:
+      ---
+
+      at this point, it is a good idea to verify that the backend is up and running - launch another terminal instance and, in it, issue:
       ```
       $ curl \
          -v \
@@ -562,26 +582,11 @@ Next, you can log into your account and create your own journal entries therein.
       }
       ```
 
-4. set up the frontend
-
-   - install the Node.js dependencies:
-      ```
-      frontend $ npm install
-      ```
-
-   - ensure that running the tests results in a PASS by issuing the following:
-      ```
-      frontend $ npm test -- --coverage
-      ```
-
-      which will create a `coverage` subfolder with a report of test coverage; to view that report, open `coverage/lcov-report/index.html` in your web browser
-
-      (to run the tests in watch mode, issue any one of the following: `frontend $ npm test -- --coverage --watchAll`; each re-run of which will update the contents of the `coverage` subfolder)
-
-   - launch a terminal instance and, in it, start a process responsible for serving the frontend application:
+   - launch a separate terminal instance and, in it, start a process responsible for serving the frontend application:
       ```
       frontend $ npm start
       ```
+      and a tab in your operating system's default web browser should open up and load the address localhost:3000/
 
 # Different options for serving our backend application
 
