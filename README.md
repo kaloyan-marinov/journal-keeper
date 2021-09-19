@@ -760,17 +760,8 @@ docker run \
 root@ee1320232868:/journal-keeper/backend# ts-node ./node_modules/typeorm/cli \
    -f ./ormconfig.ts \
    migration:run \
-   -c connection-to-database-for-prod
-2021-09-19T10:08:04.422Z - /journal-keeper/backend/ormconfig.ts - inspecting the value of sourceCodeFolder:
-src
-Error during migration run:
-TypeORMError: Cannot find connection connection-to-database-for-prod because its not defined in any orm configuration files.
-    at new TypeORMError (/journal-keeper/backend/src/error/TypeORMError.ts:7:9)
-    at ConnectionOptionsReader.<anonymous> (/journal-keeper/backend/src/connection/ConnectionOptionsReader.ts:56:19)
-    at step (/journal-keeper/backend/node_modules/tslib/tslib.js:143:27)
-    at Object.next (/journal-keeper/backend/node_modules/tslib/tslib.js:124:57)
-    at fulfilled (/journal-keeper/backend/node_modules/tslib/tslib.js:114:62)
-    at processTicksAndRejections (internal/process/task_queues.js:95:5)
+   -c connection-to-db-for-prod
+root@ee1320232868:/journal-keeper/backend# exit
 ```
 
 # Future plans
