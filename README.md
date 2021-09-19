@@ -617,18 +617,18 @@ Next, you can log into your account and create your own journal entries therein.
     DATABASE_TYPE=mysql
     DATABASE_HOSTNAME=journal-keeper-database-server
     DATABASE_PORT=3306
-    DATABASE_USERNAME=j-k-u
-    DATABASE_PASSWORD=j-k-p
-    DATABASE_NAME=j-k-d
+    DATABASE_USERNAME=<provide-the-same-value-as-for-MYSQL_USER>
+    DATABASE_PASSWORD=<provide-the-same-value-as-for-MYSQL_PASSWORD>
+    DATABASE_NAME=<provide-the-same-value-as-for-MYSQL_DATABASE>
 
     SECRET_KEY=keep-this-value-known-only-to-the-deployment-machine
    
-    TYPEORM_CONNECTION=mysql
-    TYPEORM_HOST=journal-keeper-database-server
-    TYPEORM_USERNAME=j-k-u
-    TYPEORM_PASSWORD=j-k-p
-    TYPEORM_DATABASE=j-k-d
-    TYPEORM_PORT=3306
+    TYPEORM_CONNECTION=<provide-the-same-value-as-for-DATABASE_TYPE>
+    TYPEORM_HOST=<provide-the-same-value-as-for-DATABASE_HOSTNAME>
+    TYPEORM_USERNAME=<provide-the-same-value-as-for-MYSQL_USER>
+    TYPEORM_PASSWORD=<provide-the-same-value-as-for-MYSQL_PASSWORD>
+    TYPEORM_DATABASE=<provide-the-same-value-as-for-MYSQL_DATABASE>
+    TYPEORM_PORT=<provide-the-same-value-as-for-DATABASE_PORT>
     TYPEORM_SYNCHRONIZE=false
     TYPEORM_LOGGING=true
     TYPEORM_ENTITIES=dist/entities.js
@@ -645,7 +645,7 @@ $ docker volume create volume-journal-keeper-mysql
 $ docker run \
    --name container-journal-keeper-mysql \
    --network network-journal-keeper \
-   --network-alias journal-keeper-database-server \
+   --network-alias <the-value-of-DATABASE_HOSTNAME> \
    --mount source=volume-journal-keeper-mysql,destination=/var/lib/mysql \
    --detach \
    --env-file=backend/.env \
@@ -720,26 +720,26 @@ troubleshooting or debugging networking issues.
    
    2. Inside the container, we’re going to use the `dig` command,
       which is a useful DNS tool.
-      We’re going to look up the IP address for the hostname `journal-keeper-database-server`.
+      We’re going to look up the IP address for the hostname `<the-value-of-DATABASE_HOSTNAME>`.
 
       ```
-       487fc9c5b3fe  ~  dig journal-keeper-database-server
+       487fc9c5b3fe  ~  dig <the-value-of-DATABASE_HOSTNAME>
       ```
 
       And you’ll get an output like this...
 
       ```
-      ; <<>> DiG 9.16.19 <<>> journal-keeper-database-server
+      ; <<>> DiG 9.16.19 <<>> <the-value-of-DATABASE_HOSTNAME>
       ;; global options: +cmd
       ;; Got answer:
       ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 23978
       ;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
 
       ;; QUESTION SECTION:
-      ;journal-keeper-database-server.        IN      A
+      ;<the-value-of-DATABASE_HOSTNAME>.        IN      A
 
       ;; ANSWER SECTION:
-      journal-keeper-database-server. 600 IN  A       172.21.0.2
+      <the-value-of-DATABASE_HOSTNAME>. 600 IN  A       172.21.0.2
 
       ;; Query time: 15 msec
       ;; SERVER: 127.0.0.11#53(127.0.0.11)
@@ -748,16 +748,16 @@ troubleshooting or debugging networking issues.
       ```
 
       In the “ANSWER SECTION”,
-      you will see an `A` record for `journal-keeper-database-server`
+      you will see an `A` record for `<the-value-of-DATABASE_HOSTNAME>`
       that resolves to 172.21.0.2
       (your IP address will most likely have a different value).
-      While `journal-keeper-database-server` isn’t normally a valid hostname,
+      While `<the-value-of-DATABASE_HOSTNAME>` isn’t normally a valid hostname,
       Docker was able to resolve it to the IP address of the container
       [which had been assigned] that network alias
       (remember the `--network-alias` flag we used earlier?).
 
       What this means is [that] our app
-      only ... needs to connect to a host named `journal-keeper-database-server`
+      only ... needs to connect to a host named `<the-value-of-DATABASE_HOSTNAME>`
       and it’ll talk to the database!
       It doesn’t get much simpler than that!
 ```
