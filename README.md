@@ -744,34 +744,33 @@ docker build \
    --target build-stage \
    .
 
-.
-.
-.
+docker run \
+   --network network-journal-keeper \
+   -it \
+   --rm \
+   --entrypoint /bin/bash \
+   --env DATABASE_TYPE=mysql \
+   --env DATABASE_HOSTNAME=journal-keeper-database-server \
+   --env DATABASE_PORT=3306 \
+   --env DATABASE_USERNAME=mysql-username \
+   --env DATABASE_PASSWORD=mysql-password \
+   --env DATABASE_NAME=mysql-database \
+   image-journal-keeper-backend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM}
 
- => [build-stage 11/12] COPY backend/src ./src/                                                  0.1s 
- => ERROR [build-stage 12/12] RUN npm run build                                                  7.7s 
-------                                                                                                
- > [build-stage 12/12] RUN npm run build:                                                             
-#16 1.128 
-#16 1.128 > journal-keeper@1.0.0 build /journal-keeper/backend
-#16 1.128 > tsc
-#16 1.128 
-#16 7.470 error TS6059: File '/journal-keeper/backend/ormconfig.ts' is not under 'rootDir' '/journal-keeper/backend/src'. 'rootDir' is expected to contain all source files.
-#16 7.470   The file is in the program because:
-#16 7.470     Matched by include pattern '**/*' in '/journal-keeper/backend/tsconfig.json'
-#16 7.575 npm ERR! code ELIFECYCLE
-#16 7.577 npm ERR! errno 2
-#16 7.600 npm ERR! journal-keeper@1.0.0 build: `tsc`
-#16 7.604 npm ERR! Exit status 2
-#16 7.607 npm ERR! 
-#16 7.612 npm ERR! Failed at the journal-keeper@1.0.0 build script.
-#16 7.612 npm ERR! This is probably not a problem with npm. There is likely additional logging output above.
-#16 7.626 
-#16 7.626 npm ERR! A complete log of this run can be found in:
-#16 7.627 npm ERR!     /root/.npm/_logs/2021-09-19T09_19_58_199Z-debug.log
-------
-executor failed running [/bin/sh -c npm run build]: exit code: 2
-(reverse-i-search)`r': docker build    --file Dockerfile.backend    --tag image-journal-keeper-backend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM}    --target build-stage    .
+root@ee1320232868:/journal-keeper/backend# ts-node ./node_modules/typeorm/cli \
+   -f ./ormconfig.ts \
+   migration:run \
+   -c connection-to-database-for-prod
+2021-09-19T10:08:04.422Z - /journal-keeper/backend/ormconfig.ts - inspecting the value of sourceCodeFolder:
+src
+Error during migration run:
+TypeORMError: Cannot find connection connection-to-database-for-prod because its not defined in any orm configuration files.
+    at new TypeORMError (/journal-keeper/backend/src/error/TypeORMError.ts:7:9)
+    at ConnectionOptionsReader.<anonymous> (/journal-keeper/backend/src/connection/ConnectionOptionsReader.ts:56:19)
+    at step (/journal-keeper/backend/node_modules/tslib/tslib.js:143:27)
+    at Object.next (/journal-keeper/backend/node_modules/tslib/tslib.js:124:57)
+    at fulfilled (/journal-keeper/backend/node_modules/tslib/tslib.js:114:62)
+    at processTicksAndRejections (internal/process/task_queues.js:95:5)
 ```
 
 # Future plans
