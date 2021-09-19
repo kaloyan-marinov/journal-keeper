@@ -604,6 +604,38 @@ Next, you can log into your account and create your own journal entries therein.
 # How to use Docker containers for deployment
 
 ```
+# inside the `backend` subfolder of your local repository, create a `.env` file with the following structure:
+
+    ```
+    SECRET_KEY=keep-this-value-known-only-to-the-deployment-machine
+
+    MYSQL_RANDOM_ROOT_PASSWORD=yes
+    MYSQL_USER=j-k-u
+    MYSQL_PASSWORD=j-k-p
+    MYSQL_DATABASE=j-k-d
+
+    DATABASE_TYPE=mysql
+    DATABASE_HOSTNAME=journal-keeper-database-server
+    DATABASE_PORT=3306
+    DATABASE_USERNAME=j-k-u
+    DATABASE_PASSWORD=j-k-p
+    DATABASE_NAME=j-k-d
+
+    SECRET_KEY=keep-this-value-known-only-to-the-deployment-machine
+   
+    TYPEORM_CONNECTION=mysql
+    TYPEORM_HOST=journal-keeper-database-server
+    TYPEORM_USERNAME=j-k-u
+    TYPEORM_PASSWORD=j-k-p
+    TYPEORM_DATABASE=j-k-d
+    TYPEORM_PORT=3306
+    TYPEORM_SYNCHRONIZE=false
+    TYPEORM_LOGGING=true
+    TYPEORM_ENTITIES=dist/entities.js
+    ```
+```
+
+```
 $ docker network create network-journal-keeper
 ```
 
@@ -616,10 +648,7 @@ $ docker run \
    --network-alias journal-keeper-database-server \
    --mount source=volume-journal-keeper-mysql,destination=/var/lib/mysql \
    --detach \
-   --env MYSQL_RANDOM_ROOT_PASSWORD=yes \
-   --env MYSQL_USER=mysql-username \
-   --env MYSQL_PASSWORD=mysql-password \
-   --env MYSQL_DATABASE=mysql-database \
+   --env-file=backend/.env \
    mysql:8.0.26 \
    --default-authentication-plugin=mysql_native_password
 ```
@@ -749,12 +778,7 @@ docker run \
    -it \
    --rm \
    --entrypoint /bin/bash \
-   --env DATABASE_TYPE=mysql \
-   --env DATABASE_HOSTNAME=journal-keeper-database-server \
-   --env DATABASE_PORT=3306 \
-   --env DATABASE_USERNAME=mysql-username \
-   --env DATABASE_PASSWORD=mysql-password \
-   --env DATABASE_NAME=mysql-database \
+   --env-file backend/.env \
    image-journal-keeper-backend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM}
 
 root@ee1320232868:/journal-keeper/backend# ts-node ./node_modules/typeorm/cli \
@@ -777,16 +801,7 @@ docker run \
    -it \
    --rm \
    --entrypoint /bin/bash \
-   --env SECRET_KEY=keep-this-value-known-only-to-the-deployment-machine \
-   --env TYPEORM_CONNECTION=mysql \
-   --env TYPEORM_HOST=journal-keeper-database-server \
-   --env TYPEORM_USERNAME=mysql-username \
-   --env TYPEORM_PASSWORD=mysql-password \
-   --env TYPEORM_DATABASE=mysql-database \
-   --env TYPEORM_PORT=3306 \
-   --env TYPEORM_SYNCHRONIZE=false \
-   --env TYPEORM_LOGGING=true \
-   --env TYPEORM_ENTITIES=dist/entities.js \
+   --env-file backend/.env \
    --publish 5000:5000 \
    image-journal-keeper-backend:prod-stage-${HYPHENATED_YYYY_MM_DD_HH_MM}
 
