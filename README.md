@@ -764,6 +764,42 @@ root@ee1320232868:/journal-keeper/backend# ts-node ./node_modules/typeorm/cli \
 root@ee1320232868:/journal-keeper/backend# exit
 ```
 
+```
+docker build \
+   --file Dockerfile.backend \
+   --tag image-journal-keeper-backend:prod-stage-${HYPHENATED_YYYY_MM_DD_HH_MM} \
+   --target=prod-stage \
+   .
+
+docker run \
+   --name container-journal-keeper-backend \
+   --network network-journal-keeper \
+   -it \
+   --rm \
+   --entrypoint /bin/bash \
+   --env SECRET_KEY=keep-this-value-known-only-to-the-deployment-machine \
+   --env TYPEORM_CONNECTION=mysql \
+   --env TYPEORM_HOST=journal-keeper-database-server \
+   --env TYPEORM_USERNAME=mysql-username \
+   --env TYPEORM_PASSWORD=mysql-password \
+   --env TYPEORM_DATABASE=mysql-database \
+   --env TYPEORM_PORT=3306 \
+   --env TYPEORM_SYNCHRONIZE=false \
+   --env TYPEORM_LOGGING=true \
+   --env TYPEORM_ENTITIES=dist/entities.js \
+   --publish 5000:5000 \
+   image-journal-keeper-backend:prod-stage-${HYPHENATED_YYYY_MM_DD_HH_MM}
+
+root@82dac62c7bef:/journal-keeper/backend# NODE_ENV=prod node dist/server.js
+
+# Launch another terminal instance
+# and, in it, issue the requests that are documented at the end of the previous section.
+
+# Stop serving the backend application by hitting Ctrl+C
+
+root@bac869c887ca:/journal-keeper/backend# exit
+```
+
 # Future plans
 
 - modularize the backend
