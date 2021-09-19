@@ -38,9 +38,6 @@ const connectionsOptionsObjects: ConnectionOptions[] = [
     password: process.env.DATABASE_PASSWORD,
     database: process.env.DATABASE_NAME,
     entities: [path.join(sourceCodeFolder, "entities.*")],
-    cli: {
-      migrationsDir: path.join(sourceCodeFolder, "migration"),
-    },
     migrations: [path.join(sourceCodeFolder, "migration", "*.ts")],
   },
   {
