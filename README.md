@@ -8,7 +8,9 @@ This repository's documentation is organized as follows.
 
 3. [How to set up the project for local development](#how-to-set-up-the-project-for-local-development)
 
-4. [Future plans](#future-plans)
+4. [How to use Docker containers for deployment](#how-to-use-docker-containers-for-deployment)
+
+5. [Future plans](#future-plans)
 
 # Introduction
 
@@ -598,6 +600,179 @@ Next, you can log into your account and create your own journal entries therein.
       frontend $ npm start
       ```
       and a tab in your operating system's default web browser should open up and load the address localhost:3000/
+
+# How to use Docker containers for deployment
+
+```
+$ docker network create network-journal-keeper
+```
+
+```
+$ docker volume create volume-journal-keeper-mysql
+
+$ docker run \
+   --name container-journal-keeper-mysql \
+   --network network-journal-keeper \
+   --network-alias journal-keeper-database-server \
+   --mount source=volume-journal-keeper-mysql,destination=/var/lib/mysql \
+   --detach \
+   --env MYSQL_RANDOM_ROOT_PASSWORD=yes \
+   --env MYSQL_USER=mysql-username \
+   --env MYSQL_PASSWORD=mysql-password \
+   --env MYSQL_DATABASE=mysql-database \
+   mysql:8.0.26 \
+   --default-authentication-plugin=mysql_native_password
+```
+
+```
+$ docker container ls -a
+CONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS         PORTS                 NAMES
+84c4ebbaa10e   mysql:8.0.26   "docker-entrypoint.s…"   6 minutes ago   Up 6 minutes   3306/tcp, 33060/tcp   container-journal-keeper-mysql
+$ docker exec -it container-journal-keeper-mysql bash
+root@84c4ebbaa10e:/# mysql -u mysql-username -p
+Enter password: 
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 8
+Server version: 8.0.26 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql-database     |
++--------------------+
+2 rows in set (0.02 sec)
+
+mysql> use mysql-database;
+Database changed
+mysql> SHOW TABLES;
+Empty set (0.01 sec)
+
+mysql> exit;
+Bye
+root@84c4ebbaa10e:/# exit
+exit
+$
+```
+
+```
+[
+This step is optional but instructive
+- it closely follows the documentation at https://docs.docker.com/get-started/07_multi_container/#connect-to-mysql
+]
+
+Now that we know [that one] MySQL [container] is up and running, let’s use it!
+But, the question is... how?
+If we run another container on the same network,
+how do we find the [MySQL] container (remember each container has its own IP address)?
+
+To figure it out, we’re going to make use of the `nicolaka/netshoot` [image],
+which ships with a lot of tools that are useful for
+troubleshooting or debugging networking issues.
+
+   1. Start a new container using the `nicolaka/netshoot` image.
+      Make sure to connect it to the same network.
+
+      $ docker run \
+         --name container-nicolaka-netshoot \
+         -it \
+         --rm \
+         --network network-journal-keeper \
+         nicolaka/netshoot
+   
+   2. Inside the container, we’re going to use the `dig` command,
+      which is a useful DNS tool.
+      We’re going to look up the IP address for the hostname `journal-keeper-database-server`.
+
+      ```
+       487fc9c5b3fe  ~  dig journal-keeper-database-server
+      ```
+
+      And you’ll get an output like this...
+
+      ```
+      ; <<>> DiG 9.16.19 <<>> journal-keeper-database-server
+      ;; global options: +cmd
+      ;; Got answer:
+      ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 23978
+      ;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
+
+      ;; QUESTION SECTION:
+      ;journal-keeper-database-server.        IN      A
+
+      ;; ANSWER SECTION:
+      journal-keeper-database-server. 600 IN  A       172.21.0.2
+
+      ;; Query time: 15 msec
+      ;; SERVER: 127.0.0.11#53(127.0.0.11)
+      ;; WHEN: Sun Sep 19 08:59:45 UTC 2021
+      ;; MSG SIZE  rcvd: 94
+      ```
+
+      In the “ANSWER SECTION”,
+      you will see an `A` record for `journal-keeper-database-server`
+      that resolves to 172.21.0.2
+      (your IP address will most likely have a different value).
+      While `journal-keeper-database-server` isn’t normally a valid hostname,
+      Docker was able to resolve it to the IP address of the container
+      [which had been assigned] that network alias
+      (remember the `--network-alias` flag we used earlier?).
+
+      What this means is [that] our app
+      only ... needs to connect to a host named `journal-keeper-database-server`
+      and it’ll talk to the database!
+      It doesn’t get much simpler than that!
+```
+
+```
+$ export HYPHENATED_YYYY_MM_DD_HH_MM=2021-09-19-12-10
+```
+
+```
+docker build \
+   --file Dockerfile.backend \
+   --tag image-journal-keeper-backend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM} \
+   --target build-stage \
+   .
+
+.
+.
+.
+
+ => [build-stage 11/12] COPY backend/src ./src/                                                  0.1s 
+ => ERROR [build-stage 12/12] RUN npm run build                                                  7.7s 
+------                                                                                                
+ > [build-stage 12/12] RUN npm run build:                                                             
+#16 1.128 
+#16 1.128 > journal-keeper@1.0.0 build /journal-keeper/backend
+#16 1.128 > tsc
+#16 1.128 
+#16 7.470 error TS6059: File '/journal-keeper/backend/ormconfig.ts' is not under 'rootDir' '/journal-keeper/backend/src'. 'rootDir' is expected to contain all source files.
+#16 7.470   The file is in the program because:
+#16 7.470     Matched by include pattern '**/*' in '/journal-keeper/backend/tsconfig.json'
+#16 7.575 npm ERR! code ELIFECYCLE
+#16 7.577 npm ERR! errno 2
+#16 7.600 npm ERR! journal-keeper@1.0.0 build: `tsc`
+#16 7.604 npm ERR! Exit status 2
+#16 7.607 npm ERR! 
+#16 7.612 npm ERR! Failed at the journal-keeper@1.0.0 build script.
+#16 7.612 npm ERR! This is probably not a problem with npm. There is likely additional logging output above.
+#16 7.626 
+#16 7.626 npm ERR! A complete log of this run can be found in:
+#16 7.627 npm ERR!     /root/.npm/_logs/2021-09-19T09_19_58_199Z-debug.log
+------
+executor failed running [/bin/sh -c npm run build]: exit code: 2
+(reverse-i-search)`r': docker build    --file Dockerfile.backend    --tag image-journal-keeper-backend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM}    --target build-stage    .
+```
 
 # Future plans
 
