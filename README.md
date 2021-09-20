@@ -620,9 +620,11 @@ Next, you can log into your account and create your own journal entries therein.
     DATABASE_USERNAME=<provide-the-same-value-as-for-MYSQL_USER>
     DATABASE_PASSWORD=<provide-the-same-value-as-for-MYSQL_PASSWORD>
     DATABASE_NAME=<provide-the-same-value-as-for-MYSQL_DATABASE>
+    ```
 
-    SECRET_KEY=keep-this-value-known-only-to-the-deployment-machine
-   
+# and also a `.env.prod-stage` file with the following structure:
+
+    ```
     TYPEORM_CONNECTION=<provide-the-same-value-as-for-DATABASE_TYPE>
     TYPEORM_HOST=<provide-the-same-value-as-for-DATABASE_HOSTNAME>
     TYPEORM_USERNAME=<provide-the-same-value-as-for-MYSQL_USER>
@@ -763,7 +765,7 @@ troubleshooting or debugging networking issues.
 ```
 
 ```
-$ export HYPHENATED_YYYY_MM_DD_HH_MM=2021-09-19-12-10
+$ export HYPHENATED_YYYY_MM_DD_HH_MM=2021-09-20-05-43
 ```
 
 ```
@@ -775,6 +777,7 @@ docker build \
 
 docker run \
    --network network-journal-keeper \
+   --network-alias alias-for-backend-container \
    -it \
    --rm \
    --entrypoint /bin/bash \
@@ -786,6 +789,31 @@ root@ee1320232868:/journal-keeper/backend# ts-node ./node_modules/typeorm/cli \
    migration:run \
    -c connection-to-db-for-prod
 root@ee1320232868:/journal-keeper/backend# exit
+```
+
+```
+docker run \
+   --network network-journal-keeper \
+   --network-alias alias-for-backend-container \
+   -it \
+   --rm \
+   --entrypoint /bin/bash \
+   --env-file backend/.env \
+   image-journal-keeper-backend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM}
+
+docker build \
+   --file Dockerfile.frontend \
+   --tag image-journal-keeper-frontend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM} \
+   --target build-stage \
+   .
+
+docker run \
+   --network network-journal-keeper \
+   -it \
+   --rm \
+   --publish 3000:3000 \
+   image-journal-keeper-frontend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM} \
+   npm start
 ```
 
 ```
@@ -802,6 +830,7 @@ docker run \
    --rm \
    --entrypoint /bin/bash \
    --env-file backend/.env \
+   --env-file backend/.env.prod-stage \
    --publish 5000:5000 \
    image-journal-keeper-backend:prod-stage-${HYPHENATED_YYYY_MM_DD_HH_MM}
 
