@@ -834,18 +834,36 @@ docker build \
 docker run \
    --name container-journal-keeper-backend \
    --network network-journal-keeper \
+   --network-alias backend-server \
    --rm \
    --env-file backend/.env \
    --env-file backend/.env.prod-stage \
    --env NODE_ENV=prod \
    --publish 5000:5000 \
+   --detach \
    image-journal-keeper-backend:prod-stage-${HYPHENATED_YYYY_MM_DD_HH_MM} \
    node dist/server.js
 
-# Launch another terminal instance
-# and, in it, issue the requests that are documented at the end of the previous section.
+docker build \
+   --file Dockerfile.frontend \
+   --tag image-journal-keeper-frontend:prod-stage-${HYPHENATED_YYYY_MM_DD_HH_MM} \
+   --target prod-stage \
+   .
 
-# Stop serving the backend application by hitting Ctrl+C
+docker run \
+   --name container-journal-keeper-frontend \
+   --network network-journal-keeper \
+   --rm \
+   --publish 3000:80 \
+   --detach \
+   image-journal-keeper-frontend:prod-stage-${HYPHENATED_YYYY_MM_DD_HH_MM}
+
+# Launch another terminal instance
+# and, in it, issue firstly:
+$ export PORT=3000
+
+# Secondly and optionally,
+# you may issue the requests that are documented at the end of the previous section.
 ```
 
 # Future plans
