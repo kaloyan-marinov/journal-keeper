@@ -8,7 +8,7 @@ This repository's documentation is organized as follows.
 
 3. [How to set up the project for local development](#how-to-set-up-the-project-for-local-development)
 
-4. [How to use Docker containers for deployment](#how-to-use-docker-containers-for-deployment)
+4. [How to use Vanilla Docker to run a containerized version of the project](#how-to-use-vanilla-docker-to-run-a-containerized-version-of-the-project)
 
 5. [Future plans](#future-plans)
 
@@ -322,12 +322,16 @@ Next, you can log into your account and create your own journal entries therein.
 
       at this point, it is a good idea to verify that the backend is up and running - launch another terminal instance and, in it, issue:
       ```
+      export PORT=5000
+      ```
+
+      ```
       $ curl \
          -v \
          -X POST \
          -H "Content-Type: application/json" \
          -d '{"username": "jd", "name": "John Doe", "email": "john.doe@protonmail.com", "password": "123"}' \
-         localhost:5000/api/users \
+         localhost:${PORT}/api/users \
          | json_pp
 
       ...
@@ -349,7 +353,7 @@ Next, you can log into your account and create your own journal entries therein.
       ```
       $ curl \
          -v \
-         localhost:5000/api/users \
+         localhost:${PORT}/api/users \
          | json_pp
 
       ...
@@ -393,7 +397,7 @@ Next, you can log into your account and create your own journal entries therein.
          -X POST \
          -H "Content-Type: application/json" \
          -d '{"username": "ms", "name": "Mary Smith", "email": "mary.smith@protonmail.com", "password": "456"}' \
-         localhost:5000/api/users \
+         localhost:${PORT}/api/users \
          | json_pp
 
       ...
@@ -415,7 +419,7 @@ Next, you can log into your account and create your own journal entries therein.
       ```
       $ curl \
          -v \
-         localhost:5000/api/users \
+         localhost:${PORT}/api/users \
          | json_pp
       
       ...
@@ -462,7 +466,7 @@ Next, you can log into your account and create your own journal entries therein.
          -v \
          -X POST \
          -u john.doe@protonmail.com:123 \
-         localhost:5000/api/tokens \
+         localhost:${PORT}/api/tokens \
          | json_pp
 
       $ export T1=<the-value-of-the-returned JWS-token>
@@ -473,7 +477,7 @@ Next, you can log into your account and create your own journal entries therein.
          -v \
          -X POST \
          -u mary.smith@protonmail.com:456 \
-         localhost:5000/api/tokens \
+         localhost:${PORT}/api/tokens \
          | json_pp
 
       $ export T2=<the-value-of-the-returned JWS-token>
@@ -486,7 +490,7 @@ Next, you can log into your account and create your own journal entries therein.
          -H "Authorization: Bearer ${T1}" \
          -H "Content-Type: application/json" \
          -d '{"timezone": "+02:00", "localTime": "2020-12-01 17:17", "content": "Then it dawned on me: there is no finish line!"}' \
-         localhost:5000/api/entries \
+         localhost:${PORT}/api/entries \
          | json_pp
       ```
 
@@ -497,7 +501,7 @@ Next, you can log into your account and create your own journal entries therein.
          -H "Authorization: Bearer ${T2}" \
          -H "Content-Type: application/json" \
          -d '{"timezone": "+01:00", "localTime": "2019-08-20 14:17", "content": "Mallorca has beautiful sunny beaches!"}' \
-         localhost:5000/api/entries \
+         localhost:${PORT}/api/entries \
          | json_pp
       ```
 
@@ -505,7 +509,7 @@ Next, you can log into your account and create your own journal entries therein.
       $ curl \
          -v \
          -H "Authorization: Bearer ${T1}" \
-         localhost:5000/api/entries \
+         localhost:${PORT}/api/entries \
          | json_pp
       
       ...
@@ -552,7 +556,7 @@ Next, you can log into your account and create your own journal entries therein.
       $ curl \
          -v \
          -H "Authorization: Bearer ${T2}" \
-         localhost:5000/api/entries \
+         localhost:${PORT}/api/entries \
          | json_pp
       
       ...
@@ -601,7 +605,7 @@ Next, you can log into your account and create your own journal entries therein.
       ```
       and a tab in your operating system's default web browser should open up and load the address localhost:3000/
 
-# How to use Docker containers for deployment
+# How to use Vanilla Docker to run a containerized version of the project
 
 ```
 # inside the `backend` subfolder of your local repository, create a `.env` file with the following structure:
@@ -660,7 +664,7 @@ $ docker container ls -a
 CONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS         PORTS                 NAMES
 84c4ebbaa10e   mysql:8.0.26   "docker-entrypoint.s…"   6 minutes ago   Up 6 minutes   3306/tcp, 33060/tcp   container-journal-keeper-mysql
 $ docker exec -it container-journal-keeper-mysql bash
-root@84c4ebbaa10e:/# mysql -u mysql-username -p
+root@84c4ebbaa10e:/# mysql -u <the-value-of-MYSQL_USER> -p
 Enter password: 
 Welcome to the MySQL monitor.  Commands end with ; or \g.
 Your MySQL connection id is 8
@@ -679,11 +683,11 @@ mysql> SHOW DATABASES;
 | Database           |
 +--------------------+
 | information_schema |
-| mysql-database     |
+| <the-value-of-MYSQL_DATABASE>     |
 +--------------------+
 2 rows in set (0.02 sec)
 
-mysql> use mysql-database;
+mysql> use <the-value-of-MYSQL_DATABASE>;
 Database changed
 mysql> SHOW TABLES;
 Empty set (0.01 sec)
@@ -777,43 +781,47 @@ docker build \
 
 docker run \
    --network network-journal-keeper \
-   --network-alias alias-for-backend-container \
-   -it \
    --rm \
-   --entrypoint /bin/bash \
    --env-file backend/.env \
-   image-journal-keeper-backend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM}
-
-root@ee1320232868:/journal-keeper/backend# ts-node ./node_modules/typeorm/cli \
-   -f ./ormconfig.ts \
-   migration:run \
-   -c connection-to-db-for-prod
-root@ee1320232868:/journal-keeper/backend# exit
+   image-journal-keeper-backend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM} \
+   ts-node ./node_modules/typeorm/cli \
+      -f ./ormconfig.ts \
+      migration:run \
+      -c connection-to-db-for-prod
 ```
 
 ```
 docker run \
    --network network-journal-keeper \
    --network-alias alias-for-backend-container \
-   -it \
    --rm \
-   --entrypoint /bin/bash \
    --env-file backend/.env \
-   image-journal-keeper-backend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM}
+   image-journal-keeper-backend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM} \
+   npm run serve
 
+# In a new terminal window:
 docker build \
    --file Dockerfile.frontend \
    --tag image-journal-keeper-frontend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM} \
    --target build-stage \
    .
 
+# If you include the `-it` command-line flag in the next command,
+# (some of) the output in the terminal window will be colored
+# (as when running `npm start` locally).
 docker run \
    --network network-journal-keeper \
-   -it \
    --rm \
    --publish 3000:3000 \
    image-journal-keeper-frontend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM} \
    npm start
+
+# Launch another terminal instance
+# and, in it, issue firstly:
+$ export PORT=3000
+
+# Secondly and optionally,
+# you may issue the requests that are documented at the end of the previous section.
 ```
 
 ```
@@ -826,22 +834,18 @@ docker build \
 docker run \
    --name container-journal-keeper-backend \
    --network network-journal-keeper \
-   -it \
    --rm \
-   --entrypoint /bin/bash \
    --env-file backend/.env \
    --env-file backend/.env.prod-stage \
+   --env NODE_ENV=prod \
    --publish 5000:5000 \
-   image-journal-keeper-backend:prod-stage-${HYPHENATED_YYYY_MM_DD_HH_MM}
-
-root@82dac62c7bef:/journal-keeper/backend# NODE_ENV=prod node dist/server.js
+   image-journal-keeper-backend:prod-stage-${HYPHENATED_YYYY_MM_DD_HH_MM} \
+   node dist/server.js
 
 # Launch another terminal instance
 # and, in it, issue the requests that are documented at the end of the previous section.
 
 # Stop serving the backend application by hitting Ctrl+C
-
-root@bac869c887ca:/journal-keeper/backend# exit
 ```
 
 # Future plans
