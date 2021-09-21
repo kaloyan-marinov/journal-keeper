@@ -769,7 +769,7 @@ troubleshooting or debugging networking issues.
 ```
 
 ```
-$ export HYPHENATED_YYYY_MM_DD_HH_MM=2021-09-20-19-53
+$ export HYPHENATED_YYYY_MM_DD_HH_MM=2021-09-21-06-29
 ```
 
 ```
@@ -796,8 +796,12 @@ docker run \
    --network-alias alias-for-backend-container \
    --rm \
    --env-file backend/.env \
+   --mount type=bind,source="$(pwd)"/backend/src,destination=/journal-keeper/backend/src \
    image-journal-keeper-backend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM} \
-   npm run serve
+   nodemon \
+      --watch src \
+      --ext ts \
+      --exec "npm run serve"
 
 # In a new terminal window:
 docker build \
@@ -813,6 +817,7 @@ docker run \
    --network network-journal-keeper \
    --rm \
    --publish 3000:3000 \
+   --mount type=bind,source="$(pwd)"/frontend/src,destination=/journal-keeper/frontend/src \
    image-journal-keeper-frontend:build-stage-${HYPHENATED_YYYY_MM_DD_HH_MM} \
    npm start
 
@@ -869,6 +874,8 @@ $ export PORT=3000
 
 # Secondly and optionally,
 # you may issue the requests that are documented at the end of the previous section.
+
+# Use a web browser to interact with the frontend UI.
 
 # Stop running the containers with the database, the backend, and the frontend
 # by issuing:
