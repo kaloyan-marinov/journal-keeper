@@ -10,7 +10,9 @@ This repository's documentation is organized as follows.
 
 4. [How to use Vanilla Docker to run a containerized version of the project](#how-to-use-vanilla-docker-to-run-a-containerized-version-of-the-project)
 
-5. [Future plans](#future-plans)
+5. [How to use Docker Compose to run a containerized version of the project](#how-to-use-docker-compose-to-run-a-containerized-version-of-the-project)
+
+6. [Future plans](#future-plans)
 
 # Introduction
 
@@ -883,6 +885,16 @@ $ docker container rm -f \
    container-journal-keeper-frontend \
    container-journal-keeper-backend \
    container-journal-keeper-mysql
+```
+
+# How to use Docker Compose to run a containerized version of the project
+
+The previous section demonstrated one way of running a containerized version of the project. That way relied on using "Vanilla Docker"...
+
+```
+$ docker-compose \
+   --file docker-compose.build-stage.yml \
+   up
 ```
 
 # Future plans

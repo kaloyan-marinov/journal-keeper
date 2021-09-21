@@ -1,0 +1,42 @@
+version: "3.7"
+
+services:
+  service-mysql:
+    image: mysql:8.0.26
+    container_name: journal-keeper-database-server
+    volumes:
+      - volume-journal-keeper-mysql:/var/lib/mysql
+    restart: always
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_USER=j-k-u
+      - MYSQL_PASSWORD=j-k-p
+      - MYSQL_DATABASE=j-k-d
+  
+  service-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      target: build-stage
+    image: image-journal-keeper-backend:build-stage-2021-09-21-07-56
+    container_name: container-journal-keeper-backend-build-stage
+    depends_on:
+      - service-mysql
+    command: 
+      [
+        "ts-node", "./node_modules/typeorm/cli",
+        "-f", "./ormconfig.ts",
+        "migration:run",
+          "-c", "connection-to-db-for-dev"
+      ]
+  
+  service-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      target: build-stage
+    image: image-journal-keeper-frontend:build-stage-2021-09-21-07-56
+    container_name: container-journal-keeper-frontend-build-stage
+
+volumes:
+  volume-journal-keeper-mysql:
