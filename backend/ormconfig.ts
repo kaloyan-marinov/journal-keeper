@@ -30,17 +30,6 @@ console.log(sourceCodeFolder);
 
 const connectionsOptionsObjects: ConnectionOptions[] = [
   {
-    name: "connection-to-db-for-prod",
-    type: process.env.DATABASE_TYPE as "mysql",
-    host: process.env.DATABASE_HOSTNAME,
-    port: parseInt(process.env.DATABASE_PORT as string),
-    username: process.env.DATABASE_USERNAME,
-    password: process.env.DATABASE_PASSWORD,
-    database: process.env.DATABASE_NAME,
-    entities: [path.join(sourceCodeFolder, "entities.*")],
-    migrations: [path.join(sourceCodeFolder, "migration", "*.ts")],
-  },
-  {
     name: "connection-to-db-for-dev",
     type: process.env.DATABASE_TYPE as "mysql",
     host: process.env.DATABASE_HOSTNAME,

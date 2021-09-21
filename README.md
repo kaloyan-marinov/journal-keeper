@@ -769,7 +769,7 @@ troubleshooting or debugging networking issues.
 ```
 
 ```
-$ export HYPHENATED_YYYY_MM_DD_HH_MM=2021-09-20-05-43
+$ export HYPHENATED_YYYY_MM_DD_HH_MM=2021-09-20-19-53
 ```
 
 ```
@@ -787,7 +787,7 @@ docker run \
    ts-node ./node_modules/typeorm/cli \
       -f ./ormconfig.ts \
       migration:run \
-      -c connection-to-db-for-prod
+      -c connection-to-db-for-dev
 ```
 
 ```
@@ -822,6 +822,11 @@ $ export PORT=3000
 
 # Secondly and optionally,
 # you may issue the requests that are documented at the end of the previous section.
+
+# Use a web browser to interact with the frontend UI.
+
+# Stop serving the backend and the frontend
+# by hitting `Ctrl+C` in each of the 2 relevant terminal windows.
 ```
 
 ```
@@ -864,6 +869,13 @@ $ export PORT=3000
 
 # Secondly and optionally,
 # you may issue the requests that are documented at the end of the previous section.
+
+# Stop running the containers with the database, the backend, and the frontend
+# by issuing:
+$ docker container rm -f \
+   container-journal-keeper-frontend \
+   container-journal-keeper-backend \
+   container-journal-keeper-mysql
 ```
 
 # Future plans
