@@ -31,10 +31,15 @@ services:
       - DATABASE_NAME=j-k-d
     command: 
       [
-        "ts-node", "./node_modules/typeorm/cli",
-        "-f", "./ormconfig.ts",
-        "migration:run",
-          "-c", "connection-to-db-for-dev"
+        "./wait-for",
+          "journal-keeper-database-server:3306",
+          "--timeout=30",  # Value found by manually trying out different ones.
+          "--",
+            "ts-node",
+              "./node_modules/typeorm/cli",
+              "-f", "./ormconfig.ts",
+              "migration:run",
+              "-c", "connection-to-db-for-dev"
       ]
   
   service-frontend:

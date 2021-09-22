@@ -891,18 +891,27 @@ $ docker container rm -f \
 
 The previous section demonstrated one way of running a containerized version of the project. That way relied on using "Vanilla Docker"...
 
-```
-$ docker-compose \
-   --file docker-compose.build-stage.yml \
-   up
-```
+1. run the `build-stage`, which will:
+   - create a Docker network
+   - start a Docker container (attached to the Docker network; representing the persistence layer, which the backend application relies on; and running the MySQL database engine, in which a new database is created [without any tables yet])
+   - create a Docker volume (responsible for persisting all contents of the database, i.e. the database schema itself and also - once the whole application stack has been started! - any records written to the database)
+   - start a Docker container (attached to the Docker network; containing the backend application; and running all database-migration scripts plus, right after that, exiting)
+   - start a Docker container (attached to the Docker network; containing the frontend application; and exiting immediately)
 
-```
-docker container rm -f \
-   journal-keeper-database-server \
-   container-journal-keeper-backend-build-stage \
-   container-journal-keeper-frontend-build-stage
-```
+   ```
+   $ docker-compose \
+      --file docker-compose.build-stage.yml \
+      up
+   ```
+
+2. at this stage, all containers except for the _database container_ should have exited; terminate the process in the terminal by first pressing `Ctrl+C` and then issuing:
+
+   ```
+   docker container rm -f \
+      journal-keeper-database-server \
+      container-journal-keeper-backend-build-stage \
+      container-journal-keeper-frontend-build-stage
+   ```
 
 # Future plans
 
