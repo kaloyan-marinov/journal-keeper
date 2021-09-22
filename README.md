@@ -905,12 +905,37 @@ The previous section demonstrated one way of running a containerized version of 
    ```
 
 2. at this stage, all containers except for the _database container_ should have exited; terminate the process in the terminal by first pressing `Ctrl+C` and then issuing:
-
    ```
-   docker container rm -f \
+   $ docker container rm -f \
       journal-keeper-database-server \
       container-journal-keeper-backend-build-stage \
       container-journal-keeper-frontend-build-stage
+   ```
+
+3. unless you wish to utilize the images built so far for local development (with hot reloading upon changes to the TypeScript source code of either the backend or of the frontend!), you can skip this step and go on to the next one; otherwise, issue the following commands:
+
+   ```
+   $ docker-compose \
+      --file docker-compose.build-stage.yml \
+      run \
+         --name container-journal-keeper-backend-build-stage \
+         --use-aliases \
+         --publish 5000:5000 \
+         -v "$(pwd)"/backend/src:/journal-keeper/backend/src \
+         service-backend \
+         nodemon \
+            --watch src \
+            --ext ts \
+            --exec "npm run serve"
+
+   # Notice that, if you make a change to the TypeScript source code of the backend,
+   # saving the changed file will trigger `nodemon` to re-run `npm run serve`
+   # (which achieves the effect of serving the changed backend).
+
+   # As a sanity check, it is recommended you should verify
+   # that you can interact with the backend.
+   # For example, launch another terminal instance
+   # and, in it, use `curl` to create 1 new user.
    ```
 
 # Future plans

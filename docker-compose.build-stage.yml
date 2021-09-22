@@ -23,6 +23,7 @@ services:
     depends_on:
       - service-mysql
     environment:
+      - SECRET_KEY=keep-this-value-known-only-to-the-deployment-machine
       - DATABASE_TYPE=mysql
       - DATABASE_HOSTNAME=journal-keeper-database-server
       - DATABASE_PORT=3306
