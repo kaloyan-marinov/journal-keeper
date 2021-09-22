@@ -960,6 +960,15 @@ The previous section demonstrated one way of running a containerized version of 
    # Use a web browser to interact with the frontend UI.
    ```
 
+4. run the `prod-stage`:
+
+   ```
+   $ docker-compose \
+      --file docker-compose.build-stage.yml \
+      --file docker-compose.prod-stage.yml \
+      up
+   ```
+
 # Future plans
 
 - modularize the backend
