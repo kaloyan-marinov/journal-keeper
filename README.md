@@ -938,6 +938,28 @@ The previous section demonstrated one way of running a containerized version of 
    # and, in it, use `curl` to create 1 new user.
    ```
 
+   ```
+   # Launch another terminal instance
+   # and, in it, issue:
+
+   $ sed \
+      's/localhost:5000/service-backend:5000/g' \
+      frontend/package.json \
+      > frontend/ignore-me.package.json
+
+   $ docker-compose \
+      --file docker-compose.build-stage.yml \
+      run \
+         --name container-journal-keeper-frontend-build-stage \
+         --publish 3000:3000 \
+         -v "$(pwd)"/frontend/ignore-me.package.json:/journal-keeper/frontend/package.json \
+         -v "$(pwd)"/frontend/src:/journal-keeper/frontend/src \
+         service-frontend \
+         npm start
+   
+   # Use a web browser to interact with the frontend UI.
+   ```
+
 # Future plans
 
 - modularize the backend
