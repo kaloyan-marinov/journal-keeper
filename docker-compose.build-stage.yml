@@ -22,6 +22,13 @@ services:
     container_name: container-journal-keeper-backend-build-stage
     depends_on:
       - service-mysql
+    environment:
+      - DATABASE_TYPE=mysql
+      - DATABASE_HOSTNAME=journal-keeper-database-server
+      - DATABASE_PORT=3306
+      - DATABASE_USERNAME=j-k-u
+      - DATABASE_PASSWORD=j-k-p
+      - DATABASE_NAME=j-k-d
     command: 
       [
         "ts-node", "./node_modules/typeorm/cli",

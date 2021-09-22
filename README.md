@@ -897,6 +897,13 @@ $ docker-compose \
    up
 ```
 
+```
+docker container rm -f \
+   journal-keeper-database-server \
+   container-journal-keeper-backend-build-stage \
+   container-journal-keeper-frontend-build-stage
+```
+
 # Future plans
 
 - modularize the backend
