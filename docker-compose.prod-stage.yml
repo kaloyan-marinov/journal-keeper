@@ -4,7 +4,7 @@ services:
   service-backend:
     build:
       target: prod-stage
-    image: image-journal-keeper-backend:prod-stage-2021-09-21-07-56
+    image: image-journal-keeper-backend:prod-stage-2021-09-23-08-54
     container_name: container-journal-keeper-backend-prod-stage
     depends_on:
       - service-mysql
@@ -27,15 +27,15 @@ services:
           "--",
             "node", "dist/server.js"
       ]
-    expose:
-      - "5000"
-    ports:
-      - "5000:5000"
+    # expose:
+    #   - "5000"
+    # ports:
+    #   - "5000:5000"
   
   service-frontend:
     build:
       target: prod-stage
-    image: image-journal-keeper-frontend:prod-stage-2021-09-21-07-56
+    image: image-journal-keeper-frontend:prod-stage-2021-09-23-08-54
     container_name: container-journal-keeper-frontend-prod-stage
     # depends_on:
     #   - service-backend

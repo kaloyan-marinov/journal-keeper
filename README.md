@@ -771,7 +771,7 @@ troubleshooting or debugging networking issues.
 ```
 
 ```
-$ export HYPHENATED_YYYY_MM_DD_HH_MM=2021-09-21-06-29
+$ export HYPHENATED_YYYY_MM_DD_HH_MM=2021-09-23-08-54
 ```
 
 ```

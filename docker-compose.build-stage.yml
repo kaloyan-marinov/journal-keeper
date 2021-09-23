@@ -18,7 +18,7 @@ services:
       context: .
       dockerfile: Dockerfile.backend
       target: build-stage
-    image: image-journal-keeper-backend:build-stage-2021-09-21-07-56
+    image: image-journal-keeper-backend:build-stage-2021-09-23-08-54
     container_name: container-journal-keeper-backend-build-stage
     depends_on:
       - service-mysql
@@ -48,7 +48,7 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
       target: build-stage
-    image: image-journal-keeper-frontend:build-stage-2021-09-21-07-56
+    image: image-journal-keeper-frontend:build-stage-2021-09-23-08-54
     container_name: container-journal-keeper-frontend-build-stage
 
 volumes:
