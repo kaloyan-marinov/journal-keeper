@@ -846,7 +846,7 @@ docker build \
 docker run \
    --name container-journal-keeper-backend \
    --network network-journal-keeper \
-   --network-alias backend-server \
+   --network-alias service-backend \
    --rm \
    --env-file backend/.env \
    --env-file backend/.env.prod-stage \
@@ -967,6 +967,11 @@ The previous section demonstrated one way of running a containerized version of 
       --file docker-compose.build-stage.yml \
       --file docker-compose.prod-stage.yml \
       up
+   
+   $ docker container rm -f \
+      journal-keeper-database-server \
+      container-journal-keeper-backend-prod-stage \
+      container-journal-keeper-frontend-prod-stage
    ```
 
 # Future plans
