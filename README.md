@@ -616,9 +616,9 @@ Next, you can log into your account and create your own journal entries therein.
     SECRET_KEY=keep-this-value-known-only-to-the-deployment-machine
 
     MYSQL_RANDOM_ROOT_PASSWORD=yes
-    MYSQL_USER=j-k-u
-    MYSQL_PASSWORD=j-k-p
-    MYSQL_DATABASE=j-k-d
+    MYSQL_USER=
+    MYSQL_PASSWORD=
+    MYSQL_DATABASE=
 
     DATABASE_TYPE=mysql
     DATABASE_HOSTNAME=journal-keeper-database-server
@@ -891,6 +891,33 @@ $ docker container rm -f \
 
 The previous section demonstrated one way of running a containerized version of the project. That way relied on using "Vanilla Docker"...
 
+- relies on two environment files (`backend/.env` an `backend/.env.prod-stage`)
+- there was duplication between the values that those files stored in environment variables
+- there was also duplication between the values that `backend/.env` alone stored in environment variables
+- requires a large number of manual steps, which is illuminating (in terms of how Docker works) but also tedious and error-prone
+
+```
+# inside the root folder of your local repository, create a `.env.docker-compose` file with the following structure:
+
+    ```
+    SECRET_KEY=
+
+    DB_ENGINE_TYPE=mysql
+    DB_ENGINE_HOSTNAME=
+    DB_ENGINE_PORT=3306
+    DB_ENGINE_DATABASE=
+    DB_ENGINE_USERNAME=
+    DB_ENGINE_PASSWORD=
+    ```
+
+    (
+    Recall that, earlier in this `README.md`,
+    it was indicated how to generate a "good secret key".
+    )
+```
+
+This section represents an improvement on the previous one by ...
+
 1. run the `build-stage`, which will:
    - create a Docker network
    - start a Docker container (attached to the Docker network; representing the persistence layer, which the backend application relies on; and running the MySQL database engine, in which a new database is created [without any tables yet])
@@ -900,6 +927,7 @@ The previous section demonstrated one way of running a containerized version of 
 
    ```
    $ docker-compose \
+      --env-file .env.docker-compose \
       --file docker-compose.build-stage.yml \
       up
    ```
@@ -907,7 +935,7 @@ The previous section demonstrated one way of running a containerized version of 
 2. at this stage, all containers except for the _database container_ should have exited; terminate the process in the terminal by first pressing `Ctrl+C` and then issuing:
    ```
    $ docker container rm -f \
-      journal-keeper-database-server \
+      container-journal-keeper-database-server \
       container-journal-keeper-backend-build-stage \
       container-journal-keeper-frontend-build-stage
    ```
@@ -916,6 +944,7 @@ The previous section demonstrated one way of running a containerized version of 
 
    ```
    $ docker-compose \
+      --env-file .env.docker-compose \
       --file docker-compose.build-stage.yml \
       run \
          --name container-journal-keeper-backend-build-stage \
@@ -948,6 +977,7 @@ The previous section demonstrated one way of running a containerized version of 
       > frontend/ignore-me.package.json
 
    $ docker-compose \
+      --env-file .env.docker-compose \
       --file docker-compose.build-stage.yml \
       run \
          --name container-journal-keeper-frontend-build-stage \
@@ -964,12 +994,13 @@ The previous section demonstrated one way of running a containerized version of 
 
    ```
    $ docker-compose \
+      --env .env.docker-compose \
       --file docker-compose.build-stage.yml \
       --file docker-compose.prod-stage.yml \
       up
    
    $ docker container rm -f \
-      journal-keeper-database-server \
+      container-journal-keeper-database-server \
       container-journal-keeper-backend-prod-stage \
       container-journal-keeper-frontend-prod-stage
    ```

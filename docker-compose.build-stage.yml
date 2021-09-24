@@ -3,15 +3,15 @@ version: "3.7"
 services:
   service-mysql:
     image: mysql:8.0.26
-    container_name: journal-keeper-database-server
+    container_name: ${DB_ENGINE_HOSTNAME:?env var cannot be unset or empty}
     volumes:
       - volume-journal-keeper-mysql:/var/lib/mysql
     restart: always
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
-      - MYSQL_USER=j-k-u
-      - MYSQL_PASSWORD=j-k-p
-      - MYSQL_DATABASE=j-k-d
+      - MYSQL_DATABASE=${DB_ENGINE_DATABASE:?env var cannot be unset or empty}
+      - MYSQL_USER=${DB_ENGINE_USERNAME:?env var cannot be unset or empty}
+      - MYSQL_PASSWORD=${DB_ENGINE_PASSWORD:?env var cannot be unset or empty}
   
   service-backend:
     build:
@@ -23,17 +23,17 @@ services:
     depends_on:
       - service-mysql
     environment:
-      - SECRET_KEY=keep-this-value-known-only-to-the-deployment-machine
-      - DATABASE_TYPE=mysql
-      - DATABASE_HOSTNAME=journal-keeper-database-server
-      - DATABASE_PORT=3306
-      - DATABASE_USERNAME=j-k-u
-      - DATABASE_PASSWORD=j-k-p
-      - DATABASE_NAME=j-k-d
+      - SECRET_KEY=${SECRET_KEY:?env var cannot be unset or empty}
+      - DATABASE_TYPE=${DB_ENGINE_TYPE:?env var cannot be unset or empty}
+      - DATABASE_HOSTNAME=${DB_ENGINE_HOSTNAME:?env var cannot be unset or empty}
+      - DATABASE_PORT=${DB_ENGINE_PORT:?env var cannot be unset or empty}
+      - DATABASE_NAME=${DB_ENGINE_DATABASE:?env var cannot be unset or empty}
+      - DATABASE_USERNAME=${DB_ENGINE_USERNAME:?env var cannot be unset or empty}
+      - DATABASE_PASSWORD=${DB_ENGINE_PASSWORD:?env var cannot be unset or empty}
     command: 
       [
         "./wait-for",
-          "journal-keeper-database-server:3306",
+          "${DB_ENGINE_HOSTNAME:?env var cannot be unset or empty}:${DB_ENGINE_PORT:?env var cannot be unset or empty}",
           "--timeout=30",  # Value found by manually trying out different ones.
           "--",
             "ts-node",

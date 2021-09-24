@@ -9,12 +9,12 @@ services:
     depends_on:
       - service-mysql
     environment:
-      - TYPEORM_CONNECTION=mysql
-      - TYPEORM_HOST=journal-keeper-database-server
-      - TYPEORM_USERNAME=j-k-u
-      - TYPEORM_PASSWORD=j-k-p
-      - TYPEORM_DATABASE=j-k-d
-      - TYPEORM_PORT=3306
+      - TYPEORM_CONNECTION=${DB_ENGINE_TYPE:?env var cannot be unset or empty}
+      - TYPEORM_HOST=${DB_ENGINE_HOSTNAME:?env var cannot be unset or empty}
+      - TYPEORM_PORT=${DB_ENGINE_PORT:?env var cannot be unset or empty}
+      - TYPEORM_DATABASE=${DB_ENGINE_DATABASE:?env var cannot be unset or empty}
+      - TYPEORM_USERNAME=${DB_ENGINE_USERNAME:?env var cannot be unset or empty}
+      - TYPEORM_PASSWORD=${DB_ENGINE_PASSWORD:?env var cannot be unset or empty}
       - TYPEORM_SYNCHRONIZE=false
       - TYPEORM_LOGGING=true
       - TYPEORM_ENTITIES=dist/entities.js
@@ -22,7 +22,7 @@ services:
     command:
       [
         "./wait-for",
-          "journal-keeper-database-server:3306",
+          "${DB_ENGINE_HOSTNAME:?env var cannot be unset or empty}:${DB_ENGINE_PORT:?env var cannot be unset or empty}",
           "--timeout=30",  # Value found by manually trying out different ones.
           "--",
             "node", "dist/server.js"
