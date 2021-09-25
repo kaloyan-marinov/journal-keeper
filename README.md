@@ -633,14 +633,15 @@ With regard to this project in particular, applying a Docker-based deployment me
 
 ---
 
-The easiest way to achieve (a) through (c) - with a particular emphasis on (c)! - is to use Docker Compose. Even though Docker Compose makes the Docker-based deployment method even more automated, it also does a few things "under the hood" that may remain unnoticed if one has a limited experience with Docker. Those things are creating a Docker network; creating a Docker volume; and attaching all running Docker containers to the Docker network.
+The easiest way to achieve (a) through (c) - with a particular emphasis on (c)! - is to use Docker Compose. Even though Docker Compose makes the Docker-based deployment method almost entirely automated, it also does a few things "under the hood" that may remain unnoticed if one's experience with Docker is limited. Those things are creating a Docker network; creating a Docker volume; and attaching all running Docker containers to the Docker network.
 
 In the hope of showing that those things are reasonably tractable, this section is going to achieve (a) through (c) without using Docker Compose at all. Instead, it is going to show the exact Docker commands, which need to be issued in order to create Docker network; create a Docker volume; build Docker images; and use the Docker images to run Docker containers attached to the created Docker network.
 
 ---
 
 ```
-# inside the `backend` subfolder of your local repository, create a `.env` file with the following structure:
+# inside the `backend` subfolder of your local repository,
+# create a `.env` file with the following structure:
 
     ```
     SECRET_KEY=keep-this-value-known-only-to-the-deployment-machine
@@ -926,12 +927,13 @@ The previous section demonstrated how to use "Vanilla Docker" (i.e. Docker witho
 - there is also duplication between the values that `backend/.env` alone stored in environment variables
 - even though it uses fewer commands than the "manual deployment method" described in the previous section, each of those commands is long and complex
 
-This section demonstrates how to use Docker Compose to run a containerized version of the project. This section's approach rectifies the inconvenient aspects of the previous section's approach (which were listed in the previous paragraph.)
+This section demonstrates how to use Docker Compose to run a containerized version of the project. This section's approach rectifies the inconvenient aspects of the previous section's approach (which were listed in the previous paragraph) and, in so doing, achieves a slightly higher degree of automation.
 
 ---
 
 ```
-# inside the root folder of your local repository, create a `.env.docker-compose` file with the following structure:
+# inside the root folder of your local repository,
+# create a `.env.docker-compose` file with the following structure:
 
     ```
     SECRET_KEY=
@@ -954,10 +956,10 @@ This section demonstrates how to use Docker Compose to run a containerized versi
 
 1. run the `build-stage`, which will:
    - create a Docker network
-   - start a Docker container (attached to the Docker network; representing the persistence layer, which the backend application relies on; and running the MySQL database engine, in which a new database is created [without any tables yet])
+   - run a Docker container (attached to the Docker network; representing the persistence layer, which the backend application relies on; and running the MySQL database engine, in which a new database is created [without any tables yet])
    - create a Docker volume (responsible for persisting all contents of the database, i.e. the database schema itself and also - once the whole application stack has been started! - any records written to the database)
-   - start a Docker container (attached to the Docker network; containing the backend application; and running all database-migration scripts plus, right after that, exiting)
-   - start a Docker container (attached to the Docker network; containing the frontend application; and exiting immediately)
+   - run a Docker container (attached to the Docker network; containing the backend application; and running all database-migration scripts plus, right after that, exiting)
+   - run a Docker container (attached to the Docker network; containing the frontend application; and exiting immediately)
 
    ```
    $ docker-compose \
@@ -966,7 +968,7 @@ This section demonstrates how to use Docker Compose to run a containerized versi
       up
    ```
 
-2. at this stage, all containers except for the _database container_ should have exited; terminate the process in the terminal by first pressing `Ctrl+C` and then issuing:
+2. at this stage, all containers except for the _database container_ should have exited; terminate the process in the terminal by first pressing `Ctrl+C`, and then issue:
    ```
    $ docker container rm -f \
       container-journal-keeper-database-server \
