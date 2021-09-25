@@ -609,6 +609,36 @@ Next, you can log into your account and create your own journal entries therein.
 
 # How to use Vanilla Docker to run a containerized version of the project
 
+Let us begin by indicating why it is worthwhile to be able to use Docker to run a containerized version of the project. The core information within this section and the next one is based on the "How to Dockerize a React + Flask Project" article by [Miguel Grinberg](https://blog.miguelgrinberg.com).
+
+For starters, it is possible to deploy the project on an Ubuntu machine by using Node.js to serve the backend sub-project and, in front of that, setting up a dedicated static file and proxy web server (Nginx). While this deployment method works, it requires a lot of manual steps. As a consequence, this manual deployment method is, at best, tedious and, at worst, error-prone.
+
+An alternative deployment method, which is almost entirely automated in nature, is made possible by Docker. In slightly more concrete terms, the Docker-based deployment method takes the manual deployment method's steps and encapsulates them in the form of a script (called a "Dockerfile"). The benefits of the Docker-based deployment method are as follows:
+- executing a single command on an Ubuntu machine gets a deployment up and running
+- it makes it possible to test locally and, once everything is working, the deployment method can be used within any environment that supports Docker, regardless of operating system or cloud platform
+
+---
+
+With regard to this project in particular, applying a Docker-based deployment method requires us:
+
+   (a) to build 3 "Docker images":
+
+   - one with the MySQL database engine
+   - one with the backend application
+   - one with the frontend application
+
+   (b) to use the built Docker images to run "Docker containers" (because the Docker containers are the actual system processes that serve the different components of the project)
+
+   (c) to orchestrate the Docker containers to run together as part of a "private (Docker) network"
+
+---
+
+The easiest way to achieve (a) through (c) - with a particular emphasis on (c)! - is to use Docker Compose. Even though Docker Compose makes the Docker-based deployment method even more automated, it also does a few things "under the hood" that may remain unnoticed if one has a limited experience with Docker. Those things are creating a Docker network; creating a Docker volume; and attaching all running Docker containers to the Docker network.
+
+In the hope of showing that those things are reasonably tractable, this section is going to achieve (a) through (c) without using Docker Compose at all. Instead, it is going to show the exact Docker commands, which need to be issued in order to create Docker network; create a Docker volume; build Docker images; and use the Docker images to run Docker containers attached to the created Docker network.
+
+---
+
 ```
 # inside the `backend` subfolder of your local repository, create a `.env` file with the following structure:
 
@@ -889,12 +919,16 @@ $ docker container rm -f \
 
 # How to use Docker Compose to run a containerized version of the project
 
-The previous section demonstrated one way of running a containerized version of the project. That way relied on using "Vanilla Docker"...
+The previous section demonstrated how to use "Vanilla Docker" (i.e. Docker without Docker Compose) to run a containerized version of the project. That approach works, but it has the following few inconvenient aspects:
 
-- relies on two environment files (`backend/.env` an `backend/.env.prod-stage`)
-- there was duplication between the values that those files stored in environment variables
-- there was also duplication between the values that `backend/.env` alone stored in environment variables
-- requires a large number of manual steps, which is illuminating (in terms of how Docker works) but also tedious and error-prone
+- it relies on not one but two environment files (`backend/.env` an `backend/.env.prod-stage`)
+- there is duplication between the values that those files stored in environment variables
+- there is also duplication between the values that `backend/.env` alone stored in environment variables
+- even though it uses fewer commands than the "manual deployment method" described in the previous section, each of those commands is long and complex
+
+This section demonstrates how to use Docker Compose to run a containerized version of the project. This section's approach rectifies the inconvenient aspects of the previous section's approach (which were listed in the previous paragraph.)
+
+---
 
 ```
 # inside the root folder of your local repository, create a `.env.docker-compose` file with the following structure:
@@ -916,7 +950,7 @@ The previous section demonstrated one way of running a containerized version of 
     )
 ```
 
-This section represents an improvement on the previous one by ...
+---
 
 1. run the `build-stage`, which will:
    - create a Docker network

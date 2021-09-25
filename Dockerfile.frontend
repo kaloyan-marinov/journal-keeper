@@ -20,8 +20,6 @@ RUN npm run build
 
 
 
-# What follows will not work yet,
-# because the file copied by the last directive copies is not yet in the repository.
 FROM nginx:stable-alpine AS prod-stage
 
 COPY --from=build-stage \
