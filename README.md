@@ -312,9 +312,27 @@ Next, you can log into your account and create your own journal entries therein.
 
       (a) without re-starting the project when changes are made
       
-        - (approach a.1): first, compile the whole project by issuing `backend $ ./node_modules/.bin/tsc`, which is going to create a `dist` subfolder containing JavaScript files (as the result result of the compilation process) as well as an `ormconfig.js` file; second, run the compiled project by issuing `backend $ NODE_ENV=production node dist/server.js`
+        - (approach a.1): directly run the whole project by issuing `backend $ ./node_modules/.bin/ts-node src/server.ts` or `backend $ npm run serve`
 
-        - (approach a.2): directly run the whole project by issuing `backend $ ./node_modules/.bin/ts-node src/server.ts` or `backend $ npm run serve`
+        - (approach a.2): first, compile the whole project by issuing
+            ```
+            backend $ ./node_modules/.bin/tsc
+            ```
+            which is going to create a `dist` subfolder containing JavaScript files (as the result of the transpilation process); second, add the following to the `backend/.env` file:
+            ```
+            TYPEORM_CONNECTION=mysql
+            TYPEORM_HOST=192.168.1.170
+            TYPEORM_PORT=3306
+            TYPEORM_USERNAME=journal-keeper-username-local
+            TYPEORM_PASSWORD=journal-keeper-password-local
+            TYPEORM_DATABASE=journal-keeper-database
+            TYPEORM_ENTITIES=dist/entities.js
+            ```
+            and third, run the transpiled project by issuing 
+            ```
+            backend $ NODE_ENV=prod node dist/server.js
+            ```
+            THIS IS IMPORTANT: BEFORE PROCEEDING, REVERT THE `backend/.env` FILE TO ITS PREVIOUS STATE (if you don't revert it, then running the backend tests will result in a failure, with the reason for the failure being that the running of the backend tests will cause the Node.js runtime to take the database-connection information required by TypeORM from the added `TYPEORM_*` environment variables instead of from `backend/ormconfig.ts`).
 
       (b) in such a way that the project is re-started whenever changes are made
 
