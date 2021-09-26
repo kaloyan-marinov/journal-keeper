@@ -5,6 +5,7 @@
   "scripts": {
     "migration:generate": "ts-node ./node_modules/typeorm/cli.js migration:generate",
     "migration:run": "ts-node ./node_modules/typeorm/cli.js migration:run",
+    "migration:revert": "ts-node ./node_modules/typeorm/cli.js migration:revert",
     "serve": "ts-node src/server.ts",
     "dev": "nodemon",
     "test": "NODE_ENV=test jest",
