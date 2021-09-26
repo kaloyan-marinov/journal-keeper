@@ -81,6 +81,7 @@ export class Entry {
   utcZoneOfTimestamp?: string;
 
   @Column({
+    type: "text",
     nullable: false,
   })
   content?: string;
