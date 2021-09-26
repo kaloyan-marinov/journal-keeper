@@ -13,7 +13,7 @@ export const SingleJournalEntry = (props: SingleJournalEntryProps) => {
       <h3>
         {moment.utc(props.timestampInUTC).format("YYYY-MM-DD HH:mm")} (UTC +00:00)
       </h3>
-      <p>{props.content}</p>
+      <p style={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}>{props.content}</p>
     </React.Fragment>
   );
 };

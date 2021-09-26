@@ -121,6 +121,8 @@ export const CreateEntry = () => {
             value={formData.content}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange(e)}
             id="content-id"
+            style={{ minWidth: "50%" }}
+            rows={formData.content.split("\n").length}
           />
         </div>
         <hr />
