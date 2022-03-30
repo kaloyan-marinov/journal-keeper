@@ -893,7 +893,7 @@ docker build \
    .
 
 docker run \
-   --name container-journal-keeper-backend \
+   --name container-journal-keeper-backend-prod-stage \
    --network network-journal-keeper \
    --network-alias service-backend \
    --rm \
@@ -912,7 +912,7 @@ docker build \
    .
 
 docker run \
-   --name container-journal-keeper-frontend \
+   --name container-journal-keeper-frontend-prod-stage \
    --network network-journal-keeper \
    --rm \
    --publish 3000:80 \

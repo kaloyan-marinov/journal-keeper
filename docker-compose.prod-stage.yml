@@ -37,7 +37,7 @@ services:
       target: prod-stage
     image: image-journal-keeper-frontend:prod-stage-2021-09-23-08-54
     container_name: container-journal-keeper-frontend-prod-stage
-    # depends_on:
-    #   - service-backend
+    depends_on:
+      - service-backend
     ports:
       - "3000:80"
