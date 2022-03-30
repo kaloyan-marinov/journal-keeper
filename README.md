@@ -32,198 +32,209 @@ Next, you can log into your account and create your own journal entries therein.
 
 # How to set up the project for local development
 
-1. clone this repository, and navigate into your local repository
+<ul>
 
-2. inside the `backend` subfolder of your local repository, create a `.env` file with the following structure:
-    ```
-    SECRET_KEY=<specify-a-good-secret-key-here>
+   <li>
+   Stage 1: clone this repository, and navigate into your local repository
+   </li>
 
-    DATABASE_TYPE=mysql
-    DATABASE_HOSTNAME=localhost
-    DATABASE_PORT=3306
-    DATABASE_USERNAME=<journal-keeper-username>
-    DATABASE_PASSWORD=<journal-keeper-password>
-    DATABASE_NAME=<journal-keeper-database>
-    ```
-    (For deployment, you should generate a "good secret key" and store that value in `SECRET_KEY` within the `.env` file; to achieve that, take a look at the "How to generate good secret keys" section on https://flask.palletsprojects.com/en/1.1.x/quickstart/ . For local development, something like `keep-this-value-known-only-to-the-deployment-machine` should suffice.)
+   <li>
+   Stage 2: inside the `backend` subfolder of your local repository, create a `.env` file with the following structure:
 
-3. create a host running MySQL Server, along with a database and a (database-)user that is granted privileges for working with that database
+   ```
+   SECRET_KEY=<specify-a-good-secret-key-here>
 
-   (a) option A (relies [on understanding the basics of and] using Docker)
+   DATABASE_TYPE=mysql
+   DATABASE_HOSTNAME=localhost
+   DATABASE_PORT=3306
+   DATABASE_USERNAME=<journal-keeper-username>
+   DATABASE_PASSWORD=<journal-keeper-password>
+   DATABASE_NAME=<journal-keeper-database>
+   ```
 
-      - inside the `backend` subfolder of your local repository, create a `.env.lone-db-container` file with the following structure:
-         ```
-         MYSQL_RANDOM_ROOT_PASSWORD=yes
-         MYSQL_USER=<provide-the-same-value-as-for-DATABASE_USERNAME-in-`backend/.env`>
-         MYSQL_PASSWORD=<provide-the-same-value-as-for-DATABASE_PASSWORD-in-`backend/.env`>
-         MYSQL_DATABASE=<provide-the-same-value-as-for-DATABASE_NAME-in-`backend/.env`>
-         ```
+   (For deployment, you should generate a "good secret key" and store that value in `SECRET_KEY` within the `.env` file; to achieve that, take a look at the "How to generate good secret keys" section on https://flask.palletsprojects.com/en/1.1.x/quickstart/ . For local development, something like `keep-this-value-known-only-to-the-deployment-machine` should suffice.)
+   </li>
 
-      - create a host running MySQL Server, along with a database and a (database-)user, by issuing:
+   <li>
+   Stage 3: create a host running MySQL Server, along with a database and a (database-)user that is granted privileges for working with that database
 
-         ```
-         docker run \
-            --name container-journal-keeper-mysql \
-            --add-host host.docker.internal:host-gateway \
-            --mount source=volume-journal-keeper-mysql,destination=/var/lib/mysql \
-            --env-file backend/.env.lone-db-container \
-            --publish 3306:3306 \
-            mysql:8.0.26 \
-            --default-authentication-plugin=mysql_native_password
-         ```
+   OPTION A (relies [on understanding the basics of and] using Docker
+
+   - inside the `backend` subfolder of your local repository, create a `.env.lone-db-container` file with the following structure:
+      ```
+      MYSQL_RANDOM_ROOT_PASSWORD=yes
+      MYSQL_USER=<provide-the-same-value-as-for-DATABASE_USERNAME-in-`backend/.env`>
+      MYSQL_PASSWORD=<provide-the-same-value-as-for-DATABASE_PASSWORD-in-`backend/.env`>
+      MYSQL_DATABASE=<provide-the-same-value-as-for-DATABASE_NAME-in-`backend/.env`>
+      ```
+
+   - create a host running MySQL Server, along with a database and a (database-)user, by issuing:
+
+      ```
+      docker run \
+         --name container-journal-keeper-mysql \
+         --add-host host.docker.internal:host-gateway \
+         --mount source=volume-journal-keeper-mysql,destination=/var/lib/mysql \
+         --env-file backend/.env.lone-db-container \
+         --publish 3306:3306 \
+         mysql:8.0.26 \
+         --default-authentication-plugin=mysql_native_password
+      ```
+   
+   - connect to the `container-journal-keeper-mysql` in interactive mode, and then log in to the MySQL Server as the created user in order to verify that (1) the new user is able to `USE` the new database as well as (2) that the new database does not contain any tables:
+   
+      ```
+      $ docker container exec \
+         -it \
+         container-journal-keeper-mysql \
+         /bin/bash
       
-      - connect to the `container-journal-keeper-mysql` in interactive mode, and then log in to the MySQL Server as the created user in order to verify that (1) the new user is able to `USE` the new database as well as (2) that the new database does not contain any tables:
-      
-         ```
-         $ docker container exec \
-            -it \
-            container-journal-keeper-mysql \
-            /bin/bash
-         
-         root@<id-of-the-container>:/# mysql -u <journal-keeper-username> -p
-         Enter password:
-         Welcome to the MySQL monitor.  Commands end with ; or \g.
-         ...
+      root@<id-of-the-container>:/# mysql -u <journal-keeper-username> -p
+      Enter password:
+      Welcome to the MySQL monitor.  Commands end with ; or \g.
+      ...
 
-         mysql> USE <journal-keeper-database>;
-         Database changed
-         mysql> SHOW TABLES;
-         Empty set (0.00 sec)
+      mysql> USE <journal-keeper-database>;
+      Database changed
+      mysql> SHOW TABLES;
+      Empty set (0.00 sec)
 
-         mysql> quit;
-         Bye
-         root@<id-of-the-container>:/# exit
-         exit
+      mysql> quit;
+      Bye
+      root@<id-of-the-container>:/# exit
+      exit
 
-         ```
+      ```
 
-   (b) option B (relies on installing MySQL server on your system, and working with that installation directly)
+   OPTION B (relies on installing MySQL server on your system, and working with that installation directly)
 
-      - download MySQL Server, install it on your system, and secure the installation (all of which can be accomplished by following the instructions given in [this article](https://linuxize.com/post/how-to-install-mysql-on-ubuntu-18-04/))
+   - download MySQL Server, install it on your system, and secure the installation (all of which can be accomplished by following the instructions given in [this article](https://linuxize.com/post/how-to-install-mysql-on-ubuntu-18-04/))
 
-      - log in to MySQL Server as the root user in order to: create a new database; create a new user and set an associated password; and grant the new user all privileges on the new database:
-         ```
-         $ sudo mysql
-         [sudo] password for <your-OS-user>
+   - log in to MySQL Server as the root user in order to: create a new database; create a new user and set an associated password; and grant the new user all privileges on the new database:
+      ```
+      $ sudo mysql
+      [sudo] password for <your-OS-user>
 
-         mysql> SHOW DATABASES;
-         +--------------------+
-         | Database           |
-         +--------------------+
-         | information_schema |
-         | mysql              |
-         | performance_schema |
-         | sys                |
-         +--------------------+
-         4 rows in set (0.01 sec)
+      mysql> SHOW DATABASES;
+      +--------------------+
+      | Database           |
+      +--------------------+
+      | information_schema |
+      | mysql              |
+      | performance_schema |
+      | sys                |
+      +--------------------+
+      4 rows in set (0.01 sec)
 
-         mysql> CREATE DATABASE IF NOT EXISTS `<journal-keeper-database>`;
-         Query OK, 1 row affected (0.04 sec)
+      mysql> CREATE DATABASE IF NOT EXISTS `<journal-keeper-database>`;
+      Query OK, 1 row affected (0.04 sec)
 
-         mysql> SHOW DATABASES;
-         +-----------------------+
-         | Database              |
-         +-----------------------+
-         | <journal-keeper-database> |
-         | information_schema    |
-         | mysql                 |
-         | performance_schema    |
-         | sys                   |
-         +-----------------------+
-         5 rows in set (0.01 sec)
-         ```
+      mysql> SHOW DATABASES;
+      +-----------------------+
+      | Database              |
+      +-----------------------+
+      | <journal-keeper-database> |
+      | information_schema    |
+      | mysql                 |
+      | performance_schema    |
+      | sys                   |
+      +-----------------------+
+      5 rows in set (0.01 sec)
+      ```
 
-         ```
-         mysql> CREATE USER IF NOT EXISTS `<journal-keeper-username>`@`localhost` IDENTIFIED BY '<journal-keeper-password>';
-         Query OK, 0 rows affected (0.03 sec)
+      ```
+      mysql> CREATE USER IF NOT EXISTS `<journal-keeper-username>`@`localhost` IDENTIFIED BY '<journal-keeper-password>';
+      Query OK, 0 rows affected (0.03 sec)
 
-         mysql> SELECT user, host, plugin FROM mysql.user;
-         +-----------------------+-----------+-----------------------+
-         | user                  | host      | plugin                |
-         +-----------------------+-----------+-----------------------+
-         | debian-sys-maint      | localhost | <omitted>             |
-         | <journal-keeper-username> | localhost | caching_sha2_password |
-         | mysql.infoschema      | localhost | <omitted>             |
-         | mysql.session         | localhost | <omitted>             |
-         | mysql.sys             | localhost | <omitted>             |
-         | root                  | localhost | auth_socket           |
-         +-----------------------+-----------+-----------------------+
-         6 rows in set (0.00 sec)
-         ```
+      mysql> SELECT user, host, plugin FROM mysql.user;
+      +-----------------------+-----------+-----------------------+
+      | user                  | host      | plugin                |
+      +-----------------------+-----------+-----------------------+
+      | debian-sys-maint      | localhost | <omitted>             |
+      | <journal-keeper-username> | localhost | caching_sha2_password |
+      | mysql.infoschema      | localhost | <omitted>             |
+      | mysql.session         | localhost | <omitted>             |
+      | mysql.sys             | localhost | <omitted>             |
+      | root                  | localhost | auth_socket           |
+      +-----------------------+-----------+-----------------------+
+      6 rows in set (0.00 sec)
+      ```
 
-         ```
-         mysql> SHOW GRANTS FOR `<journal-keeper-username>`@`localhost`;
-         +-----------------------------------------------------------+
-         | Grants for <journal-keeper-username>@localhost                |
-         +-----------------------------------------------------------+
-         | GRANT USAGE ON *.* TO `<journal-keeper-username>`@`localhost` |
-         +-----------------------------------------------------------+
-         1 row in set (0.00 sec)
+      ```
+      mysql> SHOW GRANTS FOR `<journal-keeper-username>`@`localhost`;
+      +-----------------------------------------------------------+
+      | Grants for <journal-keeper-username>@localhost                |
+      +-----------------------------------------------------------+
+      | GRANT USAGE ON *.* TO `<journal-keeper-username>`@`localhost` |
+      +-----------------------------------------------------------+
+      1 row in set (0.00 sec)
 
-         mysql> GRANT ALL PRIVILEGES ON `<journal-keeper-database>`.* TO `<journal-keeper-username>`@`localhost`;
-         Query OK, 0 rows affected (0.01 sec)
+      mysql> GRANT ALL PRIVILEGES ON `<journal-keeper-database>`.* TO `<journal-keeper-username>`@`localhost`;
+      Query OK, 0 rows affected (0.01 sec)
 
-         mysql> SHOW GRANTS FOR `<journal-keeper-username>`@`localhost`;
-         +------------------------------------------------------------------------------------------+
-         | Grants for <journal-keeper-username>@localhost                                               |
-         +------------------------------------------------------------------------------------------+
-         | GRANT USAGE ON *.* TO `<journal-keeper-username>`@`localhost`                                |
-         | GRANT ALL PRIVILEGES ON `<journal-keeper-database>`.* TO `<journal-keeper-username>`@`localhost` |
-         +------------------------------------------------------------------------------------------+
-         2 rows in set (0.00 sec)
+      mysql> SHOW GRANTS FOR `<journal-keeper-username>`@`localhost`;
+      +------------------------------------------------------------------------------------------+
+      | Grants for <journal-keeper-username>@localhost                                               |
+      +------------------------------------------------------------------------------------------+
+      | GRANT USAGE ON *.* TO `<journal-keeper-username>`@`localhost`                                |
+      | GRANT ALL PRIVILEGES ON `<journal-keeper-database>`.* TO `<journal-keeper-username>`@`localhost` |
+      +------------------------------------------------------------------------------------------+
+      2 rows in set (0.00 sec)
 
-         mysql> FLUSH PRIVILEGES;
-         Query OK, 0 rows affected (0.01 sec)
+      mysql> FLUSH PRIVILEGES;
+      Query OK, 0 rows affected (0.01 sec)
 
-         mysql> SHOW GRANTS FOR `<journal-keeper-username>`@`localhost`;
-         +------------------------------------------------------------------------------------------+
-         | Grants for <journal-keeper-username>@localhost                                               |
-         +------------------------------------------------------------------------------------------+
-         | GRANT USAGE ON *.* TO `<journal-keeper-username>`@`localhost`                                |
-         | GRANT ALL PRIVILEGES ON `<journal-keeper-database>`.* TO `<journal-keeper-username>`@`localhost` |
-         +------------------------------------------------------------------------------------------+
-         2 rows in set (0.00 sec)
+      mysql> SHOW GRANTS FOR `<journal-keeper-username>`@`localhost`;
+      +------------------------------------------------------------------------------------------+
+      | Grants for <journal-keeper-username>@localhost                                               |
+      +------------------------------------------------------------------------------------------+
+      | GRANT USAGE ON *.* TO `<journal-keeper-username>`@`localhost`                                |
+      | GRANT ALL PRIVILEGES ON `<journal-keeper-database>`.* TO `<journal-keeper-username>`@`localhost` |
+      +------------------------------------------------------------------------------------------+
+      2 rows in set (0.00 sec)
 
-         mysql> quit;
-         Bye
-         $
-         ```
+      mysql> quit;
+      Bye
+      $
+      ```
 
-      - log in to the MySQL Server as the created user in order to verify that (1) the new user is able to `USE` the new database as well as (2) that the new database does not contain any tables:
-         ```
-         $ mysql -u <journal-keeper-username> -p
-         Enter password:
-         Welcome to the MySQL monitor.  Commands end with ; or \g.
-         Your MySQL connection id is 11
-         Server version: 8.0.23-0ubuntu0.20.04.1 (Ubuntu)
+   - log in to the MySQL Server as the created user in order to verify that (1) the new user is able to `USE` the new database as well as (2) that the new database does not contain any tables:
+      ```
+      $ mysql -u <journal-keeper-username> -p
+      Enter password:
+      Welcome to the MySQL monitor.  Commands end with ; or \g.
+      Your MySQL connection id is 11
+      Server version: 8.0.23-0ubuntu0.20.04.1 (Ubuntu)
 
-         Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+      Copyright (c) 2000, 2021, Oracle and/or its affiliates.
 
-         Oracle is a registered trademark of Oracle Corporation and/or its
-         affiliates. Other names may be trademarks of their respective
-         owners.
+      Oracle is a registered trademark of Oracle Corporation and/or its
+      affiliates. Other names may be trademarks of their respective
+      owners.
 
-         Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+      Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
-         mysql> SHOW DATABASES;
-         +-----------------------+
-         | Database              |
-         +-----------------------+
-         | <journal-keeper-database> |
-         | information_schema    |
-         +-----------------------+
-         2 rows in set (0.00 sec)
+      mysql> SHOW DATABASES;
+      +-----------------------+
+      | Database              |
+      +-----------------------+
+      | <journal-keeper-database> |
+      | information_schema    |
+      +-----------------------+
+      2 rows in set (0.00 sec)
 
-         mysql> USE <journal-keeper-database>;
-         Database changed
-         mysql> SHOW TABLES;
-         Empty set (0.00 sec)
+      mysql> USE <journal-keeper-database>;
+      Database changed
+      mysql> SHOW TABLES;
+      Empty set (0.00 sec)
 
-         mysql> quit;
-         Bye
-         ```
+      mysql> quit;
+      Bye
+      ```
+   </li>
 
-4. set up the backend
+   <li>
+   Stage 4: set up the backend
 
    - install the Node.js dependencies:
       ```
@@ -272,7 +283,7 @@ Next, you can log into your account and create your own journal entries therein.
          -c connection-to-db-for-dev
       ```
 
-   - verify that the previous step was successful - if you performed Stage 3 by following its option B, you can verify that the previous step was successful by issuing `$ mysql -u <journal-keeper-username> -p` and then issuing:
+   - verify that the previous step was successful - if you performed Stage 3 by following its OPTION B, you can verify that the previous step was successful by issuing `$ mysql -u <journal-keeper-username> -p` and then issuing:
       ```
       mysql> SHOW DATABASES;
       +-------------------------+
@@ -340,8 +351,10 @@ Next, you can log into your account and create your own journal entries therein.
       mysql> SELECT * FROM entries;
       Empty set (0.00 sec)
       ```
+   </li>
 
-5. set up the frontend
+   <li>
+   Step 5: set up the frontend
 
    - install the Node.js dependencies:
       ```
@@ -357,8 +370,10 @@ Next, you can log into your account and create your own journal entries therein.
       which will create a `coverage` subfolder with a report of test coverage; to view that report, open `coverage/lcov-report/index.html` in your web browser
 
       (to run the tests in watch mode, issue any one of the following: `frontend $ npm test -- --coverage --watchAll`; each re-run of which will update the contents of the `coverage` subfolder)
+   </li>
 
-6. start serving the backend application and the frontend application
+   <li>
+   Step 6: start serving the backend application and the frontend application
 
    - launch a terminal instance and, in it, start a process responsible for serving the backend application instance; the ways of starting such a process can be broken down into the following categories:
 
@@ -676,6 +691,8 @@ Next, you can log into your account and create your own journal entries therein.
       frontend $ npm start
       ```
       and a tab in your operating system's default web browser should open up and load the address localhost:3000/
+   </li>
+</ul>
 
 # How to use Vanilla Docker to run a containerized version of the project
 
