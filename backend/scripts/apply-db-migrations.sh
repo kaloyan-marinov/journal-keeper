@@ -4,10 +4,10 @@ set -x
 
 # step 1
 . "./scripts/connect-to-db.sh"
-echo "waiting for the database to initialize"
+echo "$(date +'%Y-%m-%d, %H:%M:%S') - waiting for the database to initialize"
 connect_to_db
 
 # step 2
-echo "running database-migration scripts against the ${DATABASE_NAME} database"
+echo "$(date +'%Y-%m-%d, %H:%M:%S') - running database-migration scripts against the ${DATABASE_NAME} database"
 npm run migration:run -- \
     -c connection-to-db-for-dev

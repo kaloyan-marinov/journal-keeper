@@ -1121,10 +1121,7 @@ This section demonstrates how to use Docker Compose to run a containerized versi
       --file docker-compose.prod-stage.yml \
       up
    
-   $ docker container rm -f \
-      container-journal-keeper-database-server \
-      container-journal-keeper-backend-prod-stage \
-      container-journal-keeper-frontend-prod-stage
+   $ ./clean-docker-artifacts.sh
    ```
 
 # Future plans
