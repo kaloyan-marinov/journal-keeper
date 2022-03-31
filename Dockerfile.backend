@@ -1,21 +1,16 @@
+# [build-stage]: transpile the TypeScript files into JavaScript
 FROM node:14 AS build-stage
 
 WORKDIR /journal-keeper/backend
 
 ENV PATH /journal-keeper/backend/node_modules/.bin:$PATH
 
-# While Compose always starts and stops containers in "dependency order",
-# it does not wait until a container is "ready".
-# Work around the problem by means of the following wrapper script:
-RUN wget https://github.com/eficode/wait-for/releases/download/v2.1.3/wait-for
-RUN chmod +x wait-for
-# Make sure netcat is installed in your Dockerfile before running the command
-# if you test over plain TCP.
+# Install app dependencies.
 RUN apt-get -q update \
- && apt-get -qy install netcat
+ && apt-get install -qy mysql-client
 
-# Install Node.js dependencies.
 COPY backend/package.json ./
+COPY backend/package-lock.json ./
 RUN npm install
 
 # Copy files, which are needed for running the database migration scripts
@@ -26,27 +21,29 @@ COPY backend/ormconfig.ts ./
 RUN mkdir src
 COPY backend/src ./src/
 
+COPY backend/scripts ./scripts
+RUN chmod u+x ./scripts/*.sh
+
 RUN npm run build
 
-
-
+# [prod-stage]: collect everything needed to run the backend application
 FROM node:14 AS prod-stage
 
 WORKDIR /journal-keeper/backend
 
-# While Compose always starts and stops containers in "dependency order",
-# it does not wait until a container is "ready".
-# Work around the problem by means of the following wrapper script:
-RUN wget https://github.com/eficode/wait-for/releases/download/v2.1.3/wait-for
-RUN chmod +x wait-for
-# Make sure netcat is installed in your Dockerfile before running the command
-# if you test over plain TCP.
 RUN apt-get -q update \
- && apt-get -qy install netcat
+ && apt-get install -qy mysql-client
 
 COPY --from=build-stage \
-    /journal-keeper/backend/wait-for \
+    /journal-keeper/backend/package.json \
     /journal-keeper/backend/
+
+COPY --from=build-stage \
+    /journal-keeper/backend/scripts/connect-to-db.sh \
+    /journal-keeper/backend/scripts/
+COPY --from=build-stage \
+    /journal-keeper/backend/scripts/wait-migrate-serve.sh \
+    /journal-keeper/backend/scripts/
 
 RUN mkdir node_modules
 COPY --from=build-stage \

@@ -6,6 +6,7 @@ services:
     container_name: ${DB_ENGINE_HOSTNAME:?env var cannot be unset or empty}
     volumes:
       - volume-journal-keeper-mysql:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
     restart: always
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
@@ -31,17 +32,7 @@ services:
       - DATABASE_USERNAME=${DB_ENGINE_USERNAME:?env var cannot be unset or empty}
       - DATABASE_PASSWORD=${DB_ENGINE_PASSWORD:?env var cannot be unset or empty}
     command: 
-      [
-        "./wait-for",
-          "${DB_ENGINE_HOSTNAME:?env var cannot be unset or empty}:${DB_ENGINE_PORT:?env var cannot be unset or empty}",
-          "--timeout=30",  # Value found by manually trying out different ones.
-          "--",
-            "ts-node",
-              "./node_modules/typeorm/cli",
-              "-f", "./ormconfig.ts",
-              "migration:run",
-              "-c", "connection-to-db-for-dev"
-      ]
+      ["./scripts/apply-db-migrations.sh"]
   
   service-frontend:
     build:

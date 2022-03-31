@@ -997,12 +997,11 @@ $ export PORT=3000
 
 # Use a web browser to interact with the frontend UI.
 
-# Stop running the containers with the database, the backend, and the frontend
+# Stop running all containers,
+# remove the created Docker volume,
+# and remove the created Docker network
 # by issuing:
-$ docker container rm -f \
-   container-journal-keeper-frontend \
-   container-journal-keeper-backend \
-   container-journal-keeper-mysql
+$ ./clean-docker-artifacts.sh
 ```
 
 # How to use Docker Compose to run a containerized version of the project
