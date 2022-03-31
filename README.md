@@ -1112,6 +1112,13 @@ This section demonstrates how to use Docker Compose to run a containerized versi
    # Use a web browser to interact with the frontend UI.
    ```
 
+   ```
+   docker container rm -f \
+      container-journal-keeper-database-server \
+      container-journal-keeper-backend-build-stage \
+      container-journal-keeper-frontend-build-stage
+   ```
+
 4. run the `prod-stage`:
 
    ```
