@@ -5,12 +5,13 @@ import { ThunkDispatch } from "redux-thunk";
 import { v4 as uuidv4 } from "uuid";
 import moment from "moment";
 
-import { IEntry, IState } from "../../types";
+import { IEntry, IPaginationLinks, IState } from "../../types";
 import { offsetsFromUtc } from "../../utilities";
-import { selectEntriesEntities, signOut } from "../../store";
+import { selectEntriesEntities, selectEntriesLinks, signOut } from "../../store";
 import { ActionAlerts, alertsCreate } from "../alerts/alertsSlice";
-import { ActionEditEntry, editEntry } from "./entriesSlice";
+import { ActionEditEntry, editEntry, fetchEntries } from "./entriesSlice";
 import { SingleJournalEntry } from "./SingleJournalEntry";
+import { URL_FOR_FIRST_PAGE_OF_EXAMPLES } from "../../constants";
 
 export const EditEntry = () => {
   console.log(
@@ -31,6 +32,10 @@ export const EditEntry = () => {
   const entry: IEntry = useSelector(selectEntriesEntities)[entryId];
   console.log("    entry:");
   console.log(`    ${JSON.stringify(entry)}`);
+
+  const entriesLinks: IPaginationLinks = useSelector(selectEntriesLinks);
+  console.log("    entriesLinks:");
+  console.log(`    ${JSON.stringify(entriesLinks)}`);
 
   const dispatch: ThunkDispatch<IState, unknown, ActionEditEntry | ActionAlerts> =
     useDispatch();
@@ -72,7 +77,31 @@ export const EditEntry = () => {
           editEntry(entryId, formData.localTime, formData.timezone, formData.content)
         );
         dispatch(alertsCreate(id, "ENTRY EDITING SUCCESSFUL"));
-        history.push("/journal-entries");
+
+        if (entriesLinks.self !== null) {
+          await dispatch(fetchEntries(entriesLinks.self));
+        } else {
+          /*
+          It _should_ be impossible for this block of code to ever be executed.
+
+          Why?
+
+          Because this component may only be rendered
+          after the user's browser has loaded the /journal-entries URL,
+          which causes React
+          to first render <JournalEntries>
+          and to then run its effect function.
+          */
+          await dispatch(fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES));
+        }
+
+        const locationDescriptor = {
+          pathname: "/journal-entries",
+          state: {
+            fromEditEntry: true,
+          },
+        };
+        history.push(locationDescriptor);
       } catch (err) {
         if (err.response.status === 401) {
           dispatch(signOut("[FROM <EditEntry>'S handleSubmit] PLEASE SIGN BACK IN"));
