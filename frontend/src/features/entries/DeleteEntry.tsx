@@ -4,11 +4,12 @@ import { useHistory, useParams } from "react-router-dom";
 import { ThunkDispatch } from "redux-thunk";
 import { v4 as uuidv4 } from "uuid";
 
-import { IEntry, IState } from "../../types";
-import { selectEntriesEntities, signOut } from "../../store";
+import { IEntry, IPaginationLinks, IState } from "../../types";
+import { selectEntriesEntities, selectEntriesLinks, signOut } from "../../store";
 import { ActionAlerts, alertsCreate } from "../alerts/alertsSlice";
-import { ActionDeleteEntry, deleteEntry } from "./entriesSlice";
+import { ActionDeleteEntry, deleteEntry, fetchEntries } from "./entriesSlice";
 import { SingleJournalEntry } from "./SingleJournalEntry";
+import { URL_FOR_FIRST_PAGE_OF_EXAMPLES } from "../../constants";
 
 export const DeleteEntry = () => {
   console.log(
@@ -29,6 +30,8 @@ export const DeleteEntry = () => {
   console.log("    entry:");
   console.log(`    ${JSON.stringify(entry)}`);
 
+  const entriesLinks: IPaginationLinks = useSelector(selectEntriesLinks);
+
   const dispatch: ThunkDispatch<IState, unknown, ActionDeleteEntry | ActionAlerts> =
     useDispatch();
 
@@ -41,16 +44,36 @@ export const DeleteEntry = () => {
         "    <DeleteEntry> - handleClickYes - await dispatch(deleteEntry(entryId))"
       );
       await dispatch(deleteEntry(entryId));
-
       console.log(
         `    <DeleteEntry> - handleClickYes - dispatch(alertsCreate(id, "ENTRY DELETION SUCCESSFUL"));`
       );
       dispatch(alertsCreate(id, "ENTRY DELETION SUCCESSFUL"));
 
+      if (entriesLinks.self !== null) {
+        await dispatch(fetchEntries(entriesLinks.self));
+      } else {
+        /*
+        It _should_ be impossible for this block of code to ever be executed.
+
+        Why?
+
+        For the same reason as in the analogous block within <SingleExample>.
+        */
+        dispatch(fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES));
+      }
+
+      const locationDescriptor = {
+        pathname: "/journal-entries",
+        state: {
+          fromDeleteEntry: true,
+        },
+      };
       console.log(
-        `    <DeleteEntry> - handleClickYes - history.push("/journal-entries");`
+        `    <DeleteEntry> - handleClickYes - history.push(${JSON.stringify(
+          locationDescriptor
+        )});`
       );
-      history.push("/journal-entries");
+      history.push(locationDescriptor);
     } catch (err) {
       if (err.response.status === 401) {
         dispatch(signOut("[FROM <DeleteEntry>'S handleClickYes] PLEASE SIGN BACK IN"));
@@ -63,8 +86,19 @@ export const DeleteEntry = () => {
     }
   };
 
-  const handleClickNo = (e: React.MouseEvent<HTMLButtonElement>) => {
-    return history.push("/journal-entries");
+  const handleClickNo = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    const locationDescriptor = {
+      pathname: "/journal-entries",
+      state: {
+        fromDeleteEntry: true,
+      },
+    };
+    console.log(
+      `    <DeleteEntry> - handleClickYes - history.push(${JSON.stringify(
+        locationDescriptor
+      )});`
+    );
+    history.push(locationDescriptor);
   };
 
   let content;
