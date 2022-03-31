@@ -354,7 +354,7 @@ Next, you can log into your account and create your own journal entries therein.
    </li>
 
    <li>
-   Step 5: set up the frontend
+   Stage 5: set up the frontend
 
    - install the Node.js dependencies:
       ```
@@ -373,7 +373,7 @@ Next, you can log into your account and create your own journal entries therein.
    </li>
 
    <li>
-   Step 6: start serving the backend application and the frontend application
+   Stage 6: start serving the backend application and the frontend application
 
    - launch a terminal instance and, in it, start a process responsible for serving the backend application instance; the ways of starting such a process can be broken down into the following categories:
 
@@ -972,7 +972,7 @@ docker run \
    --publish 5000:5000 \
    --detach \
    image-journal-keeper-backend:prod-stage-${HYPHENATED_YYYY_MM_DD_HH_MM} \
-   node dist/server.js
+   scripts/wait-migrate-serve.sh
 
 docker build \
    --file Dockerfile.frontend \
