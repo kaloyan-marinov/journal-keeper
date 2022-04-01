@@ -182,7 +182,42 @@ const mockCreateEntry = (
   res: ResponseComposition<any>,
   ctx: RestContext
 ) => {
-  return res.once(ctx.status(201), ctx.json(MOCK_ENTRY_10));
+  console.log();
+  console.log("req.body");
+  console.log(req.body);
+
+  /*
+  TODO: determine what type annotations need to be added to `req`
+        so that TypeScript will not issue warnings about the following statements
+  */
+  const localTime = req.body.localTime; // ex: "2021-05-13 00:18"
+  const timezone = req.body.timezone; // ex: "-08:00"
+  const content = req.body.content; // ex: "some insightful content"
+
+  const createdAt: string = new Date().toISOString();
+
+  const newIndex = 666;
+  const timestampInUTC = new Date(localTime + "Z" + timezone).toISOString();
+
+  const newEntry: IEntry = {
+    id: newIndex,
+    timestampInUTC,
+    utcZoneOfTimestamp: timezone,
+    content: req.body.content,
+    createdAt,
+    updatedAt: createdAt,
+    userId: 1,
+  };
+
+  console.log();
+  console.log("newEntry");
+  console.log(newEntry);
+
+  MOCK_ENTRIES = [...MOCK_ENTRIES, newEntry];
+
+  console.log(MOCK_ENTRIES);
+
+  return res.once(ctx.status(201), ctx.json(newEntry));
 };
 
 const mockEditEntry = (
@@ -210,16 +245,8 @@ const mockDeleteEntry = (
   ctx: RestContext
 ) => {
   const entryId: number = parseInt(req.params.id);
-  console.log("entryId");
-  console.log(entryId);
-  console.log("typeof entryId");
-  console.log(typeof entryId);
 
   MOCK_ENTRIES = MOCK_ENTRIES.filter((entry: IEntry) => entry.id !== entryId);
-
-  console.log();
-  console.log("MOCK_ENTRIES");
-  console.log(MOCK_ENTRIES);
 
   return res.once(ctx.status(204));
 };

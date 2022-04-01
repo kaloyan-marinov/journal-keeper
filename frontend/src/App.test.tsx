@@ -330,6 +330,87 @@ describe("workflows that involve little more than signing in", () => {
   );
 });
 
+describe("workflows that involve signing in and creating a new Entry", () => {
+  beforeEach(() => {
+    initState = {
+      ...INITIAL_STATE,
+    };
+  });
+
+  test.only(
+    "the user fills out the form and submits it," +
+      " and the backend is _mocked_ to respond that" +
+      " the form submission was accepted as valid and processed",
+    async () => {
+      // Arrange.
+      const realStore = createStore(rootReducer, initState, enhancer);
+
+      requestInterceptionLayer.use(
+        rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
+
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+
+        rest.post("/api/entries", requestHandlers.mockCreateEntry),
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+
+        rest.get("/api/entries", requestHandlers.mockFetchEntries)
+      );
+
+      render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <App />
+          </Router>
+        </Provider>
+      );
+
+      const greeting: HTMLElement = await screen.findByText("Hello, mocked-John Doe!");
+      expect(greeting).toBeInTheDocument();
+
+      const journalEntriesAnchor: HTMLElement = await screen.findByText(
+        "JournalEntries"
+      );
+      fireEvent.click(journalEntriesAnchor);
+
+      const createNewEntryAnchor = await screen.findByText("Create a new entry");
+      fireEvent.click(createNewEntryAnchor);
+
+      // Act.
+      const [localTimeInput, contentTextArea] = screen.getAllByRole("textbox");
+      const timezoneSelect = screen.getByRole("combobox");
+
+      fireEvent.change(localTimeInput, { target: { value: "2021-05-13 00:18" } });
+      fireEvent.change(timezoneSelect, { target: { value: "-08:00" } });
+      fireEvent.change(contentTextArea, {
+        target: { value: "some insightful content" },
+      });
+
+      const button: HTMLElement = screen.getByRole("button", {
+        name: "Create entry",
+      });
+      fireEvent.click(button);
+
+      // Assert.
+      const creationSuccessAlert: HTMLElement = await screen.findByText(
+        "ENTRY CREATION SUCCESSFUL"
+      );
+      expect(creationSuccessAlert).toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(history.location.pathname).toEqual("/journal-entries");
+      });
+
+      const currentPageElement: HTMLElement = await screen.findByText(
+        "Current page: 6"
+      );
+      expect(currentPageElement).toBeInTheDocument();
+
+      const newEntryContent: HTMLElement = screen.getByText("some insightful content");
+      expect(newEntryContent).toBeInTheDocument();
+    }
+  );
+});
+
 describe("workflows that involve signing in and deleting an Entry", () => {
   beforeEach(() => {
     initState = {
@@ -338,15 +419,13 @@ describe("workflows that involve signing in and deleting an Entry", () => {
   });
 
   test(
-    "the user clicks on the 'Yes' button," +
-      " and the backend is _mocked_ to respond that" +
-      " the DELETE request was accepted as valid and processed",
+    "the user deletes an Entry from the first page of results," +
+      " which are displayed at /journal-entries",
     async () => {
       // Arrange.
       const realStore = createStore(rootReducer, initState, enhancer);
 
       requestInterceptionLayer.use(
-        // rest.post("/api/tokens", requestHandlers.mockIssueJWSToken),
         rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
 
         rest.get("/api/entries", requestHandlers.mockFetchEntries),
@@ -365,42 +444,14 @@ describe("workflows that involve signing in and deleting an Entry", () => {
         </Provider>
       );
 
-      // const alert: HTMLElement = await screen.findByText("TO CONTINUE, PLEASE SIGN IN");
-      // expect(alert).toBeInTheDocument();
-
-      // const signInAnchor: HTMLElement = await screen.findByText("Sign In");
-      // fireEvent.click(signInAnchor);
-
-      // const emailInput = screen.getByPlaceholderText("Enter your email...");
-      // const passwordInput = screen.getByPlaceholderText("Enter your password...");
-
-      // fireEvent.change(emailInput, { target: { value: "[f-e] jd" } });
-      // fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
-
-      // console.log();
-      // console.log("realStore.getState()");
-      // console.log(realStore.getState());
-
-      // const buttonSignMeIn: HTMLElement = screen.getByRole("button", {
-      //   name: "Sign me in",
-      // });
-      // fireEvent.click(buttonSignMeIn);
-
       const greeting: HTMLElement = await screen.findByText("Hello, mocked-John Doe!");
       expect(greeting).toBeInTheDocument();
-      // const signOutAnchor: HTMLElement = await screen.findByText("Sign Out");
-      // expect(signOutAnchor).toBeInTheDocument();
-
-      console.log();
-      console.log("realStore.getState()");
-      console.log(realStore.getState());
 
       const journalEntriesAnchor: HTMLElement = await screen.findByText(
         "JournalEntries"
       );
       fireEvent.click(journalEntriesAnchor);
 
-      // const tbd: HTMLElement = await screen.findByText("mocked-content-of-entry-");
       const currentPageElement = await screen.findByText("Current page: 1");
       expect(currentPageElement).toBeInTheDocument();
 
@@ -436,16 +487,12 @@ describe("workflows that involve signing in and deleting an Entry", () => {
       const yesButton: HTMLElement = screen.getByRole("button", { name: "Yes" });
       fireEvent.click(yesButton);
 
+      // Assert.
       const deletionSuccessAlert: HTMLElement = await screen.findByText(
         "ENTRY DELETION SUCCESSFUL"
       );
       expect(deletionSuccessAlert).toBeInTheDocument();
 
-      // const remainingEntriesContents = JSON.parse(
-      //   JSON.stringify(
-      //     initialEntriesContents.slice(0, initialEntriesContents.length - 1)
-      //   )
-      // );
       const remainingEntriesContents = initialEntriesContents.slice(
         0,
         initialEntriesContents.length - 1
@@ -460,8 +507,6 @@ describe("workflows that involve signing in and deleting an Entry", () => {
           screen.getByText(remainingEntryContent);
         expect(remainingEntryElement).toBeInTheDocument();
       }
-
-      // Assert.
     }
   );
 });
