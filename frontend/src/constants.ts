@@ -35,7 +35,7 @@ export const INITIAL_STATE_ENTRIES: IStateEntries = {
   entities: {},
 };
 
-export const PER_PAGE_DEFAULT: number = 3;
+export const PER_PAGE_DEFAULT: number = 10;
 
 export const PAGE_DEFAULT: number = 1;
 

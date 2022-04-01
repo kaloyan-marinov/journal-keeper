@@ -11,7 +11,7 @@ export const buildLinkWithPaginationParams = (
   return changedUrl.pathname + changedUrl.search;
 };
 
-const PER_PAGE_DEFAULT: number = 3;
+const PER_PAGE_DEFAULT: number = 10;
 const PER_PAGE_MAX: number = 100;
 
 const PAGE_DEFAULT: number = 1;
