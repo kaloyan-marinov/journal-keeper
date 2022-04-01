@@ -90,91 +90,46 @@ test("initial render (i.e. before/without any user interaction)", async () => {
   expect(element).toBeInTheDocument();
 });
 
-test("render after the user has signed in", async () => {
-  // Arrange.
-  requestInterceptionLayer.use(
-    rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
-  );
-
-  const realStore = createStore(rootReducer, initState, enhancer);
-
-  // Act.
-  render(
-    <Provider store={realStore}>
-      <Router history={history}>
-        <App />
-      </Router>
-    </Provider>
-  );
-
-  // Assert.
-  let element: HTMLElement;
-
-  element = await screen.findByText("Hello, mocked-John Doe!");
-  expect(element).toBeInTheDocument();
-
-  element = screen.getByText("Sign Out");
-  expect(element).toBeInTheDocument();
-  element = screen.getByText("JournalEntries");
-  expect(element).toBeInTheDocument();
-  element = screen.getByText("Home");
-  expect(element).toBeInTheDocument();
-});
-
-test("after the user has signed in, the user clicks on 'Sign Out'", async () => {
-  // Arrange.
-  requestInterceptionLayer.use(
-    rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
-  );
-
-  const realStore = createStore(rootReducer, initState, enhancer);
-
-  render(
-    <Provider store={realStore}>
-      <Router history={history}>
-        <App />
-      </Router>
-    </Provider>
-  );
-
-  // Act.
-  const signOutAnchor: HTMLElement = await screen.findByText("Sign Out");
-  fireEvent.click(signOutAnchor);
-
-  // Assert.
-  let element: HTMLElement;
-
-  element = await screen.findByText("SIGN-OUT SUCCESSFUL");
-  expect(element).toBeInTheDocument();
-
-  element = screen.getByText("Welcome to JournalKeeper!");
-  expect(element).toBeInTheDocument();
-
-  element = screen.getByText("Home");
-  expect(element).toBeInTheDocument();
-  element = screen.getByText("Sign In");
-  expect(element).toBeInTheDocument();
-  element = screen.getByText("Sign Up");
-  expect(element).toBeInTheDocument();
-});
-
-test(
-  "after the user has signed in, the user clicks on 'Sign Out'" +
-    " - that should update the `localStorage` correctly",
-  async () => {
+describe("workflows that involve little more than signing in", () => {
+  test("render after the user has signed in", async () => {
     // Arrange.
     requestInterceptionLayer.use(
       rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
     );
 
-    localStorage.setItem(JOURNAL_APP_TOKEN, "a-jws-token-issued-by-the-backend");
-    // Strictly speaking, the setup logic for this test case renders
-    // the next two statements unnecessary-to-have,
-    // but including them is of some instructive value.
-    initState.auth.token = localStorage.getItem(JOURNAL_APP_TOKEN);
-    initState.auth.hasValidToken = true;
+    const realStore = createStore(rootReducer, initState, enhancer);
+
+    // Act.
+    render(
+      <Provider store={realStore}>
+        <Router history={history}>
+          <App />
+        </Router>
+      </Provider>
+    );
+
+    // Assert.
+    let element: HTMLElement;
+
+    element = await screen.findByText("Hello, mocked-John Doe!");
+    expect(element).toBeInTheDocument();
+
+    element = screen.getByText("Sign Out");
+    expect(element).toBeInTheDocument();
+    element = screen.getByText("JournalEntries");
+    expect(element).toBeInTheDocument();
+    element = screen.getByText("Home");
+    expect(element).toBeInTheDocument();
+  });
+
+  test("after the user has signed in, the user clicks on 'Sign Out'", async () => {
+    // Arrange.
+    requestInterceptionLayer.use(
+      rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
+    );
 
     const realStore = createStore(rootReducer, initState, enhancer);
+
     render(
       <Provider store={realStore}>
         <Router history={history}>
@@ -188,39 +143,12 @@ test(
     fireEvent.click(signOutAnchor);
 
     // Assert.
-    expect(localStorage.getItem(JOURNAL_APP_TOKEN)).toEqual(null);
-  }
-);
-
-test(
-  "if a user hasn't signed in" +
-    " but manually saves a token in their web-browser's `localStorage`," +
-    " the frontend application should display only the following navigation links:" +
-    " 'Home', 'Sign In', 'Sign Up'",
-  async () => {
-    // Arrange.
-
-    // Strictly speaking, the setup logic for this test case renders
-    // the next two statements unnecessary-to-have,
-    // but including them is of some instructive value.
-    localStorage.setItem(JOURNAL_APP_TOKEN, "a-jws-token-NOT-issued-by-the-backend");
-    initState.auth.token = localStorage.getItem(JOURNAL_APP_TOKEN);
-
-    const realStore = createStore(rootReducer, initState, enhancer);
-
-    // Act.
-    render(
-      <Provider store={realStore}>
-        <Router history={history}>
-          <App />
-        </Router>
-      </Provider>
-    );
-
-    // Assert.
     let element: HTMLElement;
 
-    element = await screen.findByText("TO CONTINUE, PLEASE SIGN IN");
+    element = await screen.findByText("SIGN-OUT SUCCESSFUL");
+    expect(element).toBeInTheDocument();
+
+    element = screen.getByText("Welcome to JournalKeeper!");
     expect(element).toBeInTheDocument();
 
     element = screen.getByText("Home");
@@ -229,99 +157,311 @@ test(
     expect(element).toBeInTheDocument();
     element = screen.getByText("Sign Up");
     expect(element).toBeInTheDocument();
-  }
-);
+  });
 
-xtest(
-  "if a user signs in" +
-    " and goes on to manually change the URL in her browser's address bar" +
-    " to /journal-entries ," +
-    " the frontend application should redirect to / (but keep the user signed in)",
-  async () => {
-    // Arrange.
-    requestInterceptionLayer.use(
-      rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
+  test(
+    "after the user has signed in, the user clicks on 'Sign Out'" +
+      " - that should update the `localStorage` correctly",
+    async () => {
+      // Arrange.
+      requestInterceptionLayer.use(
+        rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
+      );
 
-      rest.get("/api/entries", requestHandlers.mockFetchEntries),
-      rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
-    );
+      localStorage.setItem(JOURNAL_APP_TOKEN, "a-jws-token-issued-by-the-backend");
+      // Strictly speaking, the setup logic for this test case renders
+      // the next two statements unnecessary-to-have,
+      // but including them is of some instructive value.
+      initState.auth.token = localStorage.getItem(JOURNAL_APP_TOKEN);
+      initState.auth.hasValidToken = true;
 
-    const realStore = createStore(rootReducer, initState, enhancer);
+      const realStore = createStore(rootReducer, initState, enhancer);
+      render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <App />
+          </Router>
+        </Provider>
+      );
 
-    // Act:
+      // Act.
+      const signOutAnchor: HTMLElement = await screen.findByText("Sign Out");
+      fireEvent.click(signOutAnchor);
 
-    // - navigate to the root URL, and mount the application's entire React tree
-    history.push("/");
+      // Assert.
+      expect(localStorage.getItem(JOURNAL_APP_TOKEN)).toEqual(null);
+    }
+  );
 
-    const { getByText: getByTextFromRootURL } = render(
-      <Provider store={realStore}>
-        <Router history={history}>
-          <App />
-        </Router>
-      </Provider>
-    );
+  test(
+    "if a user hasn't signed in" +
+      " but manually saves a token in their web-browser's `localStorage`," +
+      " the frontend application should display only the following navigation links:" +
+      " 'Home', 'Sign In', 'Sign Up'",
+    async () => {
+      // Arrange.
 
-    let element: HTMLElement;
+      // Strictly speaking, the setup logic for this test case renders
+      // the next two statements unnecessary-to-have,
+      // but including them is of some instructive value.
+      localStorage.setItem(JOURNAL_APP_TOKEN, "a-jws-token-NOT-issued-by-the-backend");
+      initState.auth.token = localStorage.getItem(JOURNAL_APP_TOKEN);
 
-    element = await screen.findByText("Hello, mocked-John Doe!");
-    expect(element).toBeInTheDocument();
+      const realStore = createStore(rootReducer, initState, enhancer);
 
-    // - unamount React trees that were mounted with render
-    cleanup();
+      // Act.
+      render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <App />
+          </Router>
+        </Provider>
+      );
 
-    // - navigate to the /journal-entries URL,
-    //   and mount the application's entire React tree
-    console.log("[the test case is]");
-    console.log("navigating to the /journal-entries URL");
-    console.log("and mounting the application's entire React tree");
+      // Assert.
+      let element: HTMLElement;
 
-    history.push("/journal-entries");
+      element = await screen.findByText("TO CONTINUE, PLEASE SIGN IN");
+      expect(element).toBeInTheDocument();
 
-    render(
-      <Provider store={realStore}>
-        <Router history={history}>
-          <App />
-        </Router>
-      </Provider>
-    );
+      element = screen.getByText("Home");
+      expect(element).toBeInTheDocument();
+      element = screen.getByText("Sign In");
+      expect(element).toBeInTheDocument();
+      element = screen.getByText("Sign Up");
+      expect(element).toBeInTheDocument();
+    }
+  );
 
-    // Assert.
-    await waitFor(() => {
-      expect(history.location.pathname).toEqual("/");
-    });
+  xtest(
+    "if a user signs in" +
+      " and goes on to manually change the URL in her browser's address bar" +
+      " to /journal-entries ," +
+      " the frontend application should redirect to / (but keep the user signed in)",
+    async () => {
+      // Arrange.
+      requestInterceptionLayer.use(
+        rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
 
-    element = screen.getByText("Hello, mocked-John Doe!");
-    expect(element).toBeInTheDocument();
-  }
-);
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile)
+      );
 
-test(
-  "if a user hasn't signed in" +
-    " but manually changes the URL in her browser's address bar" +
-    " to /journal-entries ," +
-    " the frontend application should redirect the user to /sign-in",
-  async () => {
-    // Arrange.
-    const realStore = createStore(rootReducer, initState, enhancer);
+      const realStore = createStore(rootReducer, initState, enhancer);
 
-    // Act.
-    history.push("/journal-entries");
+      // Act:
 
-    render(
-      <Provider store={realStore}>
-        <Router history={history}>
-          <App />
-        </Router>
-      </Provider>
-    );
+      // - navigate to the root URL, and mount the application's entire React tree
+      history.push("/");
 
-    // Assert.
-    const element: HTMLElement = await screen.findByText("TO CONTINUE, PLEASE SIGN IN");
-    expect(element).toBeInTheDocument();
+      const { getByText: getByTextFromRootURL } = render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <App />
+          </Router>
+        </Provider>
+      );
 
-    expect(history.location.pathname).toEqual("/sign-in");
+      let element: HTMLElement;
 
-    const elements: HTMLElement[] = screen.queryAllByText("Review JournalEntries!");
-    expect(elements.length).toEqual(0);
-  }
-);
+      element = await screen.findByText("Hello, mocked-John Doe!");
+      expect(element).toBeInTheDocument();
+
+      // - unamount React trees that were mounted with render
+      cleanup();
+
+      // - navigate to the /journal-entries URL,
+      //   and mount the application's entire React tree
+      console.log("[the test case is]");
+      console.log("navigating to the /journal-entries URL");
+      console.log("and mounting the application's entire React tree");
+
+      history.push("/journal-entries");
+
+      render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <App />
+          </Router>
+        </Provider>
+      );
+
+      // Assert.
+      await waitFor(() => {
+        expect(history.location.pathname).toEqual("/");
+      });
+
+      element = screen.getByText("Hello, mocked-John Doe!");
+      expect(element).toBeInTheDocument();
+    }
+  );
+
+  test(
+    "if a user hasn't signed in" +
+      " but manually changes the URL in her browser's address bar" +
+      " to /journal-entries ," +
+      " the frontend application should redirect the user to /sign-in",
+    async () => {
+      // Arrange.
+      const realStore = createStore(rootReducer, initState, enhancer);
+
+      // Act.
+      history.push("/journal-entries");
+
+      render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <App />
+          </Router>
+        </Provider>
+      );
+
+      // Assert.
+      const element: HTMLElement = await screen.findByText(
+        "TO CONTINUE, PLEASE SIGN IN"
+      );
+      expect(element).toBeInTheDocument();
+
+      expect(history.location.pathname).toEqual("/sign-in");
+
+      const elements: HTMLElement[] = screen.queryAllByText("Review JournalEntries!");
+      expect(elements.length).toEqual(0);
+    }
+  );
+});
+
+describe("workflows that involve signing in and deleting an Entry", () => {
+  beforeEach(() => {
+    initState = {
+      ...INITIAL_STATE,
+    };
+  });
+
+  test(
+    "the user clicks on the 'Yes' button," +
+      " and the backend is _mocked_ to respond that" +
+      " the DELETE request was accepted as valid and processed",
+    async () => {
+      // Arrange.
+      const realStore = createStore(rootReducer, initState, enhancer);
+
+      requestInterceptionLayer.use(
+        // rest.post("/api/tokens", requestHandlers.mockIssueJWSToken),
+        rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
+
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+
+        rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry),
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+
+        rest.get("/api/entries", requestHandlers.mockFetchEntries)
+      );
+
+      render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <App />
+          </Router>
+        </Provider>
+      );
+
+      // const alert: HTMLElement = await screen.findByText("TO CONTINUE, PLEASE SIGN IN");
+      // expect(alert).toBeInTheDocument();
+
+      // const signInAnchor: HTMLElement = await screen.findByText("Sign In");
+      // fireEvent.click(signInAnchor);
+
+      // const emailInput = screen.getByPlaceholderText("Enter your email...");
+      // const passwordInput = screen.getByPlaceholderText("Enter your password...");
+
+      // fireEvent.change(emailInput, { target: { value: "[f-e] jd" } });
+      // fireEvent.change(passwordInput, { target: { value: "[f-e] 123" } });
+
+      // console.log();
+      // console.log("realStore.getState()");
+      // console.log(realStore.getState());
+
+      // const buttonSignMeIn: HTMLElement = screen.getByRole("button", {
+      //   name: "Sign me in",
+      // });
+      // fireEvent.click(buttonSignMeIn);
+
+      const greeting: HTMLElement = await screen.findByText("Hello, mocked-John Doe!");
+      expect(greeting).toBeInTheDocument();
+      // const signOutAnchor: HTMLElement = await screen.findByText("Sign Out");
+      // expect(signOutAnchor).toBeInTheDocument();
+
+      console.log();
+      console.log("realStore.getState()");
+      console.log(realStore.getState());
+
+      const journalEntriesAnchor: HTMLElement = await screen.findByText(
+        "JournalEntries"
+      );
+      fireEvent.click(journalEntriesAnchor);
+
+      // const tbd: HTMLElement = await screen.findByText("mocked-content-of-entry-");
+      const currentPageElement = await screen.findByText("Current page: 1");
+      expect(currentPageElement).toBeInTheDocument();
+
+      const initialEntriesContents: string[] = [
+        "mocked-content-of-entry-01",
+        "mocked-content-of-entry-02",
+        "mocked-content-of-entry-03",
+        "mocked-content-of-entry-04",
+        "mocked-content-of-entry-05",
+        "mocked-content-of-entry-06",
+        "mocked-content-of-entry-07",
+        "mocked-content-of-entry-08",
+        "mocked-content-of-entry-09",
+        "mocked-content-of-entry-10",
+      ];
+      for (const entryContent of initialEntriesContents) {
+        const element: HTMLElement = screen.getByText(entryContent);
+        expect(element).toBeInTheDocument();
+      }
+
+      // Act.
+      const deleteAnchors: HTMLElement[] = screen.getAllByText("Delete");
+
+      const entryContent: number = 10;
+      const arrayIndex: number = entryContent - 1;
+      fireEvent.click(deleteAnchors[arrayIndex]);
+
+      const confirmRequestForDeletion: HTMLElement = screen.getByText(
+        "Do you want to delete the selected Entry?"
+      );
+      expect(confirmRequestForDeletion).toBeInTheDocument();
+
+      const yesButton: HTMLElement = screen.getByRole("button", { name: "Yes" });
+      fireEvent.click(yesButton);
+
+      const deletionSuccessAlert: HTMLElement = await screen.findByText(
+        "ENTRY DELETION SUCCESSFUL"
+      );
+      expect(deletionSuccessAlert).toBeInTheDocument();
+
+      // const remainingEntriesContents = JSON.parse(
+      //   JSON.stringify(
+      //     initialEntriesContents.slice(0, initialEntriesContents.length - 1)
+      //   )
+      // );
+      const remainingEntriesContents = initialEntriesContents.slice(
+        0,
+        initialEntriesContents.length - 1
+      );
+      const newEntryContent = "mocked-content-of-entry-11";
+
+      const newEntryElement: HTMLElement = await screen.findByText(newEntryContent);
+      expect(newEntryElement).toBeInTheDocument();
+
+      for (const remainingEntryContent of remainingEntriesContents) {
+        const remainingEntryElement: HTMLElement =
+          screen.getByText(remainingEntryContent);
+        expect(remainingEntryElement).toBeInTheDocument();
+      }
+
+      // Assert.
+    }
+  );
+});

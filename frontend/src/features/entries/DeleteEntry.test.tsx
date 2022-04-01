@@ -207,40 +207,4 @@ describe("with the user interaction triggering network communication", () => {
       expect(element).toBeInTheDocument();
     }
   );
-
-  test(
-    "the user clicks on the 'Yes' button," +
-      " and the backend is _mocked_ to respond that" +
-      " the DELETE request was accepted as valid and processed",
-    async () => {
-      // Arrange.
-      requestInterceptionLayer.use(
-        rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry)
-      );
-
-      render(
-        <Provider store={realStore}>
-          <Router history={history}>
-            <Alerts />
-            <Switch>
-              <Route exact path="/entries/:id/delete">
-                <DeleteEntry />
-              </Route>
-            </Switch>
-          </Router>
-        </Provider>
-      );
-
-      const buttonYes: HTMLElement = screen.getByRole("button", { name: "Yes" });
-
-      // Act.
-      fireEvent.click(buttonYes);
-
-      // Assert.
-      const element: HTMLElement = await screen.findByText("ENTRY DELETION SUCCESSFUL");
-      expect(element).toBeInTheDocument();
-
-      expect(history.location.pathname).toEqual("/journal-entries");
-    }
-  );
 });

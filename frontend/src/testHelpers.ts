@@ -41,7 +41,7 @@ export const MOCK_PROFILE_1 = {
   updatedAt: "mocked-2021-05-23T11:10:34.000Z",
 };
 
-export const MOCK_ENTRIES: IEntry[] = Array.from({ length: 50 }).map((_, index) => {
+export let MOCK_ENTRIES: IEntry[] = Array.from({ length: 50 }).map((_, index) => {
   const minute = (index + 1).toString().padStart(2, "0");
 
   return {
@@ -209,6 +209,18 @@ const mockDeleteEntry = (
   res: ResponseComposition<any>,
   ctx: RestContext
 ) => {
+  const entryId: number = parseInt(req.params.id);
+  console.log("entryId");
+  console.log(entryId);
+  console.log("typeof entryId");
+  console.log(typeof entryId);
+
+  MOCK_ENTRIES = MOCK_ENTRIES.filter((entry: IEntry) => entry.id !== entryId);
+
+  console.log();
+  console.log("MOCK_ENTRIES");
+  console.log(MOCK_ENTRIES);
+
   return res.once(ctx.status(204));
 };
 
