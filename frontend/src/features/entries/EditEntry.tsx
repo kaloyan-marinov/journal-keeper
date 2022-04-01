@@ -11,7 +11,7 @@ import { selectEntriesEntities, selectEntriesLinks, signOut } from "../../store"
 import { ActionAlerts, alertsCreate } from "../alerts/alertsSlice";
 import { ActionEditEntry, editEntry, fetchEntries } from "./entriesSlice";
 import { SingleJournalEntry } from "./SingleJournalEntry";
-import { URL_FOR_FIRST_PAGE_OF_EXAMPLES } from "../../constants";
+import { URL_FOR_FIRST_PAGE_OF_ENTRIES } from "../../constants";
 
 export const EditEntry = () => {
   console.log(
@@ -92,7 +92,7 @@ export const EditEntry = () => {
           to first render <JournalEntries>
           and to then run its effect function.
           */
-          await dispatch(fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES));
+          await dispatch(fetchEntries(URL_FOR_FIRST_PAGE_OF_ENTRIES));
         }
 
         const locationDescriptor = {

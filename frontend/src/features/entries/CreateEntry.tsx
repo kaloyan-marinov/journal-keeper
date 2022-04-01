@@ -10,7 +10,7 @@ import { signOut } from "../../store";
 import { ActionAlerts, alertsCreate } from "../alerts/alertsSlice";
 import { IActionClearAuthSlice } from "../auth/authSlice";
 import { createEntry, fetchEntries } from "./entriesSlice";
-import { URL_FOR_FIRST_PAGE_OF_EXAMPLES } from "../../constants";
+import { URL_FOR_FIRST_PAGE_OF_ENTRIES } from "../../constants";
 
 export const CreateEntry = () => {
   console.log(
@@ -61,7 +61,7 @@ export const CreateEntry = () => {
         of the app-level state's "entries" slice
         to be updated.
         */
-        await dispatch(fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES));
+        await dispatch(fetchEntries(URL_FOR_FIRST_PAGE_OF_ENTRIES));
 
         const locationDescriptor = {
           pathname: "/journal-entries",

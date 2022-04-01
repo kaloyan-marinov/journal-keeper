@@ -5,7 +5,7 @@ import { ThunkDispatch } from "redux-thunk";
 import { v4 as uuidv4 } from "uuid";
 
 import { IEntry, IPaginationLinks, IPaginationMeta, IState } from "../../types";
-import { URL_FOR_FIRST_PAGE_OF_EXAMPLES } from "../../constants";
+import { URL_FOR_FIRST_PAGE_OF_ENTRIES } from "../../constants";
 import {
   selectEntriesEntities,
   selectEntriesIds,
@@ -72,7 +72,7 @@ export const JournalEntries = () => {
     console.log(
       "    NOT from any of the following: /entries/create, /entries/:id/edit, /entries/:id/delete"
     );
-    initialEntriesUrl = URL_FOR_FIRST_PAGE_OF_EXAMPLES;
+    initialEntriesUrl = URL_FOR_FIRST_PAGE_OF_ENTRIES;
   }
 
   const [entriesUrl, setEntriesUrl] = React.useState<string>(initialEntriesUrl);

@@ -9,7 +9,7 @@ import { selectEntriesEntities, selectEntriesLinks, signOut } from "../../store"
 import { ActionAlerts, alertsCreate } from "../alerts/alertsSlice";
 import { ActionDeleteEntry, deleteEntry, fetchEntries } from "./entriesSlice";
 import { SingleJournalEntry } from "./SingleJournalEntry";
-import { URL_FOR_FIRST_PAGE_OF_EXAMPLES } from "../../constants";
+import { URL_FOR_FIRST_PAGE_OF_ENTRIES } from "../../constants";
 
 export const DeleteEntry = () => {
   console.log(
@@ -59,7 +59,7 @@ export const DeleteEntry = () => {
 
         For the same reason as in the analogous block within <SingleExample>.
         */
-        dispatch(fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES));
+        dispatch(fetchEntries(URL_FOR_FIRST_PAGE_OF_ENTRIES));
       }
 
       const locationDescriptor = {

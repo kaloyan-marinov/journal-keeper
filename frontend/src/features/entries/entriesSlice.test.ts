@@ -53,7 +53,7 @@ import configureMockStore from "redux-mock-store";
 import thunkMiddleware from "redux-thunk";
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { IState } from "../../types";
-import { URL_FOR_FIRST_PAGE_OF_EXAMPLES, PER_PAGE_DEFAULT } from "../../constants";
+import { URL_FOR_FIRST_PAGE_OF_ENTRIES, PER_PAGE_DEFAULT } from "../../constants";
 import {
   requestHandlers,
   MOCK_META,
@@ -668,7 +668,7 @@ describe(
       async () => {
         // Act.
         const fetchEntriesPromise = storeMock.dispatch(
-          fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES)
+          fetchEntries(URL_FOR_FIRST_PAGE_OF_ENTRIES)
         );
 
         // Assert.
@@ -698,7 +698,7 @@ describe(
 
         // Act.
         const fetchEntriesPromise = storeMock.dispatch(
-          fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES)
+          fetchEntries(URL_FOR_FIRST_PAGE_OF_ENTRIES)
         );
 
         // Assert.
