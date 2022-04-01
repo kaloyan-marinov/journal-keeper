@@ -65,6 +65,8 @@ export const MOCK_ENTRIES_ENTITIES: { [entryId: string]: IEntry } = MOCK_ENTRIES
   {}
 );
 
+export const MOCK_ID_FOR_NEW_ENTRY: number = 666;
+
 export const MOCK_ENTRY_10: IEntry = MOCK_ENTRIES_ENTITIES[10];
 
 export const MOCK_ENTRY_20: IEntry = MOCK_ENTRIES_ENTITIES[20];
@@ -183,6 +185,10 @@ const mockCreateEntry = (
   ctx: RestContext
 ) => {
   console.log();
+  console.log("req");
+  console.log(req);
+
+  console.log();
   console.log("req.body");
   console.log(req.body);
 
@@ -194,18 +200,21 @@ const mockCreateEntry = (
   const timezone = req.body.timezone; // ex: "-08:00"
   const content = req.body.content; // ex: "some insightful content"
 
-  const createdAt: string = new Date().toISOString();
+  // const createdAt: string = new Date().toISOString();
+  const createdAt: string = MOCK_ENTRY_10.createdAt;
 
-  const newIndex = 666;
-  const timestampInUTC = new Date(localTime + "Z" + timezone).toISOString();
+  const updatedAt: string = MOCK_ENTRY_10.updatedAt;
+
+  // const timestampInUTC = new Date(localTime + "Z" + timezone).toISOString();
+  const timestampInUTC = MOCK_ENTRY_10.timestampInUTC;
 
   const newEntry: IEntry = {
-    id: newIndex,
+    id: MOCK_ID_FOR_NEW_ENTRY,
     timestampInUTC,
     utcZoneOfTimestamp: timezone,
     content: req.body.content,
     createdAt,
-    updatedAt: createdAt,
+    updatedAt,
     userId: 1,
   };
 

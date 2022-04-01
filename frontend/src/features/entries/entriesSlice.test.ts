@@ -11,6 +11,7 @@ import {
   MOCK_ENTRIES_IDS,
   MOCK_ENTRY_10,
   MOCK_ENTRY_20,
+  MOCK_ID_FOR_NEW_ENTRY,
 } from "../../testHelpers";
 import {
   ActionTypesCreateEntry,
@@ -765,13 +766,19 @@ describe(
           rest.post("/api/entries", requestHandlers.mockCreateEntry)
         );
 
+        console.log("MOCK_ENTRY_10");
+        console.log(MOCK_ENTRY_10);
+
+        const { timestampInUTC, utcZoneOfTimestamp, content } = MOCK_ENTRY_10;
+        /*
+        Refactor the next statement so as to be computed from
+        `timestampInUTC` and `utcZoneOfTimestamp`.
+        */
+        const localTime = "2021-09-01 04:01";
+
         // Act.
         const createEntryPromise = storeMock.dispatch(
-          createEntry(
-            MOCK_ENTRY_10.localTime,
-            MOCK_ENTRY_10.timezone,
-            MOCK_ENTRY_10.content
-          )
+          createEntry(localTime, utcZoneOfTimestamp, content)
         );
 
         // Assert.
@@ -783,7 +790,10 @@ describe(
           {
             type: "entries/createEntry/fulfilled",
             payload: {
-              entry: MOCK_ENTRY_10,
+              entry: {
+                ...MOCK_ENTRY_10,
+                id: MOCK_ID_FOR_NEW_ENTRY,
+              },
             },
           },
         ]);
