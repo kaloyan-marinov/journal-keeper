@@ -418,7 +418,7 @@ describe("workflows that involve signing in and editing an existing Entry", () =
     };
   });
 
-  test.only(
+  test(
     "the user views the first page of results," +
       " which are displayed at /journal-entries," +
       " and edits an existing Entry",

@@ -856,14 +856,12 @@ describe(
 
         const targetedEntryId: number = MOCK_ENTRY_10.id;
 
+        const newContent: string =
+          "this content was edited at the following time: 2022-04-03, 21:27";
+
         // Act.
         const editEntryPromise = storeMock.dispatch(
-          editEntry(
-            targetedEntryId,
-            MOCK_ENTRY_20_LOCAL_TIME,
-            MOCK_ENTRY_20.utcZoneOfTimestamp,
-            MOCK_ENTRY_20.content
-          )
+          editEntry(targetedEntryId, undefined, undefined, newContent)
         );
 
         // Assert.
@@ -877,8 +875,8 @@ describe(
             type: "entries/editEntry/fulfilled",
             payload: {
               entry: {
-                ...MOCK_ENTRY_20,
-                id: targetedEntryId,
+                ...MOCK_ENTRY_10,
+                content: newContent,
               },
             },
           },

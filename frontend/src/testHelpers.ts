@@ -254,35 +254,44 @@ const mockEditEntry = (
   const editedTimezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
   const editedContent = (req!.body as Record<string, any>).content; // ex: "an edited version of some insightful content"
 
-  MOCK_ENTRIES = MOCK_ENTRIES.map((entry: IEntry) => {
-    if (entry.id !== entryId) {
-      return entry;
-    }
+  // Emulate the backend's route-handling function for
+  // PUT requests to /api/entries/:id .
+  if (
+    (editedTimezone !== undefined && editedLocalTime === undefined) ||
+    (editedTimezone === undefined && editedLocalTime !== undefined)
+  ) {
+    return res.once(
+      ctx.status(400),
+      ctx.json({
+        error:
+          "Your request body must include" +
+          " either both of 'timezone' and 'localTime', or neither one of them",
+      })
+    );
+  } else if (editedTimezone !== undefined && editedLocalTime !== undefined) {
+    // Defer implementing any logic in this case,
+    // for as long as it is possible to do so.
+  }
 
-    const editedEntry: IEntry = {
-      ...entry,
-    };
+  if (editedContent !== undefined) {
+    MOCK_ENTRIES = MOCK_ENTRIES.map((entry: IEntry) => {
+      if (entry.id !== entryId) {
+        return entry;
+      }
 
-    if (editedContent !== null) {
+      const editedEntry: IEntry = {
+        ...entry,
+      };
+
       editedEntry.content = editedContent;
-    }
 
-    // if (editedTimezone !== null) {
-    //   // TBD
-    // }
+      return editedEntry;
+    });
+  }
 
-    if (editedLocalTime !== null) {
-      // editedEntry.timestampInUTC = new Date(editedLocalTime + "Z" + editedTimezone).toISOString()
-      editedEntry.timestampInUTC =
-        entryId !== MOCK_ENTRY_10.id
-          ? MOCK_ENTRY_10.timestampInUTC
-          : MOCK_ENTRY_20.timestampInUTC;
-    }
+  const editedEntry = MOCK_ENTRIES.filter((entry: IEntry) => entry.id === entryId)[0];
 
-    return editedEntry;
-  });
-
-  return res.once(ctx.status(200), ctx.json(MOCK_ENTRIES[entryId]));
+  return res.once(ctx.status(200), ctx.json(editedEntry));
 };
 
 const mockDeleteEntry = (
