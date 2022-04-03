@@ -193,12 +193,29 @@ const mockCreateEntry = (
   console.log(req.body);
 
   /*
+  Let C denote the commit introducing this line and editing the next code-block.
+
+  Immediately prior to C,
+  it was possible to serve the frontend application without errors.
+
+  Then I terminated all processes related to this project,
+  restarted my computed,
+  and started all processes related to this project afresh;
+  it was no longer possible to serve the frontend,
+  because TypeScript crashed with errors related to
+  what the next code-block used to look like immediately prior to C.
+
+  The changes to the next code-block, which are introduced in C,
+  make it possible to to serve the frontend application without errors.
+
   TODO: determine what type annotations need to be added to `req`
-        so that TypeScript will not issue warnings about the following statements
+        so as to make it possible to remove
+        the explicit(-and-perhaps-mysterious-looking) type conversions
+        from the following statements
   */
-  const localTime = req.body.localTime; // ex: "2021-05-13 00:18"
-  const timezone = req.body.timezone; // ex: "-08:00"
-  const content = req.body.content; // ex: "some insightful content"
+  const localTime = (req!.body as Record<string, any>).localTime; // ex: "2021-05-13 00:18"
+  const timezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
+  const content = (req!.body as Record<string, any>).content; // ex: "some insightful content"
 
   // const createdAt: string = new Date().toISOString();
   const createdAt: string = MOCK_ENTRY_10.createdAt;
@@ -212,7 +229,7 @@ const mockCreateEntry = (
     id: MOCK_ID_FOR_NEW_ENTRY,
     timestampInUTC,
     utcZoneOfTimestamp: timezone,
-    content: req.body.content,
+    content: content,
     createdAt,
     updatedAt,
     userId: 1,
