@@ -338,9 +338,9 @@ describe("workflows that involve signing in and creating a new Entry", () => {
   });
 
   test(
-    "the user fills out the form and submits it," +
-      " and the backend is _mocked_ to respond that" +
-      " the form submission was accepted as valid and processed",
+    "the user views the first page of results," +
+      " which are displayed at /journal-entries," +
+      " and creates a new Entry",
     async () => {
       // Arrange.
       const realStore = createStore(rootReducer, initState, enhancer);
@@ -407,6 +407,102 @@ describe("workflows that involve signing in and creating a new Entry", () => {
 
       const newEntryContent: HTMLElement = screen.getByText("some insightful content");
       expect(newEntryContent).toBeInTheDocument();
+    }
+  );
+});
+
+describe("workflows that involve signing in and editing an existing Entry", () => {
+  beforeEach(() => {
+    initState = {
+      ...INITIAL_STATE,
+    };
+  });
+
+  test.only(
+    "the user views the first page of results," +
+      " which are displayed at /journal-entries," +
+      " and edits an existing Entry",
+    async () => {
+      // Arrange.
+      const realStore = createStore(rootReducer, initState, enhancer);
+
+      requestInterceptionLayer.use(
+        rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
+
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+
+        rest.put("/api/entries/:id", requestHandlers.mockEditEntry),
+        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+
+        rest.get("/api/entries", requestHandlers.mockFetchEntries)
+      );
+
+      render(
+        <Provider store={realStore}>
+          <Router history={history}>
+            <App />
+          </Router>
+        </Provider>
+      );
+
+      const greeting: HTMLElement = await screen.findByText("Hello, mocked-John Doe!");
+      expect(greeting).toBeInTheDocument();
+
+      const journalEntriesAnchor: HTMLElement = await screen.findByText(
+        "JournalEntries"
+      );
+      fireEvent.click(journalEntriesAnchor);
+
+      const createNewEntryAnchors: HTMLElement[] = await screen.findAllByText("Edit");
+
+      const entryContent: number = 10;
+      const arrayIndex: number = entryContent - 1;
+      fireEvent.click(createNewEntryAnchors[arrayIndex]);
+
+      // Act.
+      const [localTimeInput, contentTextArea] = screen.getAllByRole("textbox");
+
+      const editedEntryContent =
+        "this content was edited at the following time: 2022-04-03, 20:19";
+      fireEvent.change(contentTextArea, {
+        target: {
+          value: editedEntryContent,
+        },
+      });
+
+      const editButton: HTMLElement = screen.getByRole("button", {
+        name: "Edit entry",
+      });
+      fireEvent.click(editButton);
+
+      // Assert.
+      const editingSuccessAlert: HTMLElement = await screen.findByText(
+        "ENTRY EDITING SUCCESSFUL"
+      );
+      expect(editingSuccessAlert).toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(history.location.pathname).toEqual("/journal-entries");
+      });
+
+      const element: HTMLElement = await screen.findByText(editedEntryContent);
+      expect(element).toBeInTheDocument();
+
+      const remainingEntriesContents: string[] = [
+        "mocked-content-of-entry-01",
+        "mocked-content-of-entry-02",
+        "mocked-content-of-entry-03",
+        "mocked-content-of-entry-04",
+        "mocked-content-of-entry-05",
+        "mocked-content-of-entry-06",
+        "mocked-content-of-entry-07",
+        "mocked-content-of-entry-08",
+        "mocked-content-of-entry-09",
+      ];
+      for (const entryContent of remainingEntriesContents) {
+        const element: HTMLElement = screen.getByText(entryContent);
+        expect(element).toBeInTheDocument();
+      }
     }
   );
 });

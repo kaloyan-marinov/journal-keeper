@@ -271,57 +271,5 @@ describe(
         expect(element).toBeInTheDocument();
       }
     );
-
-    xtest(
-      "the user fills out the form and submits it," +
-        " and the backend is _mocked_ to respond that" +
-        " the form submission was accepted as valid and processed",
-      async () => {
-        // Arrange.
-        requestInterceptionLayer.use(
-          rest.post("/api/entries", requestHandlers.mockCreateEntry)
-        );
-
-        const enhancer = applyMiddleware(thunkMiddleware);
-        const realStore = createStore(rootReducer, enhancer);
-
-        const history = createMemoryHistory();
-        history.push("/entries/create");
-
-        render(
-          <Provider store={realStore}>
-            <Alerts />
-            <Router history={history}>
-              <Route exact path="/entries/create">
-                <CreateEntry />
-              </Route>
-            </Router>
-          </Provider>
-        );
-
-        // Act.
-        const [localTimeInput, contentTextArea] = screen.getAllByRole("textbox");
-        const timezoneSelect = screen.getByRole("combobox");
-
-        fireEvent.change(localTimeInput, { target: { value: "2021-05-13 00:18" } });
-        fireEvent.change(timezoneSelect, { target: { value: "-08:00" } });
-        fireEvent.change(contentTextArea, {
-          target: { value: "some insightful content " },
-        });
-
-        const button: HTMLElement = screen.getByRole("button", {
-          name: "Create entry",
-        });
-        fireEvent.click(button);
-
-        // Assert.
-        const element: HTMLElement = await screen.findByText(
-          "ENTRY CREATION SUCCESSFUL"
-        );
-        expect(element).toBeInTheDocument();
-
-        expect(history.location.pathname).toEqual("/journal-entries");
-      }
-    );
   }
 );

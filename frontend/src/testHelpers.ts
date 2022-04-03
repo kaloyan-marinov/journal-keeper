@@ -184,14 +184,6 @@ const mockCreateEntry = (
   res: ResponseComposition<any>,
   ctx: RestContext
 ) => {
-  console.log();
-  console.log("req");
-  console.log(req);
-
-  console.log();
-  console.log("req.body");
-  console.log(req.body);
-
   /*
   Let C denote the commit introducing this line and editing the next code-block.
 
@@ -235,13 +227,7 @@ const mockCreateEntry = (
     userId: 1,
   };
 
-  console.log();
-  console.log("newEntry");
-  console.log(newEntry);
-
   MOCK_ENTRIES = [...MOCK_ENTRIES, newEntry];
-
-  console.log(MOCK_ENTRIES);
 
   return res.once(ctx.status(201), ctx.json(newEntry));
 };
@@ -254,15 +240,49 @@ const mockEditEntry = (
   const { id: entryIdStr } = req.params;
   const entryId: number = parseInt(entryIdStr);
 
-  const editedEntry = entryId !== MOCK_ENTRY_10.id ? MOCK_ENTRY_10 : MOCK_ENTRY_20;
+  // const editedEntry = entryId !== MOCK_ENTRY_10.id ? MOCK_ENTRY_10 : MOCK_ENTRY_20;
 
-  return res.once(
-    ctx.status(200),
-    ctx.json({
-      ...editedEntry,
-      id: entryId,
-    })
-  );
+  // return res.once(
+  //   ctx.status(200),
+  //   ctx.json({
+  //     ...editedEntry,
+  //     id: entryId,
+  //   })
+  // );
+
+  const editedLocalTime = (req!.body as Record<string, any>).localTime; // ex: "2021-05-13 00:18"
+  const editedTimezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
+  const editedContent = (req!.body as Record<string, any>).content; // ex: "an edited version of some insightful content"
+
+  MOCK_ENTRIES = MOCK_ENTRIES.map((entry: IEntry) => {
+    if (entry.id !== entryId) {
+      return entry;
+    }
+
+    const editedEntry: IEntry = {
+      ...entry,
+    };
+
+    if (editedContent !== null) {
+      editedEntry.content = editedContent;
+    }
+
+    // if (editedTimezone !== null) {
+    //   // TBD
+    // }
+
+    if (editedLocalTime !== null) {
+      // editedEntry.timestampInUTC = new Date(editedLocalTime + "Z" + editedTimezone).toISOString()
+      editedEntry.timestampInUTC =
+        entryId !== MOCK_ENTRY_10.id
+          ? MOCK_ENTRY_10.timestampInUTC
+          : MOCK_ENTRY_20.timestampInUTC;
+    }
+
+    return editedEntry;
+  });
+
+  return res.once(ctx.status(200), ctx.json(MOCK_ENTRIES[entryId]));
 };
 
 const mockDeleteEntry = (
