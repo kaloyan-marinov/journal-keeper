@@ -433,15 +433,22 @@ describe("workflows that involve signing in and editing an existing Entry", () =
       // Arrange.
       const realStore = createStore(rootReducer, initState, enhancer);
 
+      const rhb: RequestHandlerBundle = new RequestHandlerBundle();
       requestInterceptionLayer.use(
         rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
 
-        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.get("/api/entries", (req, res, ctx) =>
+          rhb.mockFetchEntries(req, res, ctx)
+        ),
 
-        rest.put("/api/entries/:id", requestHandlers.mockEditEntry),
-        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.put("/api/entries/:id", (req, res, ctx) =>
+          rhb.mockEditEntry(req, res, ctx)
+        ),
+        rest.get("/api/entries", (req, res, ctx) =>
+          rhb.mockFetchEntries(req, res, ctx)
+        ),
 
-        rest.get("/api/entries", requestHandlers.mockFetchEntries)
+        rest.get("/api/entries", (req, res, ctx) => rhb.mockFetchEntries(req, res, ctx))
       );
 
       render(

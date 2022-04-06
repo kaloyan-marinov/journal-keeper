@@ -232,67 +232,67 @@ const mockFetchUserProfile = (
 //   return res.once(ctx.status(201), ctx.json(newEntry));
 // };
 
-const mockEditEntry = (
-  req: RestRequest<DefaultRequestBody, RequestParams>,
-  res: ResponseComposition<any>,
-  ctx: RestContext
-) => {
-  const { id: entryIdStr } = req.params;
-  const entryId: number = parseInt(entryIdStr);
+// const mockEditEntry = (
+//   req: RestRequest<DefaultRequestBody, RequestParams>,
+//   res: ResponseComposition<any>,
+//   ctx: RestContext
+// ) => {
+//   const { id: entryIdStr } = req.params;
+//   const entryId: number = parseInt(entryIdStr);
 
-  // const editedEntry = entryId !== MOCK_ENTRY_10.id ? MOCK_ENTRY_10 : MOCK_ENTRY_20;
+//   // const editedEntry = entryId !== MOCK_ENTRY_10.id ? MOCK_ENTRY_10 : MOCK_ENTRY_20;
 
-  // return res.once(
-  //   ctx.status(200),
-  //   ctx.json({
-  //     ...editedEntry,
-  //     id: entryId,
-  //   })
-  // );
+//   // return res.once(
+//   //   ctx.status(200),
+//   //   ctx.json({
+//   //     ...editedEntry,
+//   //     id: entryId,
+//   //   })
+//   // );
 
-  const editedLocalTime = (req!.body as Record<string, any>).localTime; // ex: "2021-05-13 00:18"
-  const editedTimezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
-  const editedContent = (req!.body as Record<string, any>).content; // ex: "an edited version of some insightful content"
+//   const editedLocalTime = (req!.body as Record<string, any>).localTime; // ex: "2021-05-13 00:18"
+//   const editedTimezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
+//   const editedContent = (req!.body as Record<string, any>).content; // ex: "an edited version of some insightful content"
 
-  // Emulate the backend's route-handling function for
-  // PUT requests to /api/entries/:id .
-  if (
-    (editedTimezone !== undefined && editedLocalTime === undefined) ||
-    (editedTimezone === undefined && editedLocalTime !== undefined)
-  ) {
-    return res.once(
-      ctx.status(400),
-      ctx.json({
-        error:
-          "Your request body must include" +
-          " either both of 'timezone' and 'localTime', or neither one of them",
-      })
-    );
-  } else if (editedTimezone !== undefined && editedLocalTime !== undefined) {
-    // Defer implementing any logic in this case,
-    // for as long as it is possible to do so.
-  }
+//   // Emulate the backend's route-handling function for
+//   // PUT requests to /api/entries/:id .
+//   if (
+//     (editedTimezone !== undefined && editedLocalTime === undefined) ||
+//     (editedTimezone === undefined && editedLocalTime !== undefined)
+//   ) {
+//     return res.once(
+//       ctx.status(400),
+//       ctx.json({
+//         error:
+//           "Your request body must include" +
+//           " either both of 'timezone' and 'localTime', or neither one of them",
+//       })
+//     );
+//   } else if (editedTimezone !== undefined && editedLocalTime !== undefined) {
+//     // Defer implementing any logic in this case,
+//     // for as long as it is possible to do so.
+//   }
 
-  if (editedContent !== undefined) {
-    MOCK_ENTRIES = MOCK_ENTRIES.map((entry: IEntry) => {
-      if (entry.id !== entryId) {
-        return entry;
-      }
+//   if (editedContent !== undefined) {
+//     MOCK_ENTRIES = MOCK_ENTRIES.map((entry: IEntry) => {
+//       if (entry.id !== entryId) {
+//         return entry;
+//       }
 
-      const editedEntry: IEntry = {
-        ...entry,
-      };
+//       const editedEntry: IEntry = {
+//         ...entry,
+//       };
 
-      editedEntry.content = editedContent;
+//       editedEntry.content = editedContent;
 
-      return editedEntry;
-    });
-  }
+//       return editedEntry;
+//     });
+//   }
 
-  const editedEntry = MOCK_ENTRIES.filter((entry: IEntry) => entry.id === entryId)[0];
+//   const editedEntry = MOCK_ENTRIES.filter((entry: IEntry) => entry.id === entryId)[0];
 
-  return res.once(ctx.status(200), ctx.json(editedEntry));
-};
+//   return res.once(ctx.status(200), ctx.json(editedEntry));
+// };
 
 // const mockDeleteEntry = (
 //   req: RestRequest<DefaultRequestBody, RequestParams>,
@@ -407,6 +407,60 @@ export class RequestHandlerBundle {
     return res.once(ctx.status(201), ctx.json(newEntry));
   }
 
+  mockEditEntry(
+    req: RestRequest<DefaultRequestBody, RequestParams>,
+    res: ResponseComposition<any>,
+    ctx: RestContext
+  ) {
+    const { id: entryIdStr } = req.params;
+    const entryId: number = parseInt(entryIdStr);
+
+    const editedLocalTime = (req!.body as Record<string, any>).localTime; // ex: "2021-05-13 00:18"
+    const editedTimezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
+    const editedContent = (req!.body as Record<string, any>).content; // ex: "an edited version of some insightful content"
+
+    // Emulate the backend's route-handling function for
+    // PUT requests to /api/entries/:id .
+    if (
+      (editedTimezone !== undefined && editedLocalTime === undefined) ||
+      (editedTimezone === undefined && editedLocalTime !== undefined)
+    ) {
+      return res.once(
+        ctx.status(400),
+        ctx.json({
+          error:
+            "Your request body must include" +
+            " either both of 'timezone' and 'localTime', or neither one of them",
+        })
+      );
+    } else if (editedTimezone !== undefined && editedLocalTime !== undefined) {
+      // Defer implementing any logic in this case,
+      // for as long as it is possible to do so.
+    }
+
+    if (editedContent !== undefined) {
+      this.mockEntries = this.mockEntries.map((entry: IEntry) => {
+        if (entry.id !== entryId) {
+          return entry;
+        }
+
+        const editedEntry: IEntry = {
+          ...entry,
+        };
+
+        editedEntry.content = editedContent;
+
+        return editedEntry;
+      });
+    }
+
+    const editedEntry = this.mockEntries.filter(
+      (entry: IEntry) => entry.id === entryId
+    )[0];
+
+    return res.once(ctx.status(200), ctx.json(editedEntry));
+  }
+
   mockDeleteEntry(
     req: RestRequest<DefaultRequestBody, RequestParams>,
     res: ResponseComposition<any>,
@@ -429,6 +483,6 @@ export const requestHandlers = {
 
   // mockCreateEntry,
   // mockFetchEntries,
-  mockEditEntry,
+  // mockEditEntry,
   // mockDeleteEntry,
 };
