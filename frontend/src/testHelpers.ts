@@ -327,150 +327,161 @@ export class RequestHandlerBundle {
     this.mockEntries = [...MOCK_ENTRIES_TEMP];
   }
 
-  mockFetchEntries(
-    req: RestRequest<DefaultRequestBody, RequestParams>,
-    res: ResponseComposition<any>,
-    ctx: RestContext
-  ) {
-    console.log("inspecting this.mockEntries");
-    console.log(this.mockEntries);
+  createMockFetchEntries() {
+    const mockFetchEntries = (
+      req: RestRequest<DefaultRequestBody, RequestParams>,
+      res: ResponseComposition<any>,
+      ctx: RestContext
+    ) => {
+      const totalItems: number = this.mockEntries.length;
+      const perPage: number = PER_PAGE_DEFAULT;
+      const totalPages: number = Math.ceil(totalItems / perPage);
+      const page: number = parseInt(req.url.searchParams.get("page") || "1");
 
-    const totalItems: number = this.mockEntries.length;
-    const perPage: number = PER_PAGE_DEFAULT;
-    const totalPages: number = Math.ceil(totalItems / perPage);
-    const page: number = parseInt(req.url.searchParams.get("page") || "1");
+      const _meta: IPaginationMeta = {
+        totalItems,
+        perPage,
+        totalPages,
+        page,
+      };
 
-    const _meta: IPaginationMeta = {
-      totalItems,
-      perPage,
-      totalPages,
-      page,
-    };
+      const _links: IPaginationLinks = {
+        self: `/api/entries?perPage=${perPage}&page=${page}`,
+        next:
+          page >= totalPages
+            ? null
+            : `/api/entries?perPage=${perPage}&page=${page + 1}`,
+        prev: page <= 1 ? null : `/api/entries?perPage=${perPage}&page=${page - 1}`,
+        first: `/api/entries?perPage=${perPage}&page=1`,
+        last: `/api/entries?perPage=${perPage}&page=${totalPages}`,
+      };
 
-    const _links: IPaginationLinks = {
-      self: `/api/entries?perPage=${perPage}&page=${page}`,
-      next:
-        page >= totalPages ? null : `/api/entries?perPage=${perPage}&page=${page + 1}`,
-      prev: page <= 1 ? null : `/api/entries?perPage=${perPage}&page=${page - 1}`,
-      first: `/api/entries?perPage=${perPage}&page=1`,
-      last: `/api/entries?perPage=${perPage}&page=${totalPages}`,
-    };
+      const start: number = (page - 1) * perPage;
+      const end: number = start + perPage;
+      const items: IEntry[] = this.mockEntries.slice(start, end);
 
-    console.log("inspecting _links");
-    console.log(_links);
-
-    const start: number = (page - 1) * perPage;
-    const end: number = start + perPage;
-    const items: IEntry[] = this.mockEntries.slice(start, end);
-
-    console.log("inspecting items");
-    console.log(items);
-
-    return res.once(
-      ctx.status(200),
-      ctx.json({
-        _meta,
-        _links,
-        items,
-      })
-    );
-  }
-
-  mockCreateEntry(
-    req: RestRequest<DefaultRequestBody, RequestParams>,
-    res: ResponseComposition<any>,
-    ctx: RestContext
-  ) {
-    const localTime = (req!.body as Record<string, any>).localTime; // ex: "2021-05-13 00:18"
-    const timezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
-    const content = (req!.body as Record<string, any>).content; // ex: "some insightful content"
-
-    const createdAt: string = MOCK_ENTRY_10.createdAt;
-
-    const updatedAt: string = MOCK_ENTRY_10.updatedAt;
-
-    // const timestampInUTC = new Date(localTime + "Z" + timezone).toISOString();
-    const timestampInUTC = MOCK_ENTRY_10.timestampInUTC;
-
-    const newEntry: IEntry = {
-      id: MOCK_ID_FOR_NEW_ENTRY,
-      timestampInUTC,
-      utcZoneOfTimestamp: timezone,
-      content: content,
-      createdAt,
-      updatedAt,
-      userId: 1,
-    };
-
-    this.mockEntries = [...this.mockEntries, newEntry];
-
-    return res.once(ctx.status(201), ctx.json(newEntry));
-  }
-
-  mockEditEntry(
-    req: RestRequest<DefaultRequestBody, RequestParams>,
-    res: ResponseComposition<any>,
-    ctx: RestContext
-  ) {
-    const { id: entryIdStr } = req.params;
-    const entryId: number = parseInt(entryIdStr);
-
-    const editedLocalTime = (req!.body as Record<string, any>).localTime; // ex: "2021-05-13 00:18"
-    const editedTimezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
-    const editedContent = (req!.body as Record<string, any>).content; // ex: "an edited version of some insightful content"
-
-    // Emulate the backend's route-handling function for
-    // PUT requests to /api/entries/:id .
-    if (
-      (editedTimezone !== undefined && editedLocalTime === undefined) ||
-      (editedTimezone === undefined && editedLocalTime !== undefined)
-    ) {
       return res.once(
-        ctx.status(400),
+        ctx.status(200),
         ctx.json({
-          error:
-            "Your request body must include" +
-            " either both of 'timezone' and 'localTime', or neither one of them",
+          _meta,
+          _links,
+          items,
         })
       );
-    } else if (editedTimezone !== undefined && editedLocalTime !== undefined) {
-      // Defer implementing any logic in this case,
-      // for as long as it is possible to do so.
-    }
+    };
 
-    if (editedContent !== undefined) {
-      this.mockEntries = this.mockEntries.map((entry: IEntry) => {
-        if (entry.id !== entryId) {
-          return entry;
-        }
-
-        const editedEntry: IEntry = {
-          ...entry,
-        };
-
-        editedEntry.content = editedContent;
-
-        return editedEntry;
-      });
-    }
-
-    const editedEntry = this.mockEntries.filter(
-      (entry: IEntry) => entry.id === entryId
-    )[0];
-
-    return res.once(ctx.status(200), ctx.json(editedEntry));
+    return mockFetchEntries;
   }
 
-  mockDeleteEntry(
-    req: RestRequest<DefaultRequestBody, RequestParams>,
-    res: ResponseComposition<any>,
-    ctx: RestContext
-  ) {
-    const entryId: number = parseInt(req.params.id);
+  createMockCreateEntry() {
+    const mockCreateEntry = (
+      req: RestRequest<DefaultRequestBody, RequestParams>,
+      res: ResponseComposition<any>,
+      ctx: RestContext
+    ) => {
+      const localTime = (req!.body as Record<string, any>).localTime; // ex: "2021-05-13 00:18"
+      const timezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
+      const content = (req!.body as Record<string, any>).content; // ex: "some insightful content"
 
-    this.mockEntries = this.mockEntries.filter((entry: IEntry) => entry.id !== entryId);
+      const createdAt: string = MOCK_ENTRY_10.createdAt;
 
-    return res.once(ctx.status(204));
+      const updatedAt: string = MOCK_ENTRY_10.updatedAt;
+
+      // const timestampInUTC = new Date(localTime + "Z" + timezone).toISOString();
+      const timestampInUTC = MOCK_ENTRY_10.timestampInUTC;
+
+      const newEntry: IEntry = {
+        id: MOCK_ID_FOR_NEW_ENTRY,
+        timestampInUTC,
+        utcZoneOfTimestamp: timezone,
+        content: content,
+        createdAt,
+        updatedAt,
+        userId: 1,
+      };
+
+      this.mockEntries = [...this.mockEntries, newEntry];
+
+      return res.once(ctx.status(201), ctx.json(newEntry));
+    };
+
+    return mockCreateEntry;
+  }
+
+  createMockEditEntry() {
+    const mockEditEntry = (
+      req: RestRequest<DefaultRequestBody, RequestParams>,
+      res: ResponseComposition<any>,
+      ctx: RestContext
+    ) => {
+      const { id: entryIdStr } = req.params;
+      const entryId: number = parseInt(entryIdStr);
+
+      const editedLocalTime = (req!.body as Record<string, any>).localTime; // ex: "2021-05-13 00:18"
+      const editedTimezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
+      const editedContent = (req!.body as Record<string, any>).content; // ex: "an edited version of some insightful content"
+
+      // Emulate the backend's route-handling function for
+      // PUT requests to /api/entries/:id .
+      if (
+        (editedTimezone !== undefined && editedLocalTime === undefined) ||
+        (editedTimezone === undefined && editedLocalTime !== undefined)
+      ) {
+        return res.once(
+          ctx.status(400),
+          ctx.json({
+            error:
+              "Your request body must include" +
+              " either both of 'timezone' and 'localTime', or neither one of them",
+          })
+        );
+      } else if (editedTimezone !== undefined && editedLocalTime !== undefined) {
+        // Defer implementing any logic in this case,
+        // for as long as it is possible to do so.
+      }
+
+      if (editedContent !== undefined) {
+        this.mockEntries = this.mockEntries.map((entry: IEntry) => {
+          if (entry.id !== entryId) {
+            return entry;
+          }
+
+          const editedEntry: IEntry = {
+            ...entry,
+          };
+
+          editedEntry.content = editedContent;
+
+          return editedEntry;
+        });
+      }
+
+      const editedEntry = this.mockEntries.filter(
+        (entry: IEntry) => entry.id === entryId
+      )[0];
+
+      return res.once(ctx.status(200), ctx.json(editedEntry));
+    };
+
+    return mockEditEntry;
+  }
+
+  createMockDeleteEntry() {
+    const mockDeleteEntry = (
+      req: RestRequest<DefaultRequestBody, RequestParams>,
+      res: ResponseComposition<any>,
+      ctx: RestContext
+    ) => {
+      const entryId: number = parseInt(req.params.id);
+
+      this.mockEntries = this.mockEntries.filter(
+        (entry: IEntry) => entry.id !== entryId
+      );
+
+      return res.once(ctx.status(204));
+    };
+
+    return mockDeleteEntry;
   }
 }
 

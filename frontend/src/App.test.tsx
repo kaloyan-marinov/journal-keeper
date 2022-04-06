@@ -349,18 +349,12 @@ describe("workflows that involve signing in and creating a new Entry", () => {
       requestInterceptionLayer.use(
         rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
 
-        rest.get("/api/entries", (req, res, ctx) =>
-          rhb.mockFetchEntries(req, res, ctx)
-        ),
+        rest.get("/api/entries", rhb.createMockFetchEntries()),
 
-        rest.post("/api/entries", (req, res, ctx) =>
-          rhb.mockCreateEntry(req, res, ctx)
-        ),
-        rest.get("/api/entries", (req, res, ctx) =>
-          rhb.mockFetchEntries(req, res, ctx)
-        ),
+        rest.post("/api/entries", rhb.createMockCreateEntry()),
+        rest.get("/api/entries", rhb.createMockFetchEntries()),
 
-        rest.get("/api/entries", (req, res, ctx) => rhb.mockFetchEntries(req, res, ctx))
+        rest.get("/api/entries", rhb.createMockFetchEntries())
       );
 
       render(
@@ -437,18 +431,12 @@ describe("workflows that involve signing in and editing an existing Entry", () =
       requestInterceptionLayer.use(
         rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
 
-        rest.get("/api/entries", (req, res, ctx) =>
-          rhb.mockFetchEntries(req, res, ctx)
-        ),
+        rest.get("/api/entries", rhb.createMockFetchEntries()),
 
-        rest.put("/api/entries/:id", (req, res, ctx) =>
-          rhb.mockEditEntry(req, res, ctx)
-        ),
-        rest.get("/api/entries", (req, res, ctx) =>
-          rhb.mockFetchEntries(req, res, ctx)
-        ),
+        rest.put("/api/entries/:id", rhb.createMockEditEntry()),
+        rest.get("/api/entries", rhb.createMockFetchEntries()),
 
-        rest.get("/api/entries", (req, res, ctx) => rhb.mockFetchEntries(req, res, ctx))
+        rest.get("/api/entries", rhb.createMockFetchEntries())
       );
 
       render(
@@ -539,18 +527,12 @@ describe("workflows that involve signing in and deleting an Entry", () => {
       requestInterceptionLayer.use(
         rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
 
-        rest.get("/api/entries", (req, res, ctx) =>
-          rhb.mockFetchEntries(req, res, ctx)
-        ),
+        rest.get("/api/entries", rhb.createMockFetchEntries()),
 
-        rest.delete("/api/entries/:id", (req, res, ctx) =>
-          rhb.mockDeleteEntry(req, res, ctx)
-        ),
-        rest.get("/api/entries", (req, res, ctx) =>
-          rhb.mockFetchEntries(req, res, ctx)
-        ),
+        rest.delete("/api/entries/:id", rhb.createMockDeleteEntry()),
+        rest.get("/api/entries", rhb.createMockFetchEntries()),
 
-        rest.get("/api/entries", (req, res, ctx) => rhb.mockFetchEntries(req, res, ctx))
+        rest.get("/api/entries", rhb.createMockFetchEntries())
       );
 
       render(

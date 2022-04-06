@@ -919,7 +919,7 @@ describe(
         // Arrange.
         const rhb: RequestHandlerBundle = new RequestHandlerBundle();
         requestInterceptionLayer.use(
-          rest.delete("/api/entries/:id", rhb.mockDeleteEntry)
+          rest.delete("/api/entries/:id", rhb.createMockDeleteEntry)
         );
 
         const targetedEntryId: number = MOCK_ENTRY_10.id;

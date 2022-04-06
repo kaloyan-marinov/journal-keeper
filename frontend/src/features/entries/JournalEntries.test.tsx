@@ -133,12 +133,14 @@ describe("initial render", () => {
       // Arrange.
       const rhb: RequestHandlerBundle = new RequestHandlerBundle();
       requestInterceptionLayer.use(
-        rest.get("/api/entries", (req, res, ctx) => rhb.mockFetchEntries(req, res, ctx))
+        rest.get("/api/entries", (req, res, ctx) =>
+          rhb.createMockFetchEntries(req, res, ctx)
+        )
       );
       /*
       If the previous statement is replaced by
       ```
-      requestInterceptionLayer.use(rest.get("/api/entries", rhb.mockFetchEntries));
+      requestInterceptionLayer.use(rest.get("/api/entries", rhb.createMockFetchEntries));
       ```
       this test case breaks.
 
