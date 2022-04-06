@@ -41,7 +41,7 @@ export const MOCK_PROFILE_1 = {
   updatedAt: "mocked-2021-05-23T11:10:34.000Z",
 };
 
-export let MOCK_ENTRIES: IEntry[] = Array.from({ length: 50 }).map((_, index) => {
+export const MOCK_ENTRIES: IEntry[] = Array.from({ length: 50 }).map((_, index) => {
   const minute = (index + 1).toString().padStart(2, "0");
 
   return {

@@ -94,9 +94,6 @@ export const JournalEntries = () => {
       try {
         await dispatch(fetchEntries(entriesUrl));
       } catch (err) {
-        console.log("inspecting err");
-        console.log(err);
-
         if (err.response.status === 401) {
           dispatch(
             signOut("[FROM <JournalEntries>'S useEffect HOOK] PLEASE SIGN BACK IN")

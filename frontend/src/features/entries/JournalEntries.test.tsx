@@ -135,15 +135,6 @@ describe("initial render", () => {
       requestInterceptionLayer.use(
         rest.get("/api/entries", rhf.createMockFetchEntries())
       );
-      /*
-      If the previous statement is replaced by
-      ```
-      requestInterceptionLayer.use(rest.get("/api/entries", rhf.createMockFetchEntries));
-      ```
-      this test case breaks.
-
-      TODO: find out why that happens
-      */
 
       const initState = {
         ...INITIAL_STATE,

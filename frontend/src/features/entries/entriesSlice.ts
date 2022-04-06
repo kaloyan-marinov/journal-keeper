@@ -420,9 +420,6 @@ export const fetchEntries = (
       );
       return Promise.resolve();
     } catch (err) {
-      console.log("inspecting err");
-      console.log(err);
-
       const responseBodyError =
         err.response.data.error ||
         "ERROR NOT FROM BACKEND BUT FROM FRONTEND THUNK-ACTION";
