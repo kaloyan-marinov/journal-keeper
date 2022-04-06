@@ -56,6 +56,7 @@ import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { IState } from "../../types";
 import { URL_FOR_FIRST_PAGE_OF_ENTRIES, PER_PAGE_DEFAULT } from "../../constants";
 import {
+  RequestHandlerBundle,
   requestHandlers,
   MOCK_META,
   MOCK_LINKS,
@@ -916,8 +917,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
+        const rhb: RequestHandlerBundle = new RequestHandlerBundle();
         requestInterceptionLayer.use(
-          rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry)
+          rest.delete("/api/entries/:id", rhb.mockDeleteEntry)
         );
 
         const targetedEntryId: number = MOCK_ENTRY_10.id;

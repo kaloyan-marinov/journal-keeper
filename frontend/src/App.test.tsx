@@ -11,7 +11,7 @@ import { JOURNAL_APP_TOKEN } from "./constants";
 import App from "./App";
 import { TEnhancer, INITIAL_STATE, rootReducer } from "./store";
 
-import { requestHandlers } from "./testHelpers";
+import { RequestHandlerBundle, requestHandlers } from "./testHelpers";
 import { createMemoryHistory, MemoryHistory } from "history";
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { setupServer, SetupServerApi } from "msw/node";
@@ -521,12 +521,13 @@ describe("workflows that involve signing in and deleting an Entry", () => {
       // Arrange.
       const realStore = createStore(rootReducer, initState, enhancer);
 
+      const rhb: RequestHandlerBundle = new RequestHandlerBundle();
       requestInterceptionLayer.use(
         rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
 
         rest.get("/api/entries", requestHandlers.mockFetchEntries),
 
-        rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry),
+        rest.delete("/api/entries/:id", rhb.mockDeleteEntry),
         rest.get("/api/entries", requestHandlers.mockFetchEntries),
 
         rest.get("/api/entries", requestHandlers.mockFetchEntries)

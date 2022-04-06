@@ -294,17 +294,53 @@ const mockEditEntry = (
   return res.once(ctx.status(200), ctx.json(editedEntry));
 };
 
-const mockDeleteEntry = (
-  req: RestRequest<DefaultRequestBody, RequestParams>,
-  res: ResponseComposition<any>,
-  ctx: RestContext
-) => {
-  const entryId: number = parseInt(req.params.id);
+// const mockDeleteEntry = (
+//   req: RestRequest<DefaultRequestBody, RequestParams>,
+//   res: ResponseComposition<any>,
+//   ctx: RestContext
+// ) => {
+//   const entryId: number = parseInt(req.params.id);
 
-  MOCK_ENTRIES = MOCK_ENTRIES.filter((entry: IEntry) => entry.id !== entryId);
+//   MOCK_ENTRIES = MOCK_ENTRIES.filter((entry: IEntry) => entry.id !== entryId);
 
-  return res.once(ctx.status(204));
-};
+//   return res.once(ctx.status(204));
+// };
+
+export class RequestHandlerBundle {
+  mockEntries: IEntry[];
+
+  constructor() {
+    const MOCK_ENTRIES_TEMP: IEntry[] = Array.from({ length: 50 }).map((_, index) => {
+      const minute = (index + 1).toString().padStart(2, "0");
+
+      return {
+        id: 10 * (index + 1),
+        timestampInUTC: `2021-09-01T06:${minute}:00.000Z`,
+        utcZoneOfTimestamp: "+02:00",
+        content: `mocked-content-of-entry-${minute}`,
+        createdAt: `2021-09-01T07:00:00.000Z`,
+        updatedAt: `2021-09-01T07:00:00.000Z`,
+        userId: 1,
+      };
+    });
+
+    this.mockEntries = {
+      ...MOCK_ENTRIES_TEMP,
+    };
+  }
+
+  mockDeleteEntry(
+    req: RestRequest<DefaultRequestBody, RequestParams>,
+    res: ResponseComposition<any>,
+    ctx: RestContext
+  ) {
+    const entryId: number = parseInt(req.params.id);
+
+    MOCK_ENTRIES = MOCK_ENTRIES.filter((entry: IEntry) => entry.id !== entryId);
+
+    return res.once(ctx.status(204));
+  }
+}
 
 export const requestHandlers = {
   mockMultipleFailures,
@@ -316,5 +352,5 @@ export const requestHandlers = {
   mockCreateEntry,
   mockFetchEntries,
   mockEditEntry,
-  mockDeleteEntry,
+  // mockDeleteEntry,
 };
