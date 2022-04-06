@@ -139,98 +139,98 @@ const mockFetchUserProfile = (
   return res.once(ctx.status(200), ctx.json(MOCK_PROFILE_1));
 };
 
-const mockFetchEntries = (
-  req: RestRequest<DefaultRequestBody, RequestParams>,
-  res: ResponseComposition<any>,
-  ctx: RestContext
-) => {
-  const totalItems: number = MOCK_ENTRIES.length;
-  const perPage: number = PER_PAGE_DEFAULT;
-  const totalPages: number = Math.ceil(totalItems / perPage);
-  const page: number = parseInt(req.url.searchParams.get("page") || "1");
+// const mockFetchEntries = (
+//   req: RestRequest<DefaultRequestBody, RequestParams>,
+//   res: ResponseComposition<any>,
+//   ctx: RestContext
+// ) => {
+//   const totalItems: number = MOCK_ENTRIES.length;
+//   const perPage: number = PER_PAGE_DEFAULT;
+//   const totalPages: number = Math.ceil(totalItems / perPage);
+//   const page: number = parseInt(req.url.searchParams.get("page") || "1");
 
-  const _meta: IPaginationMeta = {
-    totalItems,
-    perPage,
-    totalPages,
-    page,
-  };
+//   const _meta: IPaginationMeta = {
+//     totalItems,
+//     perPage,
+//     totalPages,
+//     page,
+//   };
 
-  const _links: IPaginationLinks = {
-    self: `/api/entries?perPage=${perPage}&page=${page}`,
-    next:
-      page >= totalPages ? null : `/api/entries?perPage=${perPage}&page=${page + 1}`,
-    prev: page <= 1 ? null : `/api/entries?perPage=${perPage}&page=${page - 1}`,
-    first: `/api/entries?perPage=${perPage}&page=1`,
-    last: `/api/entries?perPage=${perPage}&page=${totalPages}`,
-  };
+//   const _links: IPaginationLinks = {
+//     self: `/api/entries?perPage=${perPage}&page=${page}`,
+//     next:
+//       page >= totalPages ? null : `/api/entries?perPage=${perPage}&page=${page + 1}`,
+//     prev: page <= 1 ? null : `/api/entries?perPage=${perPage}&page=${page - 1}`,
+//     first: `/api/entries?perPage=${perPage}&page=1`,
+//     last: `/api/entries?perPage=${perPage}&page=${totalPages}`,
+//   };
 
-  const start: number = (page - 1) * perPage;
-  const end: number = start + perPage;
-  const items: IEntry[] = MOCK_ENTRIES.slice(start, end);
+//   const start: number = (page - 1) * perPage;
+//   const end: number = start + perPage;
+//   const items: IEntry[] = MOCK_ENTRIES.slice(start, end);
 
-  return res.once(
-    ctx.status(200),
-    ctx.json({
-      _meta,
-      _links,
-      items,
-    })
-  );
-};
+//   return res.once(
+//     ctx.status(200),
+//     ctx.json({
+//       _meta,
+//       _links,
+//       items,
+//     })
+//   );
+// };
 
-const mockCreateEntry = (
-  req: RestRequest<DefaultRequestBody, RequestParams>,
-  res: ResponseComposition<any>,
-  ctx: RestContext
-) => {
-  /*
-  Let C denote the commit introducing this line and editing the next code-block.
+// const mockCreateEntry = (
+//   req: RestRequest<DefaultRequestBody, RequestParams>,
+//   res: ResponseComposition<any>,
+//   ctx: RestContext
+// ) => {
+//   /*
+//   Let C denote the commit introducing this line and editing the next code-block.
 
-  Immediately prior to C,
-  it was possible to serve the frontend application without errors.
+//   Immediately prior to C,
+//   it was possible to serve the frontend application without errors.
 
-  Then I terminated all processes related to this project,
-  restarted my computed,
-  and started all processes related to this project afresh;
-  it was no longer possible to serve the frontend,
-  because TypeScript crashed with errors related to
-  what the next code-block used to look like immediately prior to C.
+//   Then I terminated all processes related to this project,
+//   restarted my computed,
+//   and started all processes related to this project afresh;
+//   it was no longer possible to serve the frontend,
+//   because TypeScript crashed with errors related to
+//   what the next code-block used to look like immediately prior to C.
 
-  The changes to the next code-block, which are introduced in C,
-  make it possible to to serve the frontend application without errors.
+//   The changes to the next code-block, which are introduced in C,
+//   make it possible to to serve the frontend application without errors.
 
-  TODO: determine what type annotations need to be added to `req`
-        so as to make it possible to remove
-        the explicit(-and-perhaps-mysterious-looking) type conversions
-        from the following statements
-  */
-  const localTime = (req!.body as Record<string, any>).localTime; // ex: "2021-05-13 00:18"
-  const timezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
-  const content = (req!.body as Record<string, any>).content; // ex: "some insightful content"
+//   TODO: determine what type annotations need to be added to `req`
+//         so as to make it possible to remove
+//         the explicit(-and-perhaps-mysterious-looking) type conversions
+//         from the following statements
+//   */
+//   const localTime = (req!.body as Record<string, any>).localTime; // ex: "2021-05-13 00:18"
+//   const timezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
+//   const content = (req!.body as Record<string, any>).content; // ex: "some insightful content"
 
-  // const createdAt: string = new Date().toISOString();
-  const createdAt: string = MOCK_ENTRY_10.createdAt;
+//   // const createdAt: string = new Date().toISOString();
+//   const createdAt: string = MOCK_ENTRY_10.createdAt;
 
-  const updatedAt: string = MOCK_ENTRY_10.updatedAt;
+//   const updatedAt: string = MOCK_ENTRY_10.updatedAt;
 
-  // const timestampInUTC = new Date(localTime + "Z" + timezone).toISOString();
-  const timestampInUTC = MOCK_ENTRY_10.timestampInUTC;
+//   // const timestampInUTC = new Date(localTime + "Z" + timezone).toISOString();
+//   const timestampInUTC = MOCK_ENTRY_10.timestampInUTC;
 
-  const newEntry: IEntry = {
-    id: MOCK_ID_FOR_NEW_ENTRY,
-    timestampInUTC,
-    utcZoneOfTimestamp: timezone,
-    content: content,
-    createdAt,
-    updatedAt,
-    userId: 1,
-  };
+//   const newEntry: IEntry = {
+//     id: MOCK_ID_FOR_NEW_ENTRY,
+//     timestampInUTC,
+//     utcZoneOfTimestamp: timezone,
+//     content: content,
+//     createdAt,
+//     updatedAt,
+//     userId: 1,
+//   };
 
-  MOCK_ENTRIES = [...MOCK_ENTRIES, newEntry];
+//   MOCK_ENTRIES = [...MOCK_ENTRIES, newEntry];
 
-  return res.once(ctx.status(201), ctx.json(newEntry));
-};
+//   return res.once(ctx.status(201), ctx.json(newEntry));
+// };
 
 const mockEditEntry = (
   req: RestRequest<DefaultRequestBody, RequestParams>,
@@ -324,9 +324,87 @@ export class RequestHandlerBundle {
       };
     });
 
-    this.mockEntries = {
-      ...MOCK_ENTRIES_TEMP,
+    this.mockEntries = [...MOCK_ENTRIES_TEMP];
+  }
+
+  mockFetchEntries(
+    req: RestRequest<DefaultRequestBody, RequestParams>,
+    res: ResponseComposition<any>,
+    ctx: RestContext
+  ) {
+    console.log("inspecting this.mockEntries");
+    console.log(this.mockEntries);
+
+    const totalItems: number = this.mockEntries.length;
+    const perPage: number = PER_PAGE_DEFAULT;
+    const totalPages: number = Math.ceil(totalItems / perPage);
+    const page: number = parseInt(req.url.searchParams.get("page") || "1");
+
+    const _meta: IPaginationMeta = {
+      totalItems,
+      perPage,
+      totalPages,
+      page,
     };
+
+    const _links: IPaginationLinks = {
+      self: `/api/entries?perPage=${perPage}&page=${page}`,
+      next:
+        page >= totalPages ? null : `/api/entries?perPage=${perPage}&page=${page + 1}`,
+      prev: page <= 1 ? null : `/api/entries?perPage=${perPage}&page=${page - 1}`,
+      first: `/api/entries?perPage=${perPage}&page=1`,
+      last: `/api/entries?perPage=${perPage}&page=${totalPages}`,
+    };
+
+    console.log("inspecting _links");
+    console.log(_links);
+
+    const start: number = (page - 1) * perPage;
+    const end: number = start + perPage;
+    const items: IEntry[] = this.mockEntries.slice(start, end);
+
+    console.log("inspecting items");
+    console.log(items);
+
+    return res.once(
+      ctx.status(200),
+      ctx.json({
+        _meta,
+        _links,
+        items,
+      })
+    );
+  }
+
+  mockCreateEntry(
+    req: RestRequest<DefaultRequestBody, RequestParams>,
+    res: ResponseComposition<any>,
+    ctx: RestContext
+  ) {
+    const localTime = (req!.body as Record<string, any>).localTime; // ex: "2021-05-13 00:18"
+    const timezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
+    const content = (req!.body as Record<string, any>).content; // ex: "some insightful content"
+
+    const createdAt: string = MOCK_ENTRY_10.createdAt;
+
+    const updatedAt: string = MOCK_ENTRY_10.updatedAt;
+
+    // const timestampInUTC = new Date(localTime + "Z" + timezone).toISOString();
+    const timestampInUTC = MOCK_ENTRY_10.timestampInUTC;
+
+    const newEntry: IEntry = {
+      id: MOCK_ID_FOR_NEW_ENTRY,
+      timestampInUTC,
+      utcZoneOfTimestamp: timezone,
+      content: content,
+      createdAt,
+      updatedAt,
+      userId: 1,
+    };
+
+    this.mockEntries = [...this.mockEntries, newEntry];
+
+    return res.once(ctx.status(201), ctx.json(newEntry));
   }
 
   mockDeleteEntry(
@@ -336,7 +414,7 @@ export class RequestHandlerBundle {
   ) {
     const entryId: number = parseInt(req.params.id);
 
-    MOCK_ENTRIES = MOCK_ENTRIES.filter((entry: IEntry) => entry.id !== entryId);
+    this.mockEntries = this.mockEntries.filter((entry: IEntry) => entry.id !== entryId);
 
     return res.once(ctx.status(204));
   }
@@ -349,8 +427,8 @@ export const requestHandlers = {
   mockIssueJWSToken,
   mockFetchUserProfile,
 
-  mockCreateEntry,
-  mockFetchEntries,
+  // mockCreateEntry,
+  // mockFetchEntries,
   mockEditEntry,
   // mockDeleteEntry,
 };

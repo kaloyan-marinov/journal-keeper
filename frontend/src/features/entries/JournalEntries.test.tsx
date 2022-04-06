@@ -10,7 +10,12 @@ import { PER_PAGE_DEFAULT } from "../../constants";
 import { INITIAL_STATE, rootReducer } from "../../store";
 import { Alerts } from "../alerts/Alerts";
 import { JournalEntries } from "./JournalEntries";
-import { MOCK_PROFILE_1, MOCK_ENTRY_10, requestHandlers } from "../../testHelpers";
+import {
+  MOCK_PROFILE_1,
+  MOCK_ENTRY_10,
+  requestHandlers,
+  RequestHandlerBundle,
+} from "../../testHelpers";
 
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { setupServer, SetupServerApi } from "msw/node";
@@ -126,9 +131,19 @@ describe("initial render", () => {
       " the client-provided authentication credential as valid",
     async () => {
       // Arrange.
+      const rhb: RequestHandlerBundle = new RequestHandlerBundle();
       requestInterceptionLayer.use(
-        rest.get("/api/entries", requestHandlers.mockFetchEntries)
+        rest.get("/api/entries", (req, res, ctx) => rhb.mockFetchEntries(req, res, ctx))
       );
+      /*
+      If the previous statement is replaced by
+      ```
+      requestInterceptionLayer.use(rest.get("/api/entries", rhb.mockFetchEntries));
+      ```
+      this test case breaks.
+
+      TODO: find out why that happens
+      */
 
       const initState = {
         ...INITIAL_STATE,

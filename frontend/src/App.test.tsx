@@ -345,15 +345,22 @@ describe("workflows that involve signing in and creating a new Entry", () => {
       // Arrange.
       const realStore = createStore(rootReducer, initState, enhancer);
 
+      const rhb: RequestHandlerBundle = new RequestHandlerBundle();
       requestInterceptionLayer.use(
         rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
 
-        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.get("/api/entries", (req, res, ctx) =>
+          rhb.mockFetchEntries(req, res, ctx)
+        ),
 
-        rest.post("/api/entries", requestHandlers.mockCreateEntry),
-        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.post("/api/entries", (req, res, ctx) =>
+          rhb.mockCreateEntry(req, res, ctx)
+        ),
+        rest.get("/api/entries", (req, res, ctx) =>
+          rhb.mockFetchEntries(req, res, ctx)
+        ),
 
-        rest.get("/api/entries", requestHandlers.mockFetchEntries)
+        rest.get("/api/entries", (req, res, ctx) => rhb.mockFetchEntries(req, res, ctx))
       );
 
       render(
@@ -525,12 +532,18 @@ describe("workflows that involve signing in and deleting an Entry", () => {
       requestInterceptionLayer.use(
         rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
 
-        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.get("/api/entries", (req, res, ctx) =>
+          rhb.mockFetchEntries(req, res, ctx)
+        ),
 
-        rest.delete("/api/entries/:id", rhb.mockDeleteEntry),
-        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.delete("/api/entries/:id", (req, res, ctx) =>
+          rhb.mockDeleteEntry(req, res, ctx)
+        ),
+        rest.get("/api/entries", (req, res, ctx) =>
+          rhb.mockFetchEntries(req, res, ctx)
+        ),
 
-        rest.get("/api/entries", requestHandlers.mockFetchEntries)
+        rest.get("/api/entries", (req, res, ctx) => rhb.mockFetchEntries(req, res, ctx))
       );
 
       render(
