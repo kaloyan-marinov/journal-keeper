@@ -14,7 +14,7 @@ import {
   MOCK_PROFILE_1,
   MOCK_ENTRY_10,
   requestHandlers,
-  RequestHandlerBundle,
+  RequestHandlingFacilitator,
 } from "../../testHelpers";
 
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
@@ -131,16 +131,14 @@ describe("initial render", () => {
       " the client-provided authentication credential as valid",
     async () => {
       // Arrange.
-      const rhb: RequestHandlerBundle = new RequestHandlerBundle();
+      const rhf: RequestHandlingFacilitator = new RequestHandlingFacilitator();
       requestInterceptionLayer.use(
-        rest.get("/api/entries", (req, res, ctx) =>
-          rhb.createMockFetchEntries(req, res, ctx)
-        )
+        rest.get("/api/entries", rhf.createMockFetchEntries())
       );
       /*
       If the previous statement is replaced by
       ```
-      requestInterceptionLayer.use(rest.get("/api/entries", rhb.createMockFetchEntries));
+      requestInterceptionLayer.use(rest.get("/api/entries", rhf.createMockFetchEntries));
       ```
       this test case breaks.
 
