@@ -694,8 +694,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
+        const rhf: RequestHandlingFacilitator = new RequestHandlingFacilitator();
         requestInterceptionLayer.use(
-          rest.get("/api/entries", requestHandlers.mockFetchEntries)
+          rest.get("/api/entries", rhf.createMockFetchEntries())
         );
 
         // Act.
@@ -763,8 +764,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
+        const rhf: RequestHandlingFacilitator = new RequestHandlingFacilitator();
         requestInterceptionLayer.use(
-          rest.post("/api/entries", requestHandlers.mockCreateEntry)
+          rest.post("/api/entries", rhf.createMockCreateEntry())
         );
 
         console.log("MOCK_ENTRY_10");
@@ -851,8 +853,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
+        const rhf: RequestHandlingFacilitator = new RequestHandlingFacilitator();
         requestInterceptionLayer.use(
-          rest.put("/api/entries/:id", requestHandlers.mockEditEntry)
+          rest.put("/api/entries/:id", rhf.createMockEditEntry())
         );
 
         const targetedEntryId: number = MOCK_ENTRY_10.id;

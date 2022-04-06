@@ -193,13 +193,14 @@ describe("initial render", () => {
 describe("responds to user interaction", () => {
   test("the user interacts with the pagination-controlling buttons", async () => {
     // Arrange.
+    const rhf: RequestHandlingFacilitator = new RequestHandlingFacilitator();
     requestInterceptionLayer.use(
-      rest.get("/api/entries", requestHandlers.mockFetchEntries),
+      rest.get("/api/entries", rhf.createMockFetchEntries()),
 
-      rest.get("/api/entries", requestHandlers.mockFetchEntries),
-      rest.get("/api/entries", requestHandlers.mockFetchEntries),
-      rest.get("/api/entries", requestHandlers.mockFetchEntries),
-      rest.get("/api/entries", requestHandlers.mockFetchEntries)
+      rest.get("/api/entries", rhf.createMockFetchEntries()),
+      rest.get("/api/entries", rhf.createMockFetchEntries()),
+      rest.get("/api/entries", rhf.createMockFetchEntries()),
+      rest.get("/api/entries", rhf.createMockFetchEntries())
     );
 
     const enhancer = applyMiddleware(thunkMiddleware);
