@@ -144,21 +144,7 @@ export class RequestHandlingFacilitator {
   mockEntries: IEntry[];
 
   constructor() {
-    const MOCK_ENTRIES_TEMP: IEntry[] = Array.from({ length: 50 }).map((_, index) => {
-      const minute = (index + 1).toString().padStart(2, "0");
-
-      return {
-        id: 10 * (index + 1),
-        timestampInUTC: `2021-09-01T06:${minute}:00.000Z`,
-        utcZoneOfTimestamp: "+02:00",
-        content: `mocked-content-of-entry-${minute}`,
-        createdAt: `2021-09-01T07:00:00.000Z`,
-        updatedAt: `2021-09-01T07:00:00.000Z`,
-        userId: 1,
-      };
-    });
-
-    this.mockEntries = [...MOCK_ENTRIES_TEMP];
+    this.mockEntries = [...MOCK_ENTRIES];
   }
 
   createMockFetchEntries() {
