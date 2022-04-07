@@ -1,3 +1,5 @@
+import moment from "moment";
+
 import {
   DefaultRequestBody,
   RequestParams,
@@ -140,16 +142,16 @@ export class RequestHandlingFacilitator {
       res: ResponseComposition<any>,
       ctx: RestContext
     ) => {
-      const localTime = (req!.body as Record<string, any>).localTime; // ex: "2021-05-13 00:18"
-      const timezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
+      const localTime = (req!.body as Record<string, any>).localTime; // ex: "2022-04-07 08:44"
+      const timezone = (req!.body as Record<string, any>).timezone; // ex: "+03:00"
       const content = (req!.body as Record<string, any>).content; // ex: "some insightful content"
 
       const createdAt: string = MOCK_ENTRY_10.createdAt;
-
       const updatedAt: string = MOCK_ENTRY_10.updatedAt;
-
-      // const timestampInUTC = new Date(localTime + "Z" + timezone).toISOString();
-      const timestampInUTC = MOCK_ENTRY_10.timestampInUTC;
+      const timestampInUTC =
+        moment(localTime + " " + timezone)
+          .utc()
+          .format("YYYY-MM-DD" + "T" + "HH:mm:ss.SSS") + "Z";
 
       const newEntry: IEntry = {
         id: MOCK_ID_FOR_NEW_ENTRY,
