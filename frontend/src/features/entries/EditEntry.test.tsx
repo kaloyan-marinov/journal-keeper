@@ -7,7 +7,7 @@ import thunkMiddleware from "redux-thunk";
 import { createMemoryHistory, MemoryHistory } from "history";
 
 import { IState, RequestStatus } from "../../types";
-import { MOCK_ENTRY_10, MOCK_ENTRY_10_LOCAL_TIME } from "../../testHelpers";
+import { MOCK_ENTRY_10, MOCK_ENTRY_10_LOCAL_TIME } from "../../mockPiecesOfData";
 import { EditEntry } from "./EditEntry";
 import { INITIAL_STATE, TStore, rootReducer } from "../../store";
 import { Alerts } from "../alerts/Alerts";

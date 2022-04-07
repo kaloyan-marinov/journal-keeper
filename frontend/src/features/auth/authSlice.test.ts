@@ -34,7 +34,8 @@ import configureMockStore from "redux-mock-store";
 import thunkMiddleware from "redux-thunk";
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { IState, RequestStatus } from "../../types";
-import { MOCK_PROFILE_1, requestHandlers } from "../../testHelpers";
+import { requestHandlers } from "../../testHelpers";
+import { MOCK_PROFILE_1 } from "../../mockPiecesOfData";
 import { INITIAL_STATE } from "../../store";
 import { createUser, issueJWSToken, fetchProfile } from "./authSlice";
 

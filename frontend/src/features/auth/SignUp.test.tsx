@@ -11,7 +11,8 @@ import { JOURNAL_APP_TOKEN } from "../../constants";
 import { INITIAL_STATE, rootReducer } from "../../store";
 import { SignUp } from "./SignUp";
 import { Alerts } from "../alerts/Alerts";
-import { MOCK_PROFILE_1, requestHandlers } from "../../testHelpers";
+import { requestHandlers } from "../../testHelpers";
+import { MOCK_PROFILE_1 } from "../../mockPiecesOfData";
 import { Home } from "../Home";
 
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";

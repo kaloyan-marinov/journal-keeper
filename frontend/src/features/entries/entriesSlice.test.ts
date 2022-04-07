@@ -12,7 +12,7 @@ import {
   MOCK_ENTRY_10,
   MOCK_ENTRY_20,
   MOCK_ID_FOR_NEW_ENTRY,
-} from "../../testHelpers";
+} from "../../mockPiecesOfData";
 import {
   ActionTypesCreateEntry,
   ActionTypesDeleteEntry,
@@ -55,14 +55,13 @@ import thunkMiddleware from "redux-thunk";
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { IState } from "../../types";
 import { URL_FOR_FIRST_PAGE_OF_ENTRIES, PER_PAGE_DEFAULT } from "../../constants";
+import { RequestHandlingFacilitator, requestHandlers } from "../../testHelpers";
 import {
-  RequestHandlingFacilitator,
-  requestHandlers,
   MOCK_META,
   MOCK_LINKS,
   MOCK_ENTRIES,
   MOCK_ENTRY_20_LOCAL_TIME,
-} from "../../testHelpers";
+} from "../../mockPiecesOfData";
 import { INITIAL_STATE } from "../../store";
 import { createEntry, editEntry, deleteEntry, fetchEntries } from "./entriesSlice";
 

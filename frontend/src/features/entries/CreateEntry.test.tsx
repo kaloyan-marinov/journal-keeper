@@ -11,8 +11,6 @@ import { CreateEntry } from "./CreateEntry";
 import { requestHandlers } from "../../testHelpers";
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { setupServer, SetupServerApi } from "msw/node";
-import { createMemoryHistory } from "history";
-import { Route, Router } from "react-router-dom";
 
 describe("standalone - as a single component", () => {
   test("initial render (i.e. before/without any user interaction)", () => {
