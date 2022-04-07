@@ -59,15 +59,17 @@ export interface IPaginationLinks {
   last: string | null;
 }
 
+export interface IEntriesEntities {
+  [entryId: string]: IEntry;
+}
+
 export interface IStateEntries {
   requestStatus: RequestStatus;
   requestError: string | null;
   _meta: IPaginationMeta;
   _links: IPaginationLinks;
   ids: number[];
-  entities: {
-    [entryId: string]: IEntry;
-  };
+  entities: IEntriesEntities;
 }
 
 /*

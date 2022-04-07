@@ -7,8 +7,15 @@ import {
   RestRequest,
 } from "msw";
 
-import { IAlert, IEntry, IPaginationLinks, IPaginationMeta } from "./types";
+import {
+  IAlert,
+  IEntriesEntities,
+  IEntry,
+  IPaginationLinks,
+  IPaginationMeta,
+} from "./types";
 import { PER_PAGE_DEFAULT } from "./constants";
+import { extractEntities, extractIds } from "./utilities";
 
 export const MOCK_ALERT_17: IAlert = {
   id: "id-17",
@@ -55,15 +62,9 @@ export const MOCK_ENTRIES: IEntry[] = Array.from({ length: 50 }).map((_, index) 
   };
 });
 
-export const MOCK_ENTRIES_IDS: number[] = MOCK_ENTRIES.map((e: IEntry) => e.id);
+export const MOCK_ENTRIES_IDS: number[] = extractIds(MOCK_ENTRIES);
 
-export const MOCK_ENTRIES_ENTITIES: { [entryId: string]: IEntry } = MOCK_ENTRIES.reduce(
-  (entriesObj: { [entryId: string]: IEntry }, entry: IEntry) => {
-    entriesObj[entry.id] = entry;
-    return entriesObj;
-  },
-  {}
-);
+export const MOCK_ENTRIES_ENTITIES: IEntriesEntities = extractEntities(MOCK_ENTRIES);
 
 export const MOCK_ID_FOR_NEW_ENTRY: number = 666;
 
@@ -324,9 +325,4 @@ export const requestHandlers = {
   mockCreateUser,
   mockIssueJWSToken,
   mockFetchUserProfile,
-
-  // mockCreateEntry,
-  // mockFetchEntries,
-  // mockEditEntry,
-  // mockDeleteEntry,
 };
