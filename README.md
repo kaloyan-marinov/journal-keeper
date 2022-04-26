@@ -32,22 +32,81 @@ Next, you can log into your account and create your own journal entries therein.
 
 # How to set up the project for local development
 
-1. clone this repository, and navigate into your local repository
+<ul>
 
-2. inside the `backend` subfolder of your local repository, create a `.env` file with the following structure:
-    ```
-    SECRET_KEY=<specify-a-good-secret-key-here>
+   <li>
+   Stage 1: clone this repository, and navigate into your local repository
+   </li>
 
-    DATABASE_TYPE=mysql
-    DATABASE_HOSTNAME=localhost
-    DATABASE_PORT=3306
-    DATABASE_USERNAME=<journal-keeper-username>
-    DATABASE_PASSWORD=<journal-keeper-password>
-    DATABASE_NAME=<journal-keeper-database>
-    ```
-    (For deployment, you should generate a "good secret key" and store that value in `SECRET_KEY` within the `.env` file; to achieve that, take a look at the "How to generate good secret keys" section on https://flask.palletsprojects.com/en/1.1.x/quickstart/ . For local development, something like `keep-this-value-known-only-to-the-deployment-machine` should suffice.)
+   <li>
+   Stage 2: inside the `backend` subfolder of your local repository, create a `.env` file with the following structure:
 
-3. set up the backend
+   ```
+   SECRET_KEY=<specify-a-good-secret-key-here>
+
+   DATABASE_TYPE=mysql
+   DATABASE_HOSTNAME=localhost
+   DATABASE_PORT=3306
+   DATABASE_USERNAME=<journal-keeper-username>
+   DATABASE_PASSWORD=<journal-keeper-password>
+   DATABASE_NAME=<journal-keeper-database>
+   ```
+
+   (For deployment, you should generate a "good secret key" and store that value in `SECRET_KEY` within the `.env` file; to achieve that, take a look at the "How to generate good secret keys" section on https://flask.palletsprojects.com/en/1.1.x/quickstart/ . For local development, something like `keep-this-value-known-only-to-the-deployment-machine` should suffice.)
+   </li>
+
+   <li>
+   Stage 3: create a host running MySQL Server, along with a database and a (database-)user that is granted privileges for working with that database
+
+   OPTION A (relies [on understanding the basics of and] using Docker
+
+   - inside the `backend` subfolder of your local repository, create a `.env.lone-db-container` file with the following structure:
+      ```
+      MYSQL_RANDOM_ROOT_PASSWORD=yes
+      MYSQL_USER=<provide-the-same-value-as-for-DATABASE_USERNAME-in-`backend/.env`>
+      MYSQL_PASSWORD=<provide-the-same-value-as-for-DATABASE_PASSWORD-in-`backend/.env`>
+      MYSQL_DATABASE=<provide-the-same-value-as-for-DATABASE_NAME-in-`backend/.env`>
+      ```
+
+   - create a host running MySQL Server, along with a database and a (database-)user, by issuing:
+
+      ```
+      docker run \
+         --name container-journal-keeper-mysql \
+         --add-host host.docker.internal:host-gateway \
+         --mount source=volume-journal-keeper-mysql,destination=/var/lib/mysql \
+         --env-file backend/.env.lone-db-container \
+         --publish 3306:3306 \
+         mysql:8.0.26 \
+         --default-authentication-plugin=mysql_native_password
+      ```
+   
+   - connect to the `container-journal-keeper-mysql` in interactive mode, and then log in to the MySQL Server as the created user in order to verify that (1) the new user is able to `USE` the new database as well as (2) that the new database does not contain any tables:
+   
+      ```
+      $ docker container exec \
+         -it \
+         container-journal-keeper-mysql \
+         /bin/bash
+      
+      root@<id-of-the-container>:/# mysql -u <journal-keeper-username> -p
+      Enter password:
+      Welcome to the MySQL monitor.  Commands end with ; or \g.
+      ...
+
+      mysql> USE <journal-keeper-database>;
+      Database changed
+      mysql> SHOW TABLES;
+      Empty set (0.00 sec)
+
+      mysql> quit;
+      Bye
+      root@<id-of-the-container>:/# exit
+      exit
+
+      ```
+
+   OPTION B (relies on installing MySQL server on your system, and working with that installation directly)
 
    - download MySQL Server, install it on your system, and secure the installation (all of which can be accomplished by following the instructions given in [this article](https://linuxize.com/post/how-to-install-mysql-on-ubuntu-18-04/))
 
@@ -172,6 +231,10 @@ Next, you can log into your account and create your own journal entries therein.
       mysql> quit;
       Bye
       ```
+   </li>
+
+   <li>
+   Stage 4: set up the backend
 
    - install the Node.js dependencies:
       ```
@@ -220,7 +283,7 @@ Next, you can log into your account and create your own journal entries therein.
          -c connection-to-db-for-dev
       ```
 
-   - verify that the previous step was successful by issuing `$ mysql -u <journal-keeper-username> -p` and then issuing:
+   - verify that the previous step was successful - if you performed Stage 3 by following its OPTION B, you can verify that the previous step was successful by issuing `$ mysql -u <journal-keeper-username> -p` and then issuing:
       ```
       mysql> SHOW DATABASES;
       +-------------------------+
@@ -288,8 +351,10 @@ Next, you can log into your account and create your own journal entries therein.
       mysql> SELECT * FROM entries;
       Empty set (0.00 sec)
       ```
+   </li>
 
-4. set up the frontend
+   <li>
+   Step 5: set up the frontend
 
    - install the Node.js dependencies:
       ```
@@ -305,8 +370,10 @@ Next, you can log into your account and create your own journal entries therein.
       which will create a `coverage` subfolder with a report of test coverage; to view that report, open `coverage/lcov-report/index.html` in your web browser
 
       (to run the tests in watch mode, issue any one of the following: `frontend $ npm test -- --coverage --watchAll`; each re-run of which will update the contents of the `coverage` subfolder)
+   </li>
 
-5. start serving the backend application and the frontend application
+   <li>
+   Step 6: start serving the backend application and the frontend application
 
    - launch a terminal instance and, in it, start a process responsible for serving the backend application instance; the ways of starting such a process can be broken down into the following categories:
 
@@ -624,6 +691,8 @@ Next, you can log into your account and create your own journal entries therein.
       frontend $ npm start
       ```
       and a tab in your operating system's default web browser should open up and load the address localhost:3000/
+   </li>
+</ul>
 
 # How to use Vanilla Docker to run a containerized version of the project
 
@@ -893,7 +962,7 @@ docker build \
    .
 
 docker run \
-   --name container-journal-keeper-backend \
+   --name container-journal-keeper-backend-prod-stage \
    --network network-journal-keeper \
    --network-alias service-backend \
    --rm \
@@ -912,7 +981,7 @@ docker build \
    .
 
 docker run \
-   --name container-journal-keeper-frontend \
+   --name container-journal-keeper-frontend-prod-stage \
    --network network-journal-keeper \
    --rm \
    --publish 3000:80 \
