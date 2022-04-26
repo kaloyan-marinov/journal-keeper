@@ -722,7 +722,7 @@ With regard to this project in particular, applying a Docker-based deployment me
 
 The easiest way to achieve (a) through (c) - with a particular emphasis on (c)! - is to use Docker Compose. Even though Docker Compose makes the Docker-based deployment method almost entirely automated, it also does a few things "under the hood" that may remain unnoticed if one's experience with Docker is limited. Those things are creating a Docker network; creating a Docker volume; and attaching all running Docker containers to the Docker network.
 
-In the hope of showing that those things are reasonably tractable, this section is going to achieve (a) through (c) without using Docker Compose at all. Instead, it is going to show the exact Docker commands, which need to be issued in order to create Docker network; create a Docker volume; build Docker images; and use the Docker images to run Docker containers attached to the created Docker network.
+In the hope of showing that those things are reasonably tractable, this section is going to achieve (a) through (c) without using Docker Compose at all. Instead, it is going to show the exact Docker commands, which need to be issued in order to create a Docker network; create a Docker volume; build Docker images; and use the Docker images to run Docker containers attached to the created Docker network.
 
 ---
 
@@ -1008,7 +1008,7 @@ $ ./clean-docker-artifacts.sh
 
 The previous section demonstrated how to use "Vanilla Docker" (i.e. Docker without Docker Compose) to run a containerized version of the project. That approach works, but it has the following few inconvenient aspects:
 
-- it relies on not one but two environment files (`backend/.env` an `backend/.env.prod-stage`)
+- it relies on not one but two environment files (`backend/.env` and `backend/.env.prod-stage`)
 - there is duplication between the values that those files stored in environment variables
 - there is also duplication between the values that `backend/.env` alone stored in environment variables
 - even though it uses fewer commands than the "manual deployment method" described in the previous section, each of those commands is long and complex
