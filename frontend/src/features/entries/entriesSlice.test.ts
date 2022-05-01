@@ -11,6 +11,7 @@ import {
   MOCK_ENTRIES_IDS,
   MOCK_ENTRY_10,
   MOCK_ENTRY_20,
+  MOCK_ID_FOR_NEW_ENTRY,
 } from "../../testHelpers";
 import {
   ActionTypesCreateEntry,
@@ -53,7 +54,7 @@ import configureMockStore from "redux-mock-store";
 import thunkMiddleware from "redux-thunk";
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { IState } from "../../types";
-import { URL_FOR_FIRST_PAGE_OF_EXAMPLES, PER_PAGE_DEFAULT } from "../../constants";
+import { URL_FOR_FIRST_PAGE_OF_ENTRIES, PER_PAGE_DEFAULT } from "../../constants";
 import {
   requestHandlers,
   MOCK_META,
@@ -668,7 +669,7 @@ describe(
       async () => {
         // Act.
         const fetchEntriesPromise = storeMock.dispatch(
-          fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES)
+          fetchEntries(URL_FOR_FIRST_PAGE_OF_ENTRIES)
         );
 
         // Assert.
@@ -698,7 +699,7 @@ describe(
 
         // Act.
         const fetchEntriesPromise = storeMock.dispatch(
-          fetchEntries(URL_FOR_FIRST_PAGE_OF_EXAMPLES)
+          fetchEntries(URL_FOR_FIRST_PAGE_OF_ENTRIES)
         );
 
         // Assert.
@@ -765,13 +766,19 @@ describe(
           rest.post("/api/entries", requestHandlers.mockCreateEntry)
         );
 
+        console.log("MOCK_ENTRY_10");
+        console.log(MOCK_ENTRY_10);
+
+        const { timestampInUTC, utcZoneOfTimestamp, content } = MOCK_ENTRY_10;
+        /*
+        Refactor the next statement so as to be computed from
+        `timestampInUTC` and `utcZoneOfTimestamp`.
+        */
+        const localTime = "2021-09-01 04:01";
+
         // Act.
         const createEntryPromise = storeMock.dispatch(
-          createEntry(
-            MOCK_ENTRY_10.localTime,
-            MOCK_ENTRY_10.timezone,
-            MOCK_ENTRY_10.content
-          )
+          createEntry(localTime, utcZoneOfTimestamp, content)
         );
 
         // Assert.
@@ -783,7 +790,10 @@ describe(
           {
             type: "entries/createEntry/fulfilled",
             payload: {
-              entry: MOCK_ENTRY_10,
+              entry: {
+                ...MOCK_ENTRY_10,
+                id: MOCK_ID_FOR_NEW_ENTRY,
+              },
             },
           },
         ]);
@@ -846,14 +856,12 @@ describe(
 
         const targetedEntryId: number = MOCK_ENTRY_10.id;
 
+        const newContent: string =
+          "this content was edited at the following time: 2022-04-03, 21:27";
+
         // Act.
         const editEntryPromise = storeMock.dispatch(
-          editEntry(
-            targetedEntryId,
-            MOCK_ENTRY_20_LOCAL_TIME,
-            MOCK_ENTRY_20.utcZoneOfTimestamp,
-            MOCK_ENTRY_20.content
-          )
+          editEntry(targetedEntryId, undefined, undefined, newContent)
         );
 
         // Assert.
@@ -867,8 +875,8 @@ describe(
             type: "entries/editEntry/fulfilled",
             payload: {
               entry: {
-                ...MOCK_ENTRY_20,
-                id: targetedEntryId,
+                ...MOCK_ENTRY_10,
+                content: newContent,
               },
             },
           },

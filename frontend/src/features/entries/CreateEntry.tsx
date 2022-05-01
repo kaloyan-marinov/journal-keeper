@@ -9,7 +9,8 @@ import { offsetsFromUtc } from "../../utilities";
 import { signOut } from "../../store";
 import { ActionAlerts, alertsCreate } from "../alerts/alertsSlice";
 import { IActionClearAuthSlice } from "../auth/authSlice";
-import { createEntry } from "./entriesSlice";
+import { createEntry, fetchEntries } from "./entriesSlice";
+import { URL_FOR_FIRST_PAGE_OF_ENTRIES } from "../../constants";
 
 export const CreateEntry = () => {
   console.log(
@@ -53,7 +54,22 @@ export const CreateEntry = () => {
           createEntry(formData.localTime, formData.timezone, formData.content)
         );
         dispatch(alertsCreate(id, "ENTRY CREATION SUCCESSFUL"));
-        history.push("/journal-entries");
+
+        /*
+        Force
+        the contents within the "meta" and "links" sub-slices
+        of the app-level state's "entries" slice
+        to be updated.
+        */
+        await dispatch(fetchEntries(URL_FOR_FIRST_PAGE_OF_ENTRIES));
+
+        const locationDescriptor = {
+          pathname: "/journal-entries",
+          state: {
+            fromCreateEntry: true,
+          },
+        };
+        history.push(locationDescriptor);
       } catch (err) {
         if (err.response.status === 401) {
           dispatch(signOut("[FROM <CreateEntry>'S handleSubmit] PLEASE SIGN BACK IN"));

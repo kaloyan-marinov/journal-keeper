@@ -1,11 +1,11 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ThunkDispatch } from "redux-thunk";
 import { v4 as uuidv4 } from "uuid";
 
 import { IEntry, IPaginationLinks, IPaginationMeta, IState } from "../../types";
-import { URL_FOR_FIRST_PAGE_OF_EXAMPLES } from "../../constants";
+import { URL_FOR_FIRST_PAGE_OF_ENTRIES } from "../../constants";
 import {
   selectEntriesEntities,
   selectEntriesIds,
@@ -18,6 +18,12 @@ import { IActionClearAuthSlice } from "../auth/authSlice";
 import { DeleteEntryLink } from "./DeleteEntryLink";
 import { fetchEntries } from "./entriesSlice";
 import { SingleJournalEntry } from "./SingleJournalEntry";
+
+interface LocationStateWithinJournalEntries {
+  fromCreateEntry: null | boolean;
+  fromEditEntry: null | boolean;
+  fromDeleteEntry: null | boolean;
+}
 
 export const JournalEntries = () => {
   console.log(
@@ -39,9 +45,37 @@ export const JournalEntries = () => {
   const dispatch: ThunkDispatch<IState, unknown, IActionClearAuthSlice | ActionAlerts> =
     useDispatch();
 
-  const [entriesUrl, setEntriesUrl] = React.useState<string>(
-    URL_FOR_FIRST_PAGE_OF_EXAMPLES
-  );
+  let location = useLocation<LocationStateWithinJournalEntries>();
+  let initialEntriesUrl: string;
+  if (
+    location.state &&
+    location.state.fromCreateEntry === true &&
+    entriesLinks.last !== null
+  ) {
+    console.log("    from /entries/create (i.e. <CreateEntry>)");
+    initialEntriesUrl = entriesLinks.last;
+  } else if (
+    location.state &&
+    location.state.fromEditEntry &&
+    entriesLinks.self !== null
+  ) {
+    console.log("    from /entries/:id/edit (i.e. <EditEntry>)");
+    initialEntriesUrl = entriesLinks.self;
+  } else if (
+    location.state &&
+    location.state.fromDeleteEntry &&
+    entriesLinks.self !== null
+  ) {
+    console.log("    from /entries/:id/delete (i.e. <DeleteEntry>)");
+    initialEntriesUrl = entriesLinks.self;
+  } else {
+    console.log(
+      "    NOT from any of the following: /entries/create, /entries/:id/edit, /entries/:id/delete"
+    );
+    initialEntriesUrl = URL_FOR_FIRST_PAGE_OF_ENTRIES;
+  }
+
+  const [entriesUrl, setEntriesUrl] = React.useState<string>(initialEntriesUrl);
 
   React.useEffect(() => {
     console.log(
@@ -52,8 +86,10 @@ export const JournalEntries = () => {
 
     const effectFn = async () => {
       console.log(
-        "    <JournalEntries>'s useEffect hook is dispatching fetchEntries()"
+        "    <JournalEntries>'s useEffect hook is dispatching fetchEntries(entriesUrl)"
       );
+      console.log("    with entriesUrl equal to");
+      console.log(`    ${entriesUrl}`);
 
       try {
         await dispatch(fetchEntries(entriesUrl));

@@ -41,7 +41,7 @@ export const MOCK_PROFILE_1 = {
   updatedAt: "mocked-2021-05-23T11:10:34.000Z",
 };
 
-export const MOCK_ENTRIES: IEntry[] = Array.from({ length: 50 }).map((_, index) => {
+export let MOCK_ENTRIES: IEntry[] = Array.from({ length: 50 }).map((_, index) => {
   const minute = (index + 1).toString().padStart(2, "0");
 
   return {
@@ -64,6 +64,8 @@ export const MOCK_ENTRIES_ENTITIES: { [entryId: string]: IEntry } = MOCK_ENTRIES
   },
   {}
 );
+
+export const MOCK_ID_FOR_NEW_ENTRY: number = 666;
 
 export const MOCK_ENTRY_10: IEntry = MOCK_ENTRIES_ENTITIES[10];
 
@@ -182,7 +184,52 @@ const mockCreateEntry = (
   res: ResponseComposition<any>,
   ctx: RestContext
 ) => {
-  return res.once(ctx.status(201), ctx.json(MOCK_ENTRY_10));
+  /*
+  Let C denote the commit introducing this line and editing the next code-block.
+
+  Immediately prior to C,
+  it was possible to serve the frontend application without errors.
+
+  Then I terminated all processes related to this project,
+  restarted my computed,
+  and started all processes related to this project afresh;
+  it was no longer possible to serve the frontend,
+  because TypeScript crashed with errors related to
+  what the next code-block used to look like immediately prior to C.
+
+  The changes to the next code-block, which are introduced in C,
+  make it possible to to serve the frontend application without errors.
+
+  TODO: determine what type annotations need to be added to `req`
+        so as to make it possible to remove
+        the explicit(-and-perhaps-mysterious-looking) type conversions
+        from the following statements
+  */
+  const localTime = (req!.body as Record<string, any>).localTime; // ex: "2021-05-13 00:18"
+  const timezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
+  const content = (req!.body as Record<string, any>).content; // ex: "some insightful content"
+
+  // const createdAt: string = new Date().toISOString();
+  const createdAt: string = MOCK_ENTRY_10.createdAt;
+
+  const updatedAt: string = MOCK_ENTRY_10.updatedAt;
+
+  // const timestampInUTC = new Date(localTime + "Z" + timezone).toISOString();
+  const timestampInUTC = MOCK_ENTRY_10.timestampInUTC;
+
+  const newEntry: IEntry = {
+    id: MOCK_ID_FOR_NEW_ENTRY,
+    timestampInUTC,
+    utcZoneOfTimestamp: timezone,
+    content: content,
+    createdAt,
+    updatedAt,
+    userId: 1,
+  };
+
+  MOCK_ENTRIES = [...MOCK_ENTRIES, newEntry];
+
+  return res.once(ctx.status(201), ctx.json(newEntry));
 };
 
 const mockEditEntry = (
@@ -193,15 +240,58 @@ const mockEditEntry = (
   const { id: entryIdStr } = req.params;
   const entryId: number = parseInt(entryIdStr);
 
-  const editedEntry = entryId !== MOCK_ENTRY_10.id ? MOCK_ENTRY_10 : MOCK_ENTRY_20;
+  // const editedEntry = entryId !== MOCK_ENTRY_10.id ? MOCK_ENTRY_10 : MOCK_ENTRY_20;
 
-  return res.once(
-    ctx.status(200),
-    ctx.json({
-      ...editedEntry,
-      id: entryId,
-    })
-  );
+  // return res.once(
+  //   ctx.status(200),
+  //   ctx.json({
+  //     ...editedEntry,
+  //     id: entryId,
+  //   })
+  // );
+
+  const editedLocalTime = (req!.body as Record<string, any>).localTime; // ex: "2021-05-13 00:18"
+  const editedTimezone = (req!.body as Record<string, any>).timezone; // ex: "-08:00"
+  const editedContent = (req!.body as Record<string, any>).content; // ex: "an edited version of some insightful content"
+
+  // Emulate the backend's route-handling function for
+  // PUT requests to /api/entries/:id .
+  if (
+    (editedTimezone !== undefined && editedLocalTime === undefined) ||
+    (editedTimezone === undefined && editedLocalTime !== undefined)
+  ) {
+    return res.once(
+      ctx.status(400),
+      ctx.json({
+        error:
+          "Your request body must include" +
+          " either both of 'timezone' and 'localTime', or neither one of them",
+      })
+    );
+  } else if (editedTimezone !== undefined && editedLocalTime !== undefined) {
+    // Defer implementing any logic in this case,
+    // for as long as it is possible to do so.
+  }
+
+  if (editedContent !== undefined) {
+    MOCK_ENTRIES = MOCK_ENTRIES.map((entry: IEntry) => {
+      if (entry.id !== entryId) {
+        return entry;
+      }
+
+      const editedEntry: IEntry = {
+        ...entry,
+      };
+
+      editedEntry.content = editedContent;
+
+      return editedEntry;
+    });
+  }
+
+  const editedEntry = MOCK_ENTRIES.filter((entry: IEntry) => entry.id === entryId)[0];
+
+  return res.once(ctx.status(200), ctx.json(editedEntry));
 };
 
 const mockDeleteEntry = (
@@ -209,6 +299,10 @@ const mockDeleteEntry = (
   res: ResponseComposition<any>,
   ctx: RestContext
 ) => {
+  const entryId: number = parseInt(req.params.id);
+
+  MOCK_ENTRIES = MOCK_ENTRIES.filter((entry: IEntry) => entry.id !== entryId);
+
   return res.once(ctx.status(204));
 };
 

@@ -39,4 +39,4 @@ export const PER_PAGE_DEFAULT: number = 10;
 
 export const PAGE_DEFAULT: number = 1;
 
-export const URL_FOR_FIRST_PAGE_OF_EXAMPLES = "/api/entries";
+export const URL_FOR_FIRST_PAGE_OF_ENTRIES = "/api/entries";
