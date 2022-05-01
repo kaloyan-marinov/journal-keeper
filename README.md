@@ -354,7 +354,7 @@ Next, you can log into your account and create your own journal entries therein.
    </li>
 
    <li>
-   Step 5: set up the frontend
+   Stage 5: set up the frontend
 
    - install the Node.js dependencies:
       ```
@@ -373,7 +373,7 @@ Next, you can log into your account and create your own journal entries therein.
    </li>
 
    <li>
-   Step 6: start serving the backend application and the frontend application
+   Stage 6: start serving the backend application and the frontend application
 
    - launch a terminal instance and, in it, start a process responsible for serving the backend application instance; the ways of starting such a process can be broken down into the following categories:
 
@@ -722,7 +722,7 @@ With regard to this project in particular, applying a Docker-based deployment me
 
 The easiest way to achieve (a) through (c) - with a particular emphasis on (c)! - is to use Docker Compose. Even though Docker Compose makes the Docker-based deployment method almost entirely automated, it also does a few things "under the hood" that may remain unnoticed if one's experience with Docker is limited. Those things are creating a Docker network; creating a Docker volume; and attaching all running Docker containers to the Docker network.
 
-In the hope of showing that those things are reasonably tractable, this section is going to achieve (a) through (c) without using Docker Compose at all. Instead, it is going to show the exact Docker commands, which need to be issued in order to create Docker network; create a Docker volume; build Docker images; and use the Docker images to run Docker containers attached to the created Docker network.
+In the hope of showing that those things are reasonably tractable, this section is going to achieve (a) through (c) without using Docker Compose at all. Instead, it is going to show the exact Docker commands, which need to be issued in order to create a Docker network; create a Docker volume; build Docker images; and use the Docker images to run Docker containers attached to the created Docker network.
 
 ---
 
@@ -972,7 +972,7 @@ docker run \
    --publish 5000:5000 \
    --detach \
    image-journal-keeper-backend:prod-stage-${HYPHENATED_YYYY_MM_DD_HH_MM} \
-   node dist/server.js
+   scripts/wait-migrate-serve.sh
 
 docker build \
    --file Dockerfile.frontend \
@@ -997,19 +997,18 @@ $ export PORT=3000
 
 # Use a web browser to interact with the frontend UI.
 
-# Stop running the containers with the database, the backend, and the frontend
+# Stop running all containers,
+# remove the created Docker volume,
+# and remove the created Docker network
 # by issuing:
-$ docker container rm -f \
-   container-journal-keeper-frontend \
-   container-journal-keeper-backend \
-   container-journal-keeper-mysql
+$ ./clean-docker-artifacts.sh
 ```
 
 # How to use Docker Compose to run a containerized version of the project
 
 The previous section demonstrated how to use "Vanilla Docker" (i.e. Docker without Docker Compose) to run a containerized version of the project. That approach works, but it has the following few inconvenient aspects:
 
-- it relies on not one but two environment files (`backend/.env` an `backend/.env.prod-stage`)
+- it relies on not one but two environment files (`backend/.env` and `backend/.env.prod-stage`)
 - there is duplication between the values that those files stored in environment variables
 - there is also duplication between the values that `backend/.env` alone stored in environment variables
 - even though it uses fewer commands than the "manual deployment method" described in the previous section, each of those commands is long and complex
@@ -1113,6 +1112,13 @@ This section demonstrates how to use Docker Compose to run a containerized versi
    # Use a web browser to interact with the frontend UI.
    ```
 
+   ```
+   docker container rm -f \
+      container-journal-keeper-database-server \
+      container-journal-keeper-backend-build-stage \
+      container-journal-keeper-frontend-build-stage
+   ```
+
 4. run the `prod-stage`:
 
    ```
@@ -1122,10 +1128,7 @@ This section demonstrates how to use Docker Compose to run a containerized versi
       --file docker-compose.prod-stage.yml \
       up
    
-   $ docker container rm -f \
-      container-journal-keeper-database-server \
-      container-journal-keeper-backend-prod-stage \
-      container-journal-keeper-frontend-prod-stage
+   $ ./clean-docker-artifacts.sh
    ```
 
 # Future plans

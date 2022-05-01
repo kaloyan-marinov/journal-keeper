@@ -18,15 +18,10 @@ services:
       - TYPEORM_SYNCHRONIZE=false
       - TYPEORM_LOGGING=true
       - TYPEORM_ENTITIES=dist/entities.js
+      - TYPEORM_MIGRATIONS=dist/migration/*.js
       - NODE_ENV=prod
     command:
-      [
-        "./wait-for",
-          "${DB_ENGINE_HOSTNAME:?env var cannot be unset or empty}:${DB_ENGINE_PORT:?env var cannot be unset or empty}",
-          "--timeout=30",  # Value found by manually trying out different ones.
-          "--",
-            "node", "dist/server.js"
-      ]
+      ["./scripts/wait-migrate-serve.sh"]
     # expose:
     #   - "5000"
     # ports:

@@ -1,3 +1,14 @@
+# https://duckduckgo.com/?t=ffab&q=mysql+container+Authentication+plugin+%27caching_sha2_password%27+cannot+be+loaded&atb=v273-1&ia=web
+#
+#   https://stackoverflow.com/questions/49194719/authentication-plugin-caching-sha2-password-cannot-be-loaded
+#   https://stackoverflow.com/questions/49963383/authentication-plugin-caching-sha2-password
+#
+#   https://dev.mysql.com/doc/refman/8.0/en/caching-sha2-pluggable-authentication.html
+#
+#   https://github.com/docker-library/mysql/issues/419#issuecomment-385323901
+#
+#   
+
 version: "3.7"
 
 services:
@@ -6,6 +17,7 @@ services:
     container_name: ${DB_ENGINE_HOSTNAME:?env var cannot be unset or empty}
     volumes:
       - volume-journal-keeper-mysql:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
     restart: always
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
@@ -31,17 +43,7 @@ services:
       - DATABASE_USERNAME=${DB_ENGINE_USERNAME:?env var cannot be unset or empty}
       - DATABASE_PASSWORD=${DB_ENGINE_PASSWORD:?env var cannot be unset or empty}
     command: 
-      [
-        "./wait-for",
-          "${DB_ENGINE_HOSTNAME:?env var cannot be unset or empty}:${DB_ENGINE_PORT:?env var cannot be unset or empty}",
-          "--timeout=30",  # Value found by manually trying out different ones.
-          "--",
-            "ts-node",
-              "./node_modules/typeorm/cli",
-              "-f", "./ormconfig.ts",
-              "migration:run",
-              "-c", "connection-to-db-for-dev"
-      ]
+      ["./scripts/apply-db-migrations.sh"]
   
   service-frontend:
     build:
