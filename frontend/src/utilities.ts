@@ -1,3 +1,16 @@
+import { IEntriesEntities, IEntry } from "./types";
+
+export const extractIds = (entries: IEntry[]): number[] => {
+  return entries.map((e: IEntry) => e.id);
+};
+
+export const extractEntities = (entries: IEntry[]): IEntriesEntities => {
+  return entries.reduce((entriesObj: IEntriesEntities, entry: IEntry) => {
+    entriesObj[entry.id] = entry;
+    return entriesObj;
+  }, {});
+};
+
 export const offsetsFromUtc = () => {
   /*
   Create a list of the UTC time offsets

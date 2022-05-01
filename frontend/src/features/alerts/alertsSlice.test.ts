@@ -1,6 +1,6 @@
 import { IStateAlerts } from "../../types";
 import { INITIAL_STATE_ALERTS } from "../../constants";
-import { MOCK_ALERT_17, MOCK_ALERT_34 } from "../../testHelpers";
+import { MOCK_ALERT_17, MOCK_ALERT_34 } from "../../mockPiecesOfData";
 import {
   ActionTypesAlerts,
   alertsCreate,

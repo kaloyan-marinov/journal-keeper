@@ -20,7 +20,7 @@ import {
   MOCK_LINKS,
   MOCK_META,
   MOCK_PROFILE_1,
-} from "./testHelpers";
+} from "./mockPiecesOfData";
 import {
   selectAlertsEntities,
   selectAlertsIds,

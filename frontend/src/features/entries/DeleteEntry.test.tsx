@@ -14,7 +14,7 @@ import {
   MOCK_ENTRY_10,
   MOCK_LINKS,
   MOCK_META,
-} from "../../testHelpers";
+} from "../../mockPiecesOfData";
 import { PrivateRoute } from "../auth/PrivateRoute";
 import { DeleteEntry } from "./DeleteEntry";
 import { JournalEntries } from "./JournalEntries";

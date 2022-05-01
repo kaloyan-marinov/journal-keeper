@@ -10,12 +10,8 @@ import { PER_PAGE_DEFAULT } from "../../constants";
 import { INITIAL_STATE, rootReducer } from "../../store";
 import { Alerts } from "../alerts/Alerts";
 import { JournalEntries } from "./JournalEntries";
-import {
-  MOCK_PROFILE_1,
-  MOCK_ENTRY_10,
-  requestHandlers,
-  RequestHandlingFacilitator,
-} from "../../testHelpers";
+import { requestHandlers, RequestHandlingFacilitator } from "../../testHelpers";
+import { MOCK_PROFILE_1, MOCK_ENTRY_10 } from "../../mockPiecesOfData";
 
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { setupServer, SetupServerApi } from "msw/node";
