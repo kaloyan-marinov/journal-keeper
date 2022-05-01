@@ -768,15 +768,9 @@ describe(
           rest.post("/api/entries", rhf.createMockCreateEntry())
         );
 
-        console.log("MOCK_ENTRY_10");
-        console.log(MOCK_ENTRY_10);
-
-        const { timestampInUTC, utcZoneOfTimestamp, content } = MOCK_ENTRY_10;
-        /*
-        Refactor the next statement so as to be computed from
-        `timestampInUTC` and `utcZoneOfTimestamp`.
-        */
         const localTime = "2021-09-01 04:01";
+        const utcZoneOfTimestamp = "+03:00";
+        const content = "Explicit is better than implicit.";
 
         // Act.
         const createEntryPromise = storeMock.dispatch(
@@ -793,8 +787,13 @@ describe(
             type: "entries/createEntry/fulfilled",
             payload: {
               entry: {
-                ...MOCK_ENTRY_10,
                 id: MOCK_ID_FOR_NEW_ENTRY,
+                timestampInUTC: "2021-09-01T01:01:00.000Z",
+                utcZoneOfTimestamp,
+                content,
+                createdAt: MOCK_ENTRY_10.createdAt,
+                updatedAt: MOCK_ENTRY_10.updatedAt,
+                userId: 1,
               },
             },
           },

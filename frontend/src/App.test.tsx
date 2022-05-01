@@ -380,8 +380,10 @@ describe("workflows that involve signing in and creating a new Entry", () => {
       const [localTimeInput, contentTextArea] = screen.getAllByRole("textbox");
       const timezoneSelect = screen.getByRole("combobox");
 
-      fireEvent.change(localTimeInput, { target: { value: "2021-05-13 00:18" } });
-      fireEvent.change(timezoneSelect, { target: { value: "-08:00" } });
+      fireEvent.change(localTimeInput, { target: { value: "2022-04-07 08:44" } });
+      // On the above-specified date, EEST corresponds to UTC+03:00
+      // (due to Daylight Saving(s) Time).
+      fireEvent.change(timezoneSelect, { target: { value: "+03:00" } });
       fireEvent.change(contentTextArea, {
         target: { value: "some insightful content" },
       });
@@ -408,6 +410,11 @@ describe("workflows that involve signing in and creating a new Entry", () => {
 
       const newEntryContent: HTMLElement = screen.getByText("some insightful content");
       expect(newEntryContent).toBeInTheDocument();
+
+      const newEntryTimestamp: HTMLElement = screen.getByText(
+        "2022-04-07 05:44 (UTC +00:00)"
+      );
+      expect(newEntryTimestamp).toBeInTheDocument();
     }
   );
 });
