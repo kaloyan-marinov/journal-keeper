@@ -142,9 +142,9 @@ export class RequestHandlingFacilitator {
       res: ResponseComposition<any>,
       ctx: RestContext
     ) => {
-      const localTime = (req!.body as Record<string, any>).localTime; // ex: "2022-04-07 08:44"
-      const timezone = (req!.body as Record<string, any>).timezone; // ex: "+03:00"
-      const content = (req!.body as Record<string, any>).content; // ex: "some insightful content"
+      const localTime = (req!.body as Record<string, any>).localTime;
+      const timezone = (req!.body as Record<string, any>).timezone;
+      const content = (req!.body as Record<string, any>).content;
 
       const createdAt: string = MOCK_ENTRY_10.createdAt;
       const updatedAt: string = MOCK_ENTRY_10.updatedAt;
