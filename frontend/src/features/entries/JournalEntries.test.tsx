@@ -10,7 +10,12 @@ import { PER_PAGE_DEFAULT } from "../../constants";
 import { INITIAL_STATE, rootReducer } from "../../store";
 import { Alerts } from "../alerts/Alerts";
 import { JournalEntries } from "./JournalEntries";
-import { MOCK_PROFILE_1, MOCK_ENTRY_10, requestHandlers } from "../../testHelpers";
+import {
+  MOCK_PROFILE_1,
+  MOCK_ENTRY_10,
+  requestHandlers,
+  RequestHandlingFacilitator,
+} from "../../testHelpers";
 
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { setupServer, SetupServerApi } from "msw/node";
@@ -126,8 +131,9 @@ describe("initial render", () => {
       " the client-provided authentication credential as valid",
     async () => {
       // Arrange.
+      const rhf: RequestHandlingFacilitator = new RequestHandlingFacilitator();
       requestInterceptionLayer.use(
-        rest.get("/api/entries", requestHandlers.mockFetchEntries)
+        rest.get("/api/entries", rhf.createMockFetchEntries())
       );
 
       const initState = {
@@ -178,13 +184,14 @@ describe("initial render", () => {
 describe("responds to user interaction", () => {
   test("the user interacts with the pagination-controlling buttons", async () => {
     // Arrange.
+    const rhf: RequestHandlingFacilitator = new RequestHandlingFacilitator();
     requestInterceptionLayer.use(
-      rest.get("/api/entries", requestHandlers.mockFetchEntries),
+      rest.get("/api/entries", rhf.createMockFetchEntries()),
 
-      rest.get("/api/entries", requestHandlers.mockFetchEntries),
-      rest.get("/api/entries", requestHandlers.mockFetchEntries),
-      rest.get("/api/entries", requestHandlers.mockFetchEntries),
-      rest.get("/api/entries", requestHandlers.mockFetchEntries)
+      rest.get("/api/entries", rhf.createMockFetchEntries()),
+      rest.get("/api/entries", rhf.createMockFetchEntries()),
+      rest.get("/api/entries", rhf.createMockFetchEntries()),
+      rest.get("/api/entries", rhf.createMockFetchEntries())
     );
 
     const enhancer = applyMiddleware(thunkMiddleware);

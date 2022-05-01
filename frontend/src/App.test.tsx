@@ -11,7 +11,7 @@ import { JOURNAL_APP_TOKEN } from "./constants";
 import App from "./App";
 import { TEnhancer, INITIAL_STATE, rootReducer } from "./store";
 
-import { requestHandlers } from "./testHelpers";
+import { RequestHandlingFacilitator, requestHandlers } from "./testHelpers";
 import { createMemoryHistory, MemoryHistory } from "history";
 import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { setupServer, SetupServerApi } from "msw/node";
@@ -345,15 +345,16 @@ describe("workflows that involve signing in and creating a new Entry", () => {
       // Arrange.
       const realStore = createStore(rootReducer, initState, enhancer);
 
+      const rhf: RequestHandlingFacilitator = new RequestHandlingFacilitator();
       requestInterceptionLayer.use(
         rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
 
-        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.get("/api/entries", rhf.createMockFetchEntries()),
 
-        rest.post("/api/entries", requestHandlers.mockCreateEntry),
-        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.post("/api/entries", rhf.createMockCreateEntry()),
+        rest.get("/api/entries", rhf.createMockFetchEntries()),
 
-        rest.get("/api/entries", requestHandlers.mockFetchEntries)
+        rest.get("/api/entries", rhf.createMockFetchEntries())
       );
 
       render(
@@ -426,15 +427,16 @@ describe("workflows that involve signing in and editing an existing Entry", () =
       // Arrange.
       const realStore = createStore(rootReducer, initState, enhancer);
 
+      const rhf: RequestHandlingFacilitator = new RequestHandlingFacilitator();
       requestInterceptionLayer.use(
         rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
 
-        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.get("/api/entries", rhf.createMockFetchEntries()),
 
-        rest.put("/api/entries/:id", requestHandlers.mockEditEntry),
-        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.put("/api/entries/:id", rhf.createMockEditEntry()),
+        rest.get("/api/entries", rhf.createMockFetchEntries()),
 
-        rest.get("/api/entries", requestHandlers.mockFetchEntries)
+        rest.get("/api/entries", rhf.createMockFetchEntries())
       );
 
       render(
@@ -521,15 +523,16 @@ describe("workflows that involve signing in and deleting an Entry", () => {
       // Arrange.
       const realStore = createStore(rootReducer, initState, enhancer);
 
+      const rhf: RequestHandlingFacilitator = new RequestHandlingFacilitator();
       requestInterceptionLayer.use(
         rest.get("/api/user-profile", requestHandlers.mockFetchUserProfile),
 
-        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.get("/api/entries", rhf.createMockFetchEntries()),
 
-        rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry),
-        rest.get("/api/entries", requestHandlers.mockFetchEntries),
+        rest.delete("/api/entries/:id", rhf.createMockDeleteEntry()),
+        rest.get("/api/entries", rhf.createMockFetchEntries()),
 
-        rest.get("/api/entries", requestHandlers.mockFetchEntries)
+        rest.get("/api/entries", rhf.createMockFetchEntries())
       );
 
       render(

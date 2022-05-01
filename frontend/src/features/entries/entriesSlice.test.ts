@@ -56,6 +56,7 @@ import { DefaultRequestBody, MockedRequest, rest, RestHandler } from "msw";
 import { IState } from "../../types";
 import { URL_FOR_FIRST_PAGE_OF_ENTRIES, PER_PAGE_DEFAULT } from "../../constants";
 import {
+  RequestHandlingFacilitator,
   requestHandlers,
   MOCK_META,
   MOCK_LINKS,
@@ -693,8 +694,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
+        const rhf: RequestHandlingFacilitator = new RequestHandlingFacilitator();
         requestInterceptionLayer.use(
-          rest.get("/api/entries", requestHandlers.mockFetchEntries)
+          rest.get("/api/entries", rhf.createMockFetchEntries())
         );
 
         // Act.
@@ -762,8 +764,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
+        const rhf: RequestHandlingFacilitator = new RequestHandlingFacilitator();
         requestInterceptionLayer.use(
-          rest.post("/api/entries", requestHandlers.mockCreateEntry)
+          rest.post("/api/entries", rhf.createMockCreateEntry())
         );
 
         console.log("MOCK_ENTRY_10");
@@ -850,8 +853,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
+        const rhf: RequestHandlingFacilitator = new RequestHandlingFacilitator();
         requestInterceptionLayer.use(
-          rest.put("/api/entries/:id", requestHandlers.mockEditEntry)
+          rest.put("/api/entries/:id", rhf.createMockEditEntry())
         );
 
         const targetedEntryId: number = MOCK_ENTRY_10.id;
@@ -916,8 +920,9 @@ describe(
         " + the HTTP request issued by that thunk-action is mocked to succeed",
       async () => {
         // Arrange.
+        const rhf: RequestHandlingFacilitator = new RequestHandlingFacilitator();
         requestInterceptionLayer.use(
-          rest.delete("/api/entries/:id", requestHandlers.mockDeleteEntry)
+          rest.delete("/api/entries/:id", rhf.createMockDeleteEntry())
         );
 
         const targetedEntryId: number = MOCK_ENTRY_10.id;
